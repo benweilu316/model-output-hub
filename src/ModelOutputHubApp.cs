@@ -44,7 +44,33 @@ namespace ModelOutputHub
         [DllImport("shell32.dll", SetLastError = true)]
         private static extern void SetCurrentProcessExplicitAppUserModelID([MarshalAs(UnmanagedType.LPWStr)] string AppID);
 
-        public const string AppVersion = "4.0.0";
+        [DllImport("user32.dll", SetLastError = true)]
+        private static extern bool SetProcessDpiAwarenessContext(IntPtr dpiContext);
+
+        [DllImport("shcore.dll")]
+        private static extern int SetProcessDpiAwareness(int awareness);
+
+        [DllImport("user32.dll")]
+        private static extern bool SetProcessDPIAware();
+
+        private static void EnablePerMonitorDpiAwareness()
+        {
+            try
+            {
+                // DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2 = (HANDLE)-4
+                if (SetProcessDpiAwarenessContext(new IntPtr(-4))) return;
+            }
+            catch { }
+            try
+            {
+                // PROCESS_PER_MONITOR_DPI_AWARE = 2
+                if (SetProcessDpiAwareness(2) == 0) return;
+            }
+            catch { }
+            try { SetProcessDPIAware(); } catch { }
+        }
+
+        public const string AppVersion = "4.1.0";
         public const string GithubRepo = "benweilu316/model-output-hub";
 
         private static string s_appLocalDataDir;
@@ -54,6 +80,7 @@ namespace ModelOutputHub
         [STAThread]
         public static int Main(string[] args)
         {
+            EnablePerMonitorDpiAwareness();
             try
             {
                 ServicePointManager.SecurityProtocol = (SecurityProtocolType)3072 | SecurityProtocolType.Tls12 | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls;
@@ -1458,7 +1485,7 @@ namespace ModelOutputHub
                 foreach (string oldThumb in Directory.GetFiles(_thumbsDir, "*.png"))
                 {
                     string fn = Path.GetFileName(oldThumb);
-                    if (!fn.StartsWith("v3_", StringComparison.OrdinalIgnoreCase))
+                    if (!fn.StartsWith("v4_", StringComparison.OrdinalIgnoreCase))
                         File.Delete(oldThumb);
                 }
             }
@@ -1471,7 +1498,9 @@ namespace ModelOutputHub
             Height = 920;
             MinWidth = 1080;
             MinHeight = 680;
-            Background = new SolidColorBrush(System.Windows.Media.Color.FromRgb(0xFF, 0xE6, 0xD8));
+            Background = new SolidColorBrush(System.Windows.Media.Color.FromRgb(0xF7, 0xEA, 0xE3));
+            TextOptions.SetTextFormattingMode(this, TextFormattingMode.Display);
+            RenderOptions.SetBitmapScalingMode(this, BitmapScalingMode.HighQuality);
 
             if (!string.IsNullOrEmpty(_previewOutDir))
             {
@@ -1507,7 +1536,7 @@ namespace ModelOutputHub
 
             _webView = new WebView2
             {
-                DefaultBackgroundColor = System.Drawing.Color.FromArgb(255, 241, 243, 238)
+                DefaultBackgroundColor = System.Drawing.Color.FromArgb(255, 247, 234, 227)
             };
             Content = _webView;
 
@@ -1808,15 +1837,35 @@ namespace ModelOutputHub
                 Application.Current.Shutdown(ExitCode);
         }
 
-        private void OnSourceInitialized(object sender, EventArgs e)
+        private void ApplyNativeWindowTheme(bool isDark, string hexBg)
         {
             try
             {
                 IntPtr hwnd = new WindowInteropHelper(this).Handle;
-                int cornerPref = 2;
+                if (hwnd == IntPtr.Zero) return;
+                int cornerPref = 2; // DWMWCP_ROUND
                 DwmSetWindowAttribute(hwnd, 33, ref cornerPref, sizeof(int));
+                int darkFlag = isDark ? 1 : 0;
+                DwmSetWindowAttribute(hwnd, 20, ref darkFlag, sizeof(int));
+                // Subtle Win11 hairline border (COLORREF = 0x00BBGGRR)
+                int borderColorRef = isDark ? 0x00332B27 : 0x00D8CFC9;
+                DwmSetWindowAttribute(hwnd, 34, ref borderColorRef, sizeof(int));
+
+                if (!string.IsNullOrEmpty(hexBg) && hexBg.StartsWith("#") && hexBg.Length == 7)
+                {
+                    byte r = Convert.ToByte(hexBg.Substring(1, 2), 16);
+                    byte g = Convert.ToByte(hexBg.Substring(3, 2), 16);
+                    byte b = Convert.ToByte(hexBg.Substring(5, 2), 16);
+                    Background = new SolidColorBrush(System.Windows.Media.Color.FromRgb(r, g, b));
+                    if (_webView != null) _webView.DefaultBackgroundColor = System.Drawing.Color.FromArgb(255, r, g, b);
+                }
             }
             catch { }
+        }
+
+        private void OnSourceInitialized(object sender, EventArgs e)
+        {
+            ApplyNativeWindowTheme(false, "#F7EAE3");
         }
 
         private async void OnWindowLoaded(object sender, RoutedEventArgs e)
@@ -2072,8 +2121,8 @@ namespace ModelOutputHub
                 hashHex = sb.ToString();
             }
 
-            int targetPx = hiRes ? 960 : 560;
-            string outPng = Path.Combine(_thumbsDir, "v3_" + (hiRes ? "hi_" : "") + hashHex + ".png");
+            int targetPx = hiRes ? 1920 : 840;
+            string outPng = Path.Combine(_thumbsDir, "v4_" + (hiRes ? "hi_" : "") + hashHex + ".png");
             if (File.Exists(outPng) && new FileInfo(outPng).Length > 64)
                 return outPng;
 
@@ -2849,6 +2898,14 @@ namespace ModelOutputHub
                         MergeAndSaveUserMeta(msg, new[] { "ui_paradigm", "ui_scale", "ui_font", "finder_layout", "finder_dedup", "finder_curated", "ui_gen" });
                         break;
 
+                    case "syncTheme":
+                        {
+                            bool isDark = msg.ContainsKey("dark") && Convert.ToBoolean(msg["dark"]);
+                            string hexBg = msg.ContainsKey("bg") ? Convert.ToString(msg["bg"] ?? "") : "";
+                            Dispatcher.BeginInvoke(new Action(() => ApplyNativeWindowTheme(isDark, hexBg)));
+                        }
+                        break;
+
                     case "saveLlmConfig":
                         SaveLlmConfig(msg);
                         break;
@@ -3473,7 +3530,8 @@ namespace ModelOutputHub
                 new { Name = "v4-4-obsidian-drill",    Url = "https://hub.local/app?paradigm=obsidian&view=atlas&autotopic=1&font=default&scale=normal" },
                 new { Name = "v4-5-dewdrop-atlas",     Url = "https://hub.local/app?paradigm=dewdrop&view=atlas&font=default&scale=normal" },
                 new { Name = "v4-6-amethyst-compare",  Url = "https://hub.local/app?paradigm=amethyst&view=atlas&autotopic=1&autocompare=1&font=default&scale=normal" },
-                new { Name = "v4-7-peach-folders",     Url = "https://hub.local/app?paradigm=peach&view=folders&font=default&scale=normal" }
+                new { Name = "v4-7-peach-folders",     Url = "https://hub.local/app?paradigm=peach&view=folders&font=default&scale=normal" },
+                new { Name = "v4-8-obsidian-atlas",    Url = "https://hub.local/app?paradigm=obsidian&view=atlas&font=default&scale=normal" }
             };
 
             foreach (var s in shots)
@@ -3495,14 +3553,14 @@ namespace ModelOutputHub
                     if (rdy == "true") break;
                     await Task.Delay(100);
                 }
-                for (int w = 0; w < 45; w++)
+                for (int w = 0; w < 85; w++)
                 {
                     string imgsOk = await _webView.CoreWebView2.ExecuteScriptAsync(
-                        "Array.from(document.images).filter(im=>im.offsetParent!==null).every(im=>im.complete)");
+                        "Array.from(document.images).filter(im=>im.offsetParent!==null).every(im=>im.complete && im.naturalWidth > 0)");
                     if (imgsOk == "true") break;
-                    await Task.Delay(120);
+                    await Task.Delay(140);
                 }
-                await Task.Delay(350);
+                await Task.Delay(450);
 
                 string pngPath = Path.Combine(outDir, s.Name + ".png");
                 using (var fs = new FileStream(pngPath, FileMode.Create, FileAccess.Write))

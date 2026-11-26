@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>模型输出管家 v4.0</title>
+<title>模型输出管家 v4.1</title>
 <style>
   @font-face {
     font-family: "HubWenKaiBold";
@@ -25,291 +25,296 @@
   }
 
   :root {
-    --font-serif: "Noto Serif SC", "Songti SC", "Georgia", serif;
-    --font-sans: "Noto Sans SC", "Microsoft YaHei UI", "Segoe UI", sans-serif;
-    --font-wenkai: "HubWenKaiReg", "LXGW WenKai", "Noto Serif SC", serif;
-    --display-font: var(--font-serif);
+    /* Flagship Crisp Windows 11 Native Typography (ZERO Songti fallback on UI chrome/filenames!) */
+    --font-sans: "Segoe UI Variable Text", "Segoe UI", "Microsoft YaHei UI", "Noto Sans SC", sans-serif;
+    --display-font: "Segoe UI Variable Display", "Segoe UI", "Microsoft YaHei UI", "Noto Sans SC", sans-serif;
+    --font-serif: "Noto Serif SC", "STSong", "Georgia", serif;
+    --font-mono: "Cascadia Mono", "Consolas", "Segoe UI", monospace;
 
-    --fs-body: 14.5px;
-    --fs-sub: 14px;
-    --fs-tag: 12.5px;
-    --fs-h3: 17px;
-    --fs-h2: 22px;
+    /* Distinct Typographic Hierarchy (21 / 18 / 15 / 14 / 12 — zero 0.5px soup!) */
+    --fs-hero: 21px;
+    --fs-h2: 18px;
+    --fs-h3: 15px;
+    --fs-body: 14px;
+    --fs-meta: 12px;
+
+    /* Strict Concentric Native Corner Scale (NO 999px pill spam!) */
+    --r-modal: 12px;
+    --r-card: 10px;
+    --r-art: 8px;
+    --r-ctrl: 6px;
+    --r-badge: 4px;
 
     /* =========================================================
-       DEFAULT PRIMARY: Peach Amber Jelly (蜜桃琥珀果冻 · 方向 B)
+       THEME 1 (DEFAULT): Silk Peach Quartz (蜜桃暖珀 · 旗舰光学玻璃)
        ========================================================= */
-    --bg-canvas: #FFE4D6;
-    --bg-surface: rgba(255, 240, 232, 0.62);
-    --bg-surface-solid: #FFF5EF;
-    --bg-elevated: rgba(255, 218, 200, 0.62);
-    --bg-hover: rgba(255, 202, 178, 0.50);
-    --ink-1: #2F150E;
-    --ink-2: #54291E;
-    --ink-3: #683629;
-    --line-soft: rgba(214, 148, 122, 0.30);
-    --line-strong: rgba(196, 114, 86, 0.48);
+    --bg-canvas: #F5DFD2;
+    --bg-chrome: rgba(253, 242, 235, 0.72);
+    --bg-rail: rgba(254, 245, 239, 0.64);
+    --bg-atlas: rgba(255, 249, 245, 0.54);
+    --bg-work: rgba(255, 251, 248, 0.94);
+    --bg-work-alt: rgba(252, 244, 239, 0.94);
+    --bg-card: #FFFFFF;
+    --bg-surface-solid: #FFFCFA;
+    --bg-subtle: rgba(128, 72, 48, 0.065);
+    --bg-hover: rgba(128, 72, 48, 0.09);
+    --bg-art-mat: #F3EAE4;
 
-    --accent: #C73A22;
+    --ink-1: #1C1917;
+    --ink-2: #44403C;
+    --ink-3: #6B625C;
+    --line-soft: rgba(76, 46, 34, 0.10);
+    --line-strong: rgba(76, 46, 34, 0.18);
+    --glass-rim: rgba(255, 255, 255, 0.84);
+
+    --accent: #C2412D;
+    --accent-hover: #A83320;
     --accent-ink: #FFFFFF;
-    --accent-grad: linear-gradient(180deg, #E45E43 0%, #C73A22 100%);
-    --accent-soft: rgba(214, 72, 46, 0.13);
-    --accent-glow: 0 7px 18px -4px rgba(199, 58, 34, 0.30), inset 0 1px 0 rgba(255, 255, 255, 0.34);
-    --fresh-ink: #B2301A;
+    --accent-soft: rgba(194, 65, 45, 0.10);
+    --accent-border: rgba(194, 65, 45, 0.28);
+    --fresh-ink: #A8321F;
 
-    --diff-bg: linear-gradient(135deg, rgba(255, 248, 232, 0.84) 0%, rgba(255, 228, 202, 0.68) 100%);
-    --diff-border: rgba(226, 140, 82, 0.46);
-    --diff-ink: #5A2610;
-    --diff-badge-bg: #C73A22;
-    --diff-badge-ink: #FFFFFF;
+    --diff-bg: rgba(194, 65, 45, 0.055);
+    --diff-bar: #C2412D;
+    --diff-label: #A8321F;
+    --diff-ink: #29221F;
 
-    --live-color: #C73A22;
-    --live-soft: rgba(214, 72, 46, 0.18);
-    --archive-ring: #965D48;
+    --live-color: #C94632;
+    --live-soft: rgba(201, 70, 50, 0.18);
+    --archive-ring: #8A6B5C;
 
-    --jelly-island-bg: linear-gradient(155deg, rgba(255, 244, 238, 0.60) 0%, rgba(255, 214, 194, 0.44) 100%);
-    --jelly-card-bg: linear-gradient(165deg, rgba(255, 252, 249, 0.80) 0%, rgba(255, 228, 212, 0.56) 100%);
-    --jelly-pill-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.84) 0%, rgba(255, 232, 220, 0.66) 100%);
-    --jelly-rim: rgba(255, 255, 255, 0.88);
-    --jelly-shadow: 0 18px 42px -12px rgba(154, 58, 32, 0.13), 0 3px 10px -2px rgba(154, 58, 32, 0.05), inset 0 1.5px 0 rgba(255, 255, 255, 0.92), inset 0 -3px 10px rgba(255, 146, 112, 0.16);
-    --card-shadow: 0 8px 22px -8px rgba(154, 58, 32, 0.11), 0 2px 5px rgba(154, 58, 32, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.94);
-    --pill-shadow: 0 3px 9px -2px rgba(154, 58, 32, 0.09), inset 0 1px 0 rgba(255, 255, 255, 0.92);
+    --seg-bg: rgba(128, 72, 48, 0.08);
+    --seg-thumb: #FFFFFF;
+    --seg-shadow: 0 1px 2px rgba(28, 25, 23, 0.08), 0 0 0 1px rgba(76, 46, 34, 0.07);
+    --card-shadow: 0 2px 8px -2px rgba(195, 85, 55, 0.07), 0 1px 2px rgba(28, 25, 23, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.85);
+    --pop-shadow: 0 12px 32px -4px rgba(28, 20, 16, 0.16), 0 2px 8px rgba(28, 20, 16, 0.06);
 
-    --tag-bg: #C73A22;
-    --tag-grad: linear-gradient(180deg, #E25B40 0%, #C73A22 100%);
-    --tag-ink: #FFFFFF;
-    --tag-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.36), 0 3px 8px rgba(199, 58, 34, 0.24);
-
-    --orb-1: rgba(255, 114, 82, 0.64);
-    --orb-2: rgba(255, 182, 82, 0.56);
-    --orb-3: rgba(255, 122, 168, 0.50);
-    --orb-4: rgba(255, 154, 114, 0.52);
-
-    --radius-island: 24px;
-    --radius-lg: 18px;
-    --radius-md: 14px;
-    --radius-sm: 10px;
-    --radius-pill: 999px;
+    /* Silky Luminous Crystal Bloom (cleanly separates themes without muddying cards) */
+    --orb-1: rgba(244, 134, 96, 0.46);
+    --orb-2: rgba(248, 184, 118, 0.40);
+    --orb-3: rgba(240, 138, 160, 0.36);
+    --orb-4: rgba(246, 162, 126, 0.34);
     --is-dark: 0;
   }
 
   /* =========================================================
-     Theme 2: Alabaster White Jade Jelly (凝脂白玉果冻 · 偏白浅色)
+     THEME 2: Alabaster White Jade (凝脂月白 · 偏白浅色)
      ========================================================= */
   body[data-paradigm="alabaster"] {
-    --bg-canvas: #F8F9FB;
-    --bg-surface: rgba(255, 255, 255, 0.64);
+    --bg-canvas: #F0F3F8;
+    --bg-chrome: rgba(250, 251, 253, 0.76);
+    --bg-rail: rgba(252, 253, 255, 0.70);
+    --bg-atlas: rgba(255, 255, 255, 0.64);
+    --bg-work: rgba(255, 255, 255, 0.96);
+    --bg-work-alt: rgba(248, 250, 252, 0.96);
+    --bg-card: #FFFFFF;
     --bg-surface-solid: #FFFFFF;
-    --bg-elevated: rgba(238, 241, 247, 0.70);
-    --bg-hover: rgba(226, 232, 242, 0.58);
-    --ink-1: #141923;
-    --ink-2: #2D3648;
-    --ink-3: #4B576E;
-    --line-soft: rgba(154, 166, 188, 0.28);
-    --line-strong: rgba(114, 130, 158, 0.46);
+    --bg-subtle: rgba(15, 23, 42, 0.05);
+    --bg-hover: rgba(15, 23, 42, 0.075);
+    --bg-art-mat: #EFF2F6;
 
-    --accent: #223B61;
+    --ink-1: #111827;
+    --ink-2: #374151;
+    --ink-3: #5B6472;
+    --line-soft: rgba(15, 23, 42, 0.085);
+    --line-strong: rgba(15, 23, 42, 0.16);
+    --glass-rim: rgba(255, 255, 255, 0.92);
+
+    --accent: #1E3A63;
+    --accent-hover: #152B4B;
     --accent-ink: #FFFFFF;
-    --accent-grad: linear-gradient(180deg, #355482 0%, #223B61 100%);
-    --accent-soft: rgba(34, 59, 97, 0.10);
-    --accent-glow: 0 7px 18px -4px rgba(34, 59, 97, 0.24), inset 0 1px 0 rgba(255, 255, 255, 0.30);
-    --fresh-ink: #1F3E6E;
+    --accent-soft: rgba(30, 58, 99, 0.085);
+    --accent-border: rgba(30, 58, 99, 0.26);
+    --fresh-ink: #1B3966;
 
-    --diff-bg: linear-gradient(135deg, rgba(255, 255, 255, 0.90) 0%, rgba(242, 245, 250, 0.78) 100%);
-    --diff-border: rgba(124, 146, 180, 0.38);
-    --diff-ink: #1A2B46;
-    --diff-badge-bg: #223B61;
-    --diff-badge-ink: #FFFFFF;
+    --diff-bg: rgba(30, 58, 99, 0.05);
+    --diff-bar: #1E3A63;
+    --diff-label: #1B3966;
+    --diff-ink: #17253D;
 
     --live-color: #C23C32;
     --live-soft: rgba(194, 60, 50, 0.16);
-    --archive-ring: #4B5F80;
+    --archive-ring: #526480;
 
-    --jelly-island-bg: linear-gradient(155deg, rgba(255, 255, 255, 0.64) 0%, rgba(244, 246, 250, 0.50) 100%);
-    --jelly-card-bg: linear-gradient(165deg, rgba(255, 255, 255, 0.86) 0%, rgba(246, 248, 252, 0.68) 100%);
-    --jelly-pill-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.92) 0%, rgba(242, 245, 250, 0.76) 100%);
-    --jelly-rim: rgba(255, 255, 255, 0.96);
-    --jelly-shadow: 0 18px 42px -12px rgba(32, 46, 74, 0.09), 0 3px 10px -2px rgba(32, 46, 74, 0.04), inset 0 1.5px 0 rgba(255, 255, 255, 1), inset 0 -3px 10px rgba(186, 198, 218, 0.16);
-    --card-shadow: 0 8px 20px -8px rgba(32, 46, 74, 0.08), 0 2px 5px rgba(32, 46, 74, 0.04), inset 0 1px 0 rgba(255, 255, 255, 1);
-    --pill-shadow: 0 3px 9px -2px rgba(32, 46, 74, 0.07), inset 0 1px 0 rgba(255, 255, 255, 1);
+    --seg-bg: rgba(15, 23, 42, 0.06);
+    --seg-thumb: #FFFFFF;
+    --seg-shadow: 0 1px 2px rgba(15, 23, 42, 0.08), 0 0 0 1px rgba(15, 23, 42, 0.05);
+    --card-shadow: 0 2px 8px -2px rgba(30, 58, 99, 0.055), 0 1px 2px rgba(15, 23, 42, 0.035), inset 0 1px 0 rgba(255, 255, 255, 0.95);
+    --pop-shadow: 0 12px 32px -4px rgba(15, 23, 42, 0.14), 0 2px 8px rgba(15, 23, 42, 0.05);
 
-    --tag-bg: #223B61;
-    --tag-grad: linear-gradient(180deg, #355482 0%, #223B61 100%);
-    --tag-ink: #FFFFFF;
-    --tag-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.32), 0 3px 8px rgba(34, 59, 97, 0.20);
-
-    --orb-1: rgba(206, 218, 238, 0.48);
-    --orb-2: rgba(232, 224, 214, 0.50);
-    --orb-3: rgba(212, 226, 232, 0.42);
-    --orb-4: rgba(226, 224, 240, 0.40);
+    --orb-1: rgba(186, 206, 236, 0.34);
+    --orb-2: rgba(218, 222, 236, 0.30);
+    --orb-3: rgba(198, 220, 228, 0.26);
+    --orb-4: rgba(214, 218, 238, 0.24);
     --is-dark: 0;
   }
 
   /* =========================================================
-     Theme 3: Obsidian Ink Crystal (黑曜墨晶果冻 · 偏黑深色)
+     THEME 3: Obsidian Crystal (玄曜墨晶 · Linear级深邃暗黑)
      ========================================================= */
   body[data-paradigm="obsidian"] {
-    --bg-canvas: #0A0C10;
-    --bg-surface: rgba(26, 30, 38, 0.64);
-    --bg-surface-solid: #151820;
-    --bg-elevated: rgba(40, 46, 58, 0.68);
-    --bg-hover: rgba(56, 64, 80, 0.60);
-    --ink-1: #F5F7FB;
-    --ink-2: #DCE2EE;
-    --ink-3: #B4BFCF;
-    --line-soft: rgba(182, 196, 222, 0.18);
-    --line-strong: rgba(210, 222, 244, 0.34);
+    --bg-canvas: #0B0D12;
+    --bg-chrome: rgba(17, 20, 28, 0.82);
+    --bg-rail: rgba(18, 21, 29, 0.80);
+    --bg-atlas: rgba(15, 18, 26, 0.74);
+    --bg-work: #12151E;
+    --bg-work-alt: #0F121A;
+    --bg-card: #171B26;
+    --bg-surface-solid: #161A24;
+    --bg-subtle: rgba(255, 255, 255, 0.06);
+    --bg-hover: rgba(255, 255, 255, 0.09);
+    --bg-art-mat: #0C0E14;
 
-    --accent: #2C67CA;
+    --ink-1: #F3F5F9;
+    --ink-2: #C2CAD8;
+    --ink-3: #8C97AB;
+    --line-soft: rgba(255, 255, 255, 0.08);
+    --line-strong: rgba(255, 255, 255, 0.16);
+    --glass-rim: rgba(255, 255, 255, 0.10);
+
+    --accent: #2563EB;
+    --accent-hover: #1D4ED8;
     --accent-ink: #FFFFFF;
-    --accent-grad: linear-gradient(180deg, #4B88EE 0%, #2C67CA 100%);
-    --accent-soft: rgba(95, 155, 255, 0.18);
-    --accent-glow: 0 7px 20px -4px rgba(44, 103, 202, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.28);
-    --fresh-ink: #94C6FF;
+    --accent-soft: rgba(59, 130, 246, 0.16);
+    --accent-border: rgba(96, 165, 250, 0.38);
+    --fresh-ink: #93C5FD;
 
-    --diff-bg: linear-gradient(135deg, rgba(48, 42, 32, 0.80) 0%, rgba(28, 32, 42, 0.72) 100%);
-    --diff-border: rgba(238, 182, 102, 0.38);
-    --diff-ink: #F9DCAA;
-    --diff-badge-bg: #2C67CA;
-    --diff-badge-ink: #FFFFFF;
+    --diff-bg: rgba(217, 155, 67, 0.085);
+    --diff-bar: #D99B43;
+    --diff-label: #EBB664;
+    --diff-ink: #F1F3F8;
 
-    --live-color: #FF8A7A;
-    --live-soft: rgba(255, 138, 122, 0.22);
-    --archive-ring: #8AA0C4;
+    --live-color: #F87171;
+    --live-soft: rgba(248, 113, 113, 0.22);
+    --archive-ring: #7C8CA8;
 
-    --jelly-island-bg: linear-gradient(155deg, rgba(30, 34, 44, 0.66) 0%, rgba(16, 19, 25, 0.56) 100%);
-    --jelly-card-bg: linear-gradient(165deg, rgba(40, 45, 56, 0.74) 0%, rgba(24, 28, 36, 0.64) 100%);
-    --jelly-pill-bg: linear-gradient(180deg, rgba(50, 56, 70, 0.80) 0%, rgba(32, 36, 46, 0.70) 100%);
-    --jelly-rim: rgba(255, 255, 255, 0.15);
-    --jelly-shadow: 0 22px 48px -10px rgba(0, 0, 0, 0.72), 0 4px 14px rgba(0, 0, 0, 0.44), inset 0 1px 0 rgba(255, 255, 255, 0.16), inset 0 -3px 10px rgba(110, 140, 190, 0.10);
-    --card-shadow: 0 10px 26px -8px rgba(0, 0, 0, 0.54), inset 0 1px 0 rgba(255, 255, 255, 0.15);
-    --pill-shadow: 0 3px 9px -2px rgba(0, 0, 0, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.14);
+    --seg-bg: rgba(255, 255, 255, 0.055);
+    --seg-thumb: #2B3245;
+    --seg-shadow: 0 1px 3px rgba(0, 0, 0, 0.52), 0 0 0 1px rgba(255, 255, 255, 0.14);
+    --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    --pop-shadow: 0 16px 40px rgba(0, 0, 0, 0.58), 0 0 0 1px rgba(255, 255, 255, 0.09);
 
-    --tag-bg: #2C67CA;
-    --tag-grad: linear-gradient(180deg, #4B88EE 0%, #2C67CA 100%);
-    --tag-ink: #FFFFFF;
-    --tag-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28), 0 3px 8px rgba(12, 34, 82, 0.42);
-
-    --orb-1: rgba(70, 114, 186, 0.34);
-    --orb-2: rgba(54, 86, 148, 0.26);
-    --orb-3: rgba(154, 116, 72, 0.22);
-    --orb-4: rgba(116, 134, 168, 0.22);
+    --orb-1: rgba(59, 112, 206, 0.20);
+    --orb-2: rgba(48, 86, 164, 0.16);
+    --orb-3: rgba(114, 132, 168, 0.12);
+    --orb-4: rgba(70, 98, 154, 0.12);
     --is-dark: 1;
   }
 
   /* =========================================================
-     Theme 4: Dewdrop Crystal-Jelly (晨雾冰晶果冻)
+     THEME 4: Dewdrop Glacier (晨雾清露 · 冰晶浅蓝)
      ========================================================= */
   body[data-paradigm="dewdrop"] {
-    --bg-canvas: #D5EBFF;
-    --bg-surface: rgba(236, 248, 255, 0.60);
-    --bg-surface-solid: #F0F8FF;
-    --bg-elevated: rgba(196, 226, 255, 0.64);
-    --bg-hover: rgba(178, 218, 255, 0.56);
-    --ink-1: #0E2238;
-    --ink-2: #213C58;
-    --ink-3: #355370;
-    --line-soft: rgba(126, 174, 222, 0.32);
-    --line-strong: rgba(92, 150, 208, 0.50);
+    --bg-canvas: #D6EAFC;
+    --bg-chrome: rgba(238, 247, 255, 0.72);
+    --bg-rail: rgba(240, 249, 255, 0.64);
+    --bg-atlas: rgba(246, 251, 255, 0.54);
+    --bg-work: rgba(250, 253, 255, 0.94);
+    --bg-work-alt: rgba(240, 247, 253, 0.94);
+    --bg-card: #FFFFFF;
+    --bg-surface-solid: #FAFDFF;
+    --bg-subtle: rgba(24, 92, 168, 0.06);
+    --bg-hover: rgba(24, 92, 168, 0.09);
+    --bg-art-mat: #E6F0F8;
 
-    --accent: #1864BC;
+    --ink-1: #0F172A;
+    --ink-2: #334155;
+    --ink-3: #52647A;
+    --line-soft: rgba(24, 72, 128, 0.105);
+    --line-strong: rgba(24, 72, 128, 0.19);
+    --glass-rim: rgba(255, 255, 255, 0.86);
+
+    --accent: #1A60B5;
+    --accent-hover: #144E96;
     --accent-ink: #FFFFFF;
-    --accent-grad: linear-gradient(180deg, #3A88E2 0%, #1864BC 100%);
-    --accent-soft: rgba(27, 104, 196, 0.14);
-    --accent-glow: 0 7px 18px -4px rgba(24, 100, 188, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.34);
-    --fresh-ink: #1457A8;
+    --accent-soft: rgba(26, 96, 181, 0.10);
+    --accent-border: rgba(26, 96, 181, 0.28);
+    --fresh-ink: #1553A0;
 
-    --diff-bg: linear-gradient(135deg, rgba(244, 252, 255, 0.86) 0%, rgba(212, 236, 255, 0.70) 100%);
-    --diff-border: rgba(88, 156, 226, 0.46);
-    --diff-ink: #0F355C;
-    --diff-badge-bg: #1864BC;
-    --diff-badge-ink: #FFFFFF;
+    --diff-bg: rgba(26, 96, 181, 0.055);
+    --diff-bar: #1A60B5;
+    --diff-label: #1553A0;
+    --diff-ink: #122B49;
 
-    --live-color: #DC543E;
-    --live-soft: rgba(220, 84, 62, 0.18);
-    --archive-ring: #1864BC;
+    --live-color: #D4513E;
+    --live-soft: rgba(212, 81, 62, 0.18);
+    --archive-ring: #4B74A6;
 
-    --jelly-island-bg: linear-gradient(155deg, rgba(240, 250, 255, 0.62) 0%, rgba(196, 228, 255, 0.44) 100%);
-    --jelly-card-bg: linear-gradient(165deg, rgba(252, 254, 255, 0.82) 0%, rgba(214, 238, 255, 0.58) 100%);
-    --jelly-pill-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.86) 0%, rgba(222, 241, 255, 0.66) 100%);
-    --jelly-rim: rgba(255, 255, 255, 0.90);
-    --jelly-shadow: 0 18px 42px -12px rgba(24, 74, 134, 0.13), 0 3px 10px -2px rgba(24, 74, 134, 0.05), inset 0 1.5px 0 rgba(255, 255, 255, 0.94), inset 0 -3px 10px rgba(98, 174, 252, 0.18);
-    --card-shadow: 0 8px 22px -8px rgba(24, 74, 134, 0.11), inset 0 1px 0 rgba(255, 255, 255, 0.96);
-    --pill-shadow: 0 3px 9px -2px rgba(24, 74, 134, 0.09), inset 0 1px 0 rgba(255, 255, 255, 0.94);
+    --seg-bg: rgba(24, 92, 168, 0.08);
+    --seg-thumb: #FFFFFF;
+    --seg-shadow: 0 1px 2px rgba(15, 35, 65, 0.08), 0 0 0 1px rgba(24, 72, 128, 0.06);
+    --card-shadow: 0 2px 8px -2px rgba(28, 100, 188, 0.07), 0 1px 2px rgba(15, 35, 65, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.88);
+    --pop-shadow: 0 12px 32px -4px rgba(15, 35, 65, 0.16), 0 2px 8px rgba(15, 35, 65, 0.06);
 
-    --tag-bg: #1864BC;
-    --tag-grad: linear-gradient(180deg, #3A88E2 0%, #1864BC 100%);
-    --tag-ink: #FFFFFF;
-    --tag-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.36), 0 3px 8px rgba(24, 100, 188, 0.24);
-
-    --orb-1: rgba(54, 158, 255, 0.64);
-    --orb-2: rgba(44, 218, 206, 0.48);
-    --orb-3: rgba(132, 156, 255, 0.52);
-    --orb-4: rgba(98, 198, 255, 0.50);
+    --orb-1: rgba(64, 158, 246, 0.44);
+    --orb-2: rgba(68, 206, 214, 0.34);
+    --orb-3: rgba(124, 158, 246, 0.36);
+    --orb-4: rgba(102, 190, 248, 0.34);
     --is-dark: 0;
   }
 
   /* =========================================================
-     Theme 5: Amethyst Nebula Jelly (星云紫晶果冻)
+     THEME 5: Amethyst Twilight (星云紫晶 · 深邃暮夜紫)
      ========================================================= */
   body[data-paradigm="amethyst"] {
-    --bg-canvas: #1D1736;
-    --bg-surface: rgba(48, 38, 88, 0.66);
-    --bg-surface-solid: #282048;
-    --bg-elevated: rgba(72, 58, 126, 0.66);
-    --bg-hover: rgba(90, 74, 152, 0.60);
-    --ink-1: #F7F4FF;
-    --ink-2: #E4DFFC;
-    --ink-3: #C9BFEF;
-    --line-soft: rgba(178, 158, 244, 0.22);
-    --line-strong: rgba(202, 184, 255, 0.38);
+    --bg-canvas: #131022;
+    --bg-chrome: rgba(25, 20, 44, 0.82);
+    --bg-rail: rgba(27, 22, 48, 0.80);
+    --bg-atlas: rgba(23, 19, 42, 0.74);
+    --bg-work: #1A1530;
+    --bg-work-alt: #161229;
+    --bg-card: #221C3D;
+    --bg-surface-solid: #1F1A38;
+    --bg-subtle: rgba(226, 216, 255, 0.065);
+    --bg-hover: rgba(226, 216, 255, 0.10);
+    --bg-art-mat: #120E21;
+
+    --ink-1: #F5F3FF;
+    --ink-2: #D2C9F0;
+    --ink-3: #A59AC9;
+    --line-soft: rgba(220, 210, 255, 0.095);
+    --line-strong: rgba(220, 210, 255, 0.19);
+    --glass-rim: rgba(230, 220, 255, 0.12);
 
     --accent: #7C3AED;
+    --accent-hover: #6D28D9;
     --accent-ink: #FFFFFF;
-    --accent-grad: linear-gradient(180deg, #9C66F5 0%, #7C3AED 100%);
-    --accent-soft: rgba(168, 118, 255, 0.20);
-    --accent-glow: 0 7px 20px -4px rgba(124, 58, 237, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.30);
-    --fresh-ink: #DFB6FF;
+    --accent-soft: rgba(139, 92, 246, 0.18);
+    --accent-border: rgba(167, 139, 250, 0.42);
+    --fresh-ink: #C4B5FD;
 
-    --diff-bg: linear-gradient(135deg, rgba(84, 62, 142, 0.72) 0%, rgba(52, 38, 98, 0.66) 100%);
-    --diff-border: rgba(202, 168, 255, 0.42);
-    --diff-ink: #F2E8FF;
-    --diff-badge-bg: #6D28D9;
-    --diff-badge-ink: #FFFFFF;
+    --diff-bg: rgba(229, 169, 82, 0.09);
+    --diff-bar: #E5A952;
+    --diff-label: #F3C37A;
+    --diff-ink: #F3EFFD;
 
-    --live-color: #FF948A;
-    --live-soft: rgba(255, 148, 138, 0.22);
-    --archive-ring: #B983FF;
+    --live-color: #FB7185;
+    --live-soft: rgba(251, 113, 133, 0.22);
+    --archive-ring: #A78BFA;
 
-    --jelly-island-bg: linear-gradient(155deg, rgba(58, 46, 104, 0.68) 0%, rgba(34, 27, 66, 0.56) 100%);
-    --jelly-card-bg: linear-gradient(165deg, rgba(70, 56, 122, 0.76) 0%, rgba(44, 35, 84, 0.64) 100%);
-    --jelly-pill-bg: linear-gradient(180deg, rgba(82, 66, 140, 0.80) 0%, rgba(52, 42, 96, 0.70) 100%);
-    --jelly-rim: rgba(232, 220, 255, 0.22);
-    --jelly-shadow: 0 20px 46px -10px rgba(7, 4, 20, 0.56), inset 0 1px 0 rgba(255, 255, 255, 0.20), inset 0 -3px 10px rgba(154, 104, 255, 0.18);
-    --card-shadow: 0 10px 26px -8px rgba(7, 4, 20, 0.46), inset 0 1px 0 rgba(255, 255, 255, 0.20);
-    --pill-shadow: 0 3px 9px -2px rgba(7, 4, 20, 0.36), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+    --seg-bg: rgba(226, 216, 255, 0.065);
+    --seg-thumb: #352C5E;
+    --seg-shadow: 0 1px 3px rgba(6, 3, 16, 0.52), 0 0 0 1px rgba(226, 216, 255, 0.15);
+    --card-shadow: 0 1px 3px rgba(6, 3, 16, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    --pop-shadow: 0 16px 40px rgba(6, 3, 16, 0.62), 0 0 0 1px rgba(226, 216, 255, 0.11);
 
-    --tag-bg: #6D28D9;
-    --tag-grad: linear-gradient(180deg, #965CF4 0%, #6D28D9 100%);
-    --tag-ink: #FFFFFF;
-    --tag-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.32), 0 3px 8px rgba(109, 40, 217, 0.34);
-
-    --orb-1: rgba(156, 84, 255, 0.50);
-    --orb-2: rgba(226, 104, 198, 0.36);
-    --orb-3: rgba(108, 92, 248, 0.42);
-    --orb-4: rgba(186, 124, 255, 0.38);
+    --orb-1: rgba(139, 92, 246, 0.26);
+    --orb-2: rgba(196, 102, 186, 0.18);
+    --orb-3: rgba(102, 92, 232, 0.22);
+    --orb-4: rgba(164, 114, 246, 0.18);
     --is-dark: 1;
   }
 
   body[data-scale="large"] {
-    --fs-body: 16px;
-    --fs-sub: 15px;
-    --fs-tag: 13.5px;
-    --fs-h3: 18.5px;
-    --fs-h2: 24px;
+    --fs-hero: 23px;
+    --fs-h2: 20px;
+    --fs-h3: 16.5px;
+    --fs-body: 15.5px;
+    --fs-meta: 13px;
   }
 
-  /* 9 User Selectable Fonts (Preserved 100% per A06) */
+  /* 10 Selectable Fonts (Native Crisp Default + All 9 Classic Options 100% Preserved!) */
+  body[data-font="editorial"] { --display-font: "Noto Serif SC", "STSong", "Georgia", serif; --font-sans: "Noto Sans SC", "Microsoft YaHei UI", "Segoe UI", sans-serif; }
   body[data-font="yahei"] { --display-font: "Microsoft YaHei UI", "Microsoft YaHei", sans-serif; --font-sans: "Microsoft YaHei UI", "Microsoft YaHei", sans-serif; }
   body[data-font="wenkai_bold"] { --display-font: "HubWenKaiXBold", "HubWenKaiBold", serif; --font-sans: "HubWenKaiBold", serif; }
   body[data-font="wenkai_xbold"] { --display-font: "HubWenKaiXBold", serif; --font-sans: "HubWenKaiXBold", "HubWenKaiBold", serif; }
@@ -317,643 +322,711 @@
   body[data-font="kaiti"] { --display-font: "KaiTi", "楷体", "STKaiti", serif; --font-sans: "KaiTi", "楷体", "STKaiti", serif; }
   body[data-font="stkaiti"] { --display-font: "STKaiti", "华文楷体", "KaiTi", serif; --font-sans: "STKaiti", "华文楷体", "KaiTi", serif; }
   body[data-font="notoserif"] { --display-font: "Noto Serif SC", "STSong", "Georgia", serif; --font-sans: "Noto Serif SC", "STSong", "SimSun", serif; }
-  body[data-font="dengxian"] { --display-font: "DengXian", "等线", "Noto Sans SC", sans-serif; --font-sans: "DengXian", "等线", "Noto Sans SC", sans-serif; }
-  body[data-font="wenkai_reg"] *, body[data-font="kaiti"] *, body[data-font="stkaiti"] * { font-synthesis: weight; }
+  body[data-font="dengxian"] { --display-font: "DengXian", "等线", "Segoe UI", sans-serif; --font-sans: "DengXian", "等线", "Segoe UI", sans-serif; }
 
-  * { margin: 0; padding: 0; box-sizing: border-box; font-synthesis: none; -webkit-font-smoothing: antialiased; }
+  /* Windows DirectWrite ClearType Crispness: auto on Light, antialiased ONLY on Dark! */
+  * { margin: 0; padding: 0; box-sizing: border-box; }
   html, body {
     width: 100%; height: 100%; overflow: hidden;
     background-color: var(--bg-canvas); color: var(--ink-1);
-    font-family: var(--font-sans); font-size: var(--fs-body); line-height: 1.55;
+    font-family: var(--font-sans); font-size: var(--fs-body); line-height: 1.5;
+    -webkit-font-smoothing: auto;
+    text-rendering: optimizeLegibility;
     user-select: none;
   }
+  body[data-paradigm="obsidian"], body[data-paradigm="amethyst"] {
+    -webkit-font-smoothing: antialiased;
+  }
   .num { font-variant-numeric: tabular-nums; }
-  button, input, textarea, select { font-family: inherit; color: inherit; }
+  button, input, textarea { font-family: inherit; color: inherit; }
 
-  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb { background: var(--line-strong); border-radius: 999px; }
-  ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+  ::-webkit-scrollbar-thumb:hover { background: var(--ink-3); }
 
-  /* Diffused Ambient Jelly Orbs (softly glowing through translucent crystal islands) */
+  /* Subtle Optical Ambient Light Layer (breathes behind chrome, rails & star-atlas) */
   .jelly-aurora { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
-  .jelly-aurora .orb { position: absolute; border-radius: 50%; filter: blur(66px); will-change: transform; }
-  .jelly-aurora .o1 { width: 560px; height: 520px; top: -110px; left: -60px; background: radial-gradient(circle, var(--orb-1) 0%, rgba(255,255,255,0) 68%); }
-  .jelly-aurora .o2 { width: 580px; height: 540px; top: -80px; right: -40px; background: radial-gradient(circle, var(--orb-2) 0%, rgba(255,255,255,0) 68%); }
-  .jelly-aurora .o3 { width: 620px; height: 500px; bottom: -120px; left: 16%; background: radial-gradient(circle, var(--orb-3) 0%, rgba(255,255,255,0) 68%); }
-  .jelly-aurora .o4 { width: 520px; height: 460px; top: 26%; left: 38%; background: radial-gradient(circle, var(--orb-4) 0%, rgba(255,255,255,0) 68%); }
+  .jelly-aurora .orb { position: absolute; border-radius: 50%; filter: blur(88px); }
+  .jelly-aurora .o1 { width: 620px; height: 560px; top: -150px; left: -90px; background: radial-gradient(circle, var(--orb-1) 0%, rgba(255,255,255,0) 70%); }
+  .jelly-aurora .o2 { width: 620px; height: 540px; top: -120px; right: -80px; background: radial-gradient(circle, var(--orb-2) 0%, rgba(255,255,255,0) 70%); }
+  .jelly-aurora .o3 { width: 660px; height: 520px; bottom: -160px; left: 14%; background: radial-gradient(circle, var(--orb-3) 0%, rgba(255,255,255,0) 70%); }
+  .jelly-aurora .o4 { width: 540px; height: 480px; top: 24%; left: 36%; background: radial-gradient(circle, var(--orb-4) 0%, rgba(255,255,255,0) 70%); }
 
   .app-shell { position: relative; z-index: 1; display: flex; flex-direction: column; width: 100vw; height: 100vh; }
 
-  /* Floating Crystal Titlebar */
+  /* =========================================================
+     NATIVE 44px FLAGSHIP TITLEBAR (macOS / Win11 Fluent Hybrid)
+     ========================================================= */
   .titlebar {
-    height: 58px; flex-shrink: 0;
+    height: 44px; flex-shrink: 0;
     display: flex; align-items: center; justify-content: space-between; gap: 12px;
-    padding: 8px 16px 4px 20px; position: relative; z-index: 30;
+    padding: 0 0 0 16px; position: relative; z-index: 30;
+    background: var(--bg-chrome);
+    backdrop-filter: blur(20px) saturate(135%);
+    border-bottom: 1px solid var(--line-soft);
   }
-  .brand-cluster { display: flex; align-items: center; gap: 10px; pointer-events: none; flex-shrink: 0; }
+  .brand-cluster { display: flex; align-items: center; gap: 9px; pointer-events: none; flex-shrink: 0; }
   .brand-mark {
-    width: 32px; height: 32px; border-radius: 11px;
+    width: 22px; height: 22px; border-radius: 6px;
     display: flex; align-items: center; justify-content: center;
-    background-color: var(--accent); background-image: var(--accent-grad);
-    color: var(--accent-ink); box-shadow: var(--accent-glow); flex-shrink: 0;
+    background: var(--accent); color: var(--accent-ink); flex-shrink: 0;
   }
-  .brand-title { font-family: var(--display-font); font-size: 18.5px; font-weight: 700; letter-spacing: -0.02em; color: var(--ink-1); white-space: nowrap; }
-  .brand-sub { font-size: 12.5px; color: var(--ink-3); padding-left: 10px; border-left: 1px solid var(--line-soft); white-space: nowrap; }
-  @media (max-width: 1380px) { .brand-sub { display: none; } }
+  .brand-title { font-family: var(--display-font); font-size: 14.5px; font-weight: 600; letter-spacing: -0.01em; color: var(--ink-1); white-space: nowrap; }
+  .brand-sub { font-size: var(--fs-meta); color: var(--ink-3); padding-left: 9px; border-left: 1px solid var(--line-soft); white-space: nowrap; }
+  @media (max-width: 1420px) { .brand-sub { display: none; } }
 
+  /* Crisp Segmented Navigation (Apple / Linear Style — NO candy red capsules!) */
   .nav-tabs {
-    display: flex; align-items: center; gap: 4px; padding: 3.5px;
-    border-radius: var(--radius-pill);
-    background: var(--jelly-island-bg); backdrop-filter: blur(26px) saturate(185%);
-    border: 1px solid var(--jelly-rim); box-shadow: var(--pill-shadow);
+    display: flex; align-items: center; gap: 2px; padding: 3px;
+    border-radius: 8px; background: var(--seg-bg);
+    border: 1px solid var(--line-soft);
   }
   .nav-tab {
-    height: 31px; padding: 0 14px; border: none; border-radius: var(--radius-pill);
-    background: transparent; color: var(--ink-2); font-size: 13.5px; font-weight: 500;
-    cursor: pointer; transition: all 0.16s; white-space: nowrap;
+    height: 26px; padding: 0 12px; border: none; border-radius: var(--r-ctrl);
+    background: transparent; color: var(--ink-2); font-size: 13px; font-weight: 500;
+    cursor: pointer; transition: background 0.14s, color 0.14s; white-space: nowrap;
   }
-  .nav-tab:hover { color: var(--ink-1); background: var(--bg-hover); }
+  .nav-tab:hover { color: var(--ink-1); }
   .nav-tab.active {
-    background-color: var(--accent); background-image: var(--accent-grad);
-    color: var(--accent-ink); box-shadow: var(--accent-glow); font-weight: 600;
+    background: var(--seg-thumb); color: var(--ink-1);
+    box-shadow: var(--seg-shadow); font-weight: 600;
   }
 
-  .toolbar-right { display: flex; align-items: center; gap: 7px; flex-shrink: 0; }
+  .toolbar-right { display: flex; align-items: center; gap: 5px; height: 100%; flex-shrink: 0; }
 
-  .top-search-box { position: relative; display: flex; align-items: center; width: 210px; }
-  .top-search-box svg { position: absolute; left: 11px; color: var(--ink-3); pointer-events: none; }
+  .top-search-box { position: relative; display: flex; align-items: center; width: 204px; margin-right: 2px; }
+  .top-search-box svg { position: absolute; left: 9px; color: var(--ink-3); pointer-events: none; }
   .top-search-input {
-    width: 100%; height: 32px; padding: 0 32px 0 30px;
-    border-radius: var(--radius-pill); border: 1px solid var(--jelly-rim);
-    background: var(--jelly-pill-bg); box-shadow: var(--pill-shadow);
-    color: var(--ink-1); font-size: 13px; outline: none; transition: border-color 0.15s, width 0.2s;
+    width: 100%; height: 28px; padding: 0 28px 0 28px;
+    border-radius: var(--r-ctrl); border: 1px solid var(--line-soft);
+    background: var(--bg-card); color: var(--ink-1); font-size: 12.5px; outline: none;
+    transition: border-color 0.14s;
   }
   .top-search-input:focus { border-color: var(--accent); }
   .top-search-input::placeholder { color: var(--ink-3); }
   .top-search-kbd {
-    position: absolute; right: 9px; font-size: 12px; color: var(--ink-3);
-    padding: 0 5px; border-radius: 999px; background: var(--bg-elevated); pointer-events: none;
+    position: absolute; right: 7px; font-size: 11px; color: var(--ink-3);
+    padding: 0 5px; border-radius: 3px; border: 1px solid var(--line-soft);
+    background: var(--bg-subtle); pointer-events: none; line-height: 16px;
   }
 
   .icon-btn {
-    height: 32px; padding: 0 11px; border-radius: var(--radius-pill);
-    border: 1px solid var(--jelly-rim); background: var(--jelly-pill-bg);
-    box-shadow: var(--pill-shadow); color: var(--ink-2); font-size: 13px; font-weight: 500;
+    height: 28px; padding: 0 9px; border-radius: var(--r-ctrl);
+    border: 1px solid transparent; background: transparent;
+    color: var(--ink-2); font-size: 12.5px; font-weight: 500;
     display: inline-flex; align-items: center; justify-content: center; gap: 5px; cursor: pointer;
-    transition: transform 0.14s, color 0.14s, background 0.14s; white-space: nowrap;
+    transition: background 0.12s, color 0.12s, border-color 0.12s; white-space: nowrap;
   }
-  .icon-btn.sq { width: 32px; padding: 0; }
-  .icon-btn:hover { color: var(--ink-1); transform: translateY(-1px); }
-  .icon-btn.accent-pill {
-    background-color: var(--accent); background-image: var(--accent-grad);
-    border-color: transparent; color: var(--accent-ink); box-shadow: var(--accent-glow); font-weight: 600;
-  }
+  .icon-btn.sq { width: 28px; padding: 0; }
+  .icon-btn:hover { color: var(--ink-1); background: var(--bg-hover); }
+  .icon-btn.bordered { border-color: var(--line-soft); background: var(--bg-card); }
+  .icon-btn.bordered:hover { border-color: var(--line-strong); background: var(--bg-card); }
 
   .update-badge-btn {
-    display: none; height: 32px; padding: 0 12px; border-radius: var(--radius-pill);
-    border: none; background-color: var(--accent); background-image: var(--accent-grad);
-    color: var(--accent-ink); box-shadow: var(--accent-glow); font-size: 13px; font-weight: 600;
-    align-items: center; gap: 5px; cursor: pointer; white-space: nowrap;
+    display: none; height: 26px; padding: 0 10px; border-radius: var(--r-ctrl);
+    border: none; background: var(--accent); color: var(--accent-ink);
+    font-size: 12px; font-weight: 600; align-items: center; gap: 5px; cursor: pointer; white-space: nowrap;
   }
+  .update-badge-btn:hover { background: var(--accent-hover); }
   .update-badge-btn.show { display: inline-flex; }
 
-  .win-controls { display: flex; align-items: center; gap: 4px; margin-left: 4px; }
+  /* TRUE NATIVE WINDOWS 11 FLUSH CAPTION CONTROLS (ZERO floating circle bubbles!) */
+  .win-controls { display: flex; align-items: stretch; height: 44px; margin-left: 6px; border-left: 1px solid var(--line-soft); }
   .win-btn {
-    width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--jelly-rim);
-    background: var(--jelly-pill-bg); box-shadow: var(--pill-shadow); color: var(--ink-2);
-    display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.14s;
+    width: 44px; height: 43px; border: none; border-radius: 0;
+    background: transparent; color: var(--ink-2);
+    display: flex; align-items: center; justify-content: center; cursor: pointer;
+    transition: background 0.1s, color 0.1s;
   }
-  .win-btn:hover { color: var(--ink-1); transform: translateY(-1px); }
-  .win-btn.close:hover { background: #C83A2B; border-color: #C83A2B; color: #FFFFFF; }
+  .win-btn:hover { background: var(--bg-hover); color: var(--ink-1); }
+  .win-btn.close:hover { background: #C42B1C; color: #FFFFFF; }
 
   /* Main Stage */
   .stage-wrap { flex: 1; min-height: 0; position: relative; overflow: hidden; }
   .view-page { display: none; width: 100%; height: 100%; overflow: hidden; }
   .view-page.active { display: flex; flex-direction: column; }
 
-  /* Crystal Jelly Island Base */
-  .jelly-island {
-    background: var(--jelly-island-bg);
-    backdrop-filter: blur(28px) saturate(185%);
-    border: 1px solid var(--jelly-rim);
-    border-radius: var(--radius-island);
-    box-shadow: var(--jelly-shadow);
-    overflow: hidden;
-  }
-
-  /* Buttons */
+  /* =========================================================
+     CRISP FLAT NATIVE BUTTONS (6px radius, ZERO plastic bevels)
+     ========================================================= */
   .deliv-btn {
-    height: 33px; padding: 0 14px; border-radius: var(--radius-pill);
-    border: 1px solid var(--jelly-rim); background: var(--jelly-pill-bg);
-    box-shadow: var(--pill-shadow); color: var(--ink-1); font-size: 13px; font-weight: 600;
-    display: inline-flex; align-items: center; gap: 6px; cursor: pointer;
-    transition: transform 0.14s, box-shadow 0.14s; white-space: nowrap;
+    height: 30px; padding: 0 12px; border-radius: var(--r-ctrl);
+    border: 1px solid var(--line-strong); background: var(--bg-card);
+    color: var(--ink-1); font-size: 13px; font-weight: 500;
+    display: inline-flex; align-items: center; justify-content: center; gap: 5px; cursor: pointer;
+    transition: background 0.12s, border-color 0.12s, color 0.12s; white-space: nowrap;
   }
-  .deliv-btn:hover { transform: translateY(-1px); }
+  .deliv-btn:hover { background: var(--bg-hover); border-color: var(--line-strong); }
   .deliv-btn.primary {
-    background-color: var(--accent); background-image: var(--accent-grad);
-    border-color: transparent; color: var(--accent-ink); box-shadow: var(--accent-glow);
+    background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 600;
   }
+  .deliv-btn.primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
   .deliv-btn.tint {
-    background: var(--accent-soft); border-color: var(--line-strong); color: var(--fresh-ink);
+    background: var(--accent-soft); border-color: var(--accent-border); color: var(--fresh-ink); font-weight: 600;
   }
   .deliv-btn.ghost {
-    background: transparent; border-color: var(--line-soft); box-shadow: none; color: var(--ink-2); font-weight: 500;
+    background: transparent; border-color: transparent; color: var(--ink-2); font-weight: 500;
   }
-  .deliv-btn.ghost:hover { background: var(--bg-hover); color: var(--ink-1); border-color: var(--line-strong); }
-  .deliv-btn.sm { height: 28px; padding: 0 11px; font-size: 12.5px; }
+  .deliv-btn.ghost:hover { background: var(--bg-hover); color: var(--ink-1); }
+  .deliv-btn.sub {
+    background: var(--bg-work-alt); border-color: var(--line-soft); color: var(--ink-2); font-weight: 500;
+  }
+  .deliv-btn.sub:hover { background: var(--bg-hover); border-color: var(--line-strong); color: var(--ink-1); }
+  .deliv-btn.sm { height: 27px; padding: 0 10px; font-size: 12.5px; }
+
+  /* Custom Dropdown Trigger (Replaces ALL native <select>!) */
+  .custom-sel-btn {
+    height: 28px; padding: 0 10px; border-radius: var(--r-ctrl);
+    border: 1px solid var(--line-strong); background: var(--bg-card);
+    color: var(--ink-1); font-size: 13px; font-weight: 600;
+    display: inline-flex; align-items: center; justify-content: space-between; gap: 8px;
+    cursor: pointer; max-width: 280px; transition: border-color 0.12s, background 0.12s;
+  }
+  .custom-sel-btn:hover { border-color: var(--accent); }
+  .custom-sel-lbl { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .custom-sel-btn.wide { flex: 1; max-width: 440px; min-width: 0; font-weight: 500; }
 
   /* =========================================================
-     VIEW 1A: CRYSTAL STAR-ATLAS HOME (星盘首屏)
+     VIEW 1A: OPTICAL CRYSTAL STAR-ATLAS HOME (Seamless 2-Pane)
      ========================================================= */
   .atlas-home-grid {
-    flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1.85fr) minmax(350px, 1fr);
-    gap: 14px; padding: 6px 16px 16px; overflow: hidden;
+    flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1.88fr) minmax(364px, 1fr);
+    overflow: hidden;
   }
-  .atlas-dial-island { display: flex; flex-direction: column; padding: 16px 22px 14px; position: relative; }
-  .atlas-dial-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; flex-shrink: 0; }
-  .atlas-h1 { font-family: var(--display-font); font-size: 23px; font-weight: 700; color: var(--ink-1); line-height: 1.25; letter-spacing: -0.02em; }
-  .atlas-sub { font-size: 13.5px; color: var(--ink-3); margin-top: 3px; }
-  .atlas-legend { display: flex; align-items: center; gap: 14px; flex-shrink: 0; padding-top: 4px; }
-  .legend-item { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--ink-2); }
-  .dot-live { width: 9px; height: 9px; border-radius: 50%; background: var(--live-color); box-shadow: 0 0 0 3px var(--live-soft); display: inline-block; }
-  .dot-norm { width: 9px; height: 9px; border-radius: 50%; background: var(--bg-surface-solid); border: 2px solid var(--archive-ring); display: inline-block; }
+  .atlas-dial-pane {
+    display: flex; flex-direction: column; position: relative; overflow: hidden;
+    background: var(--bg-atlas);
+    backdrop-filter: blur(22px) saturate(135%);
+    border-right: 1px solid var(--line-soft);
+  }
+  .atlas-dial-head {
+    display: flex; align-items: flex-start; justify-content: space-between; gap: 16px;
+    padding: 20px 26px 4px; flex-shrink: 0;
+  }
+  .atlas-h1 { font-family: var(--display-font); font-size: var(--fs-hero); font-weight: 600; color: var(--ink-1); line-height: 1.25; letter-spacing: -0.02em; }
+  .atlas-sub { font-size: var(--fs-body); color: var(--ink-3); margin-top: 3px; }
+  .atlas-legend { display: flex; align-items: center; gap: 16px; flex-shrink: 0; padding-top: 4px; }
+  .legend-item { display: inline-flex; align-items: center; gap: 6px; font-size: var(--fs-meta); color: var(--ink-2); font-weight: 500; }
+  .dot-live { width: 7px; height: 7px; border-radius: 999px; background: var(--live-color); box-shadow: 0 0 0 3px var(--live-soft); display: inline-block; flex-shrink: 0; }
+  .dot-norm { width: 7px; height: 7px; border-radius: 999px; background: transparent; border: 1.6px solid var(--archive-ring); display: inline-block; flex-shrink: 0; }
 
   .mandala-stage {
     flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center;
-    padding: 0; margin-top: -20px; position: relative;
+    padding: 0 16px 8px; margin-top: -12px; position: relative;
   }
-  .mandala-stage svg { max-width: 100%; max-height: 100%; overflow: visible; }
-  .mandala-node { cursor: pointer; transition: opacity 0.16s; }
-  .mandala-node:hover .mn-halo { opacity: 0.9; }
+  .mandala-stage svg { width: 100%; height: 100%; max-width: 960px; max-height: 670px; overflow: visible; }
+  .mandala-node { cursor: pointer; }
+  .mandala-node:hover .mn-title { fill: var(--accent); }
+  .mandala-node:hover .mn-ring { stroke-opacity: 0.9; }
 
-  .atlas-guard-bar {
-    flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; gap: 12px;
-    padding: 9px 14px; border-radius: var(--radius-pill);
-    background: var(--jelly-card-bg); border: 1px solid var(--jelly-rim); box-shadow: var(--pill-shadow);
+  /* Flush 40px Native Status Footer */
+  .atlas-status-bar {
+    height: 40px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 0 24px; border-top: 1px solid var(--line-soft);
+    background: var(--bg-chrome);
   }
-  .guard-left { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--ink-2); min-width: 0; }
+  .guard-left { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--ink-2); min-width: 0; }
 
-  /* Right Spotlight & Recent Topics Island */
-  .atlas-side-island { display: flex; flex-direction: column; overflow: hidden; }
-  .atlas-side-head { padding: 18px 20px 12px; border-bottom: 1px solid var(--line-soft); flex-shrink: 0; }
-  .atlas-side-title { font-family: var(--display-font); font-size: 19px; font-weight: 700; color: var(--ink-1); }
+  /* Right Crisp Activity & KPI Sidebar */
+  .atlas-side-pane {
+    display: flex; flex-direction: column; overflow: hidden;
+    background: var(--bg-work);
+  }
+  .atlas-side-head { padding: 18px 20px 14px; border-bottom: 1px solid var(--line-soft); flex-shrink: 0; }
+  .atlas-side-title { font-family: var(--display-font); font-size: var(--fs-h3); font-weight: 600; color: var(--ink-1); }
   .atlas-kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 12px; }
   .kpi-cell {
-    padding: 9px 10px; border-radius: var(--radius-md);
-    background: var(--jelly-card-bg); border: 1px solid var(--jelly-rim); box-shadow: var(--pill-shadow);
+    padding: 9px 8px; border-radius: var(--r-art);
+    background: var(--bg-work-alt); border: 1px solid var(--line-soft);
     text-align: center;
   }
-  .kpi-val { font-family: var(--display-font); font-size: 20px; font-weight: 700; color: var(--ink-1); line-height: 1.15; }
-  .kpi-lbl { font-size: 12px; color: var(--ink-3); margin-top: 2px; }
+  .kpi-val { font-family: var(--display-font); font-size: 19px; font-weight: 600; color: var(--ink-1); line-height: 1.2; letter-spacing: -0.02em; }
+  .kpi-lbl { font-size: var(--fs-meta); color: var(--ink-3); margin-top: 2px; }
 
-  .atlas-side-scroll { flex: 1; overflow-y: auto; padding: 12px 16px 18px; display: flex; flex-direction: column; gap: 10px; }
+  .atlas-side-scroll { flex: 1; overflow-y: auto; padding: 12px 16px 20px; display: flex; flex-direction: column; gap: 8px; }
   .topic-focus-card {
-    padding: 13px 15px; border-radius: var(--radius-lg);
-    background: var(--jelly-card-bg); border: 1px solid var(--jelly-rim); box-shadow: var(--card-shadow);
-    cursor: pointer; transition: transform 0.16s, border-color 0.16s;
+    padding: 12px 14px; border-radius: var(--r-card);
+    background: var(--bg-card); border: 1px solid var(--line-soft); box-shadow: var(--card-shadow);
+    cursor: pointer; transition: border-color 0.14s, background 0.14s;
   }
-  .topic-focus-card:hover { transform: translateY(-2px); border-color: var(--accent); }
+  .topic-focus-card:hover { border-color: var(--accent-border); background: var(--bg-surface-solid); }
   .tfc-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-  .tfc-name { font-size: 15px; font-weight: 700; color: var(--ink-1); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .tfc-time { font-size: 12px; color: var(--fresh-ink); font-weight: 600; flex-shrink: 0; }
-  .tfc-hint { font-size: 14px; color: var(--ink-2); margin-top: 4px; line-height: 1.42; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .tfc-foot { margin-top: 9px; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-  .tfc-stats { font-size: 12px; color: var(--ink-3); }
+  .tfc-name { font-size: 14px; font-weight: 600; color: var(--ink-1); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .tfc-time { font-size: var(--fs-meta); color: var(--ink-3); font-weight: 500; flex-shrink: 0; }
+  .tfc-hint { font-size: var(--fs-body); color: var(--ink-2); margin-top: 4px; line-height: 1.42; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tfc-foot { margin-top: 8px; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .tfc-stats { font-size: var(--fs-meta); color: var(--ink-3); }
+  .tfc-link {
+    border: none; background: transparent; color: var(--ink-3); font-size: var(--fs-meta); font-weight: 500;
+    padding: 2px 6px; border-radius: var(--r-badge); cursor: pointer; transition: color 0.12s, background 0.12s;
+  }
+  .topic-focus-card:hover .tfc-link { color: var(--fresh-ink); }
+  .tfc-link:hover { background: var(--accent-soft); color: var(--fresh-ink); }
 
   /* =========================================================
-     VIEW 1B: FOUR-TIER TOPIC -> FIG -> DATE BATCH -> TYPE WORKBENCH
+     VIEW 1B: FOUR-TIER WORKBENCH (Seamless 3-Column Native Split)
      ========================================================= */
-  .drill-shell { flex: 1; min-height: 0; display: flex; flex-direction: column; padding: 4px 16px 16px; gap: 12px; overflow: hidden; }
+  .drill-shell { flex: 1; min-height: 0; display: flex; flex-direction: column; overflow: hidden; }
 
-  /* Spring Crystal Breadcrumb Bar */
+  /* Flush 42px Native Breadcrumb Bar (ZERO floating pill sausage!) */
   .crumb-bar {
-    flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; gap: 12px;
-    padding: 8px 14px; border-radius: var(--radius-pill);
-    background: var(--jelly-island-bg); backdrop-filter: blur(28px) saturate(185%);
-    border: 1px solid var(--jelly-rim); box-shadow: var(--jelly-shadow);
+    height: 42px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 0 16px; border-bottom: 1px solid var(--line-soft);
+    background: var(--bg-chrome);
+    backdrop-filter: blur(20px) saturate(135%);
   }
   .crumb-left { display: flex; align-items: center; gap: 8px; min-width: 0; flex-wrap: nowrap; overflow: hidden; }
-  .crumb-sep { color: var(--ink-3); font-size: 14px; flex-shrink: 0; }
-  .crumb-select {
-    height: 30px; padding: 0 12px; border-radius: var(--radius-pill);
-    border: 1px solid var(--jelly-rim); background: var(--jelly-pill-bg); box-shadow: var(--pill-shadow);
-    color: var(--ink-1); font-size: 13.5px; font-weight: 600; outline: none; cursor: pointer; max-width: 240px;
+  .crumb-sep { color: var(--ink-3); font-size: 13px; flex-shrink: 0; }
+  .crumb-fig-tag {
+    height: 26px; padding: 0 9px; border-radius: var(--r-badge);
+    background: var(--accent-soft); color: var(--fresh-ink);
+    font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; white-space: nowrap;
   }
-  .crumb-select option { background: var(--bg-surface-solid); color: var(--ink-1); }
-  .crumb-fig-pill {
-    height: 30px; padding: 0 12px; border-radius: var(--radius-pill);
-    background: var(--accent-soft); border: 1px solid var(--line-strong);
-    color: var(--ink-1); font-size: 13px; font-weight: 700; display: inline-flex; align-items: center; white-space: nowrap;
+  .crumb-right { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+
+  .drill-columns { flex: 1; min-height: 0; display: flex; overflow: hidden; }
+
+  /* Tier 2 Rail: Soft Translucent Optical Glass Sidebar */
+  .fig-rail {
+    width: 222px; flex-shrink: 0; display: flex; flex-direction: column;
+    background: var(--bg-rail);
+    backdrop-filter: blur(22px) saturate(135%);
+    border-right: 1px solid var(--line-soft);
   }
-  .crumb-right { display: flex; align-items: center; gap: 7px; flex-shrink: 0; }
-
-  /* Three Floating Islands for Four-Tier Deep Dive */
-  .drill-columns { flex: 1; min-height: 0; display: flex; gap: 14px; overflow: hidden; }
-
-  /* Tier 2 Rail: Fig专席 */
-  .fig-rail { width: 226px; flex-shrink: 0; display: flex; flex-direction: column; }
-  .fig-rail-head { padding: 14px 16px 10px; border-bottom: 1px solid var(--line-soft); flex-shrink: 0; }
-  .fig-rail-title { font-size: 14.5px; font-weight: 700; color: var(--ink-1); }
-  .fig-rail-sub { font-size: 12px; color: var(--ink-3); margin-top: 2px; }
+  .fig-rail-head { padding: 14px 14px 10px; border-bottom: 1px solid var(--line-soft); flex-shrink: 0; }
+  .fig-rail-title { font-size: 14px; font-weight: 600; color: var(--ink-1); }
+  .fig-rail-sub { font-size: var(--fs-meta); color: var(--ink-3); margin-top: 2px; }
   .fig-rail-scroll {
-    flex: 1; min-height: 0; overflow-y: auto; padding: 8px 10px 32px;
-    -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 22px), transparent 100%);
-    mask-image: linear-gradient(to bottom, #000 calc(100% - 22px), transparent 100%);
+    flex: 1; min-height: 0; overflow-y: auto; padding: 8px 8px 28px;
+    -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 20px), transparent 100%);
+    mask-image: linear-gradient(to bottom, #000 calc(100% - 20px), transparent 100%);
   }
-  .fig-sec-lbl { font-size: 12px; font-weight: 600; color: var(--ink-3); padding: 10px 10px 4px; }
+  .fig-sec-lbl { font-size: var(--fs-meta); font-weight: 600; color: var(--ink-3); padding: 10px 10px 4px; }
   .fig-sec-lbl:first-child { padding-top: 2px; }
   .fig-nav-btn {
-    width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 8px;
-    padding: 8px 12px; margin-bottom: 3px; border-radius: var(--radius-pill);
-    border: 1px solid transparent; background: transparent; color: var(--ink-2);
-    font-size: 13.5px; text-align: left; cursor: pointer; transition: all 0.14s;
+    width: 100%; position: relative; display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    padding: 7px 10px 7px 12px; margin-bottom: 2px; border-radius: var(--r-ctrl);
+    border: none; background: transparent; color: var(--ink-2);
+    font-size: 13.5px; font-weight: 500; text-align: left; cursor: pointer; transition: background 0.12s, color 0.12s;
   }
   .fig-nav-btn:hover { background: var(--bg-hover); color: var(--ink-1); }
   .fig-nav-btn.active {
-    background: var(--accent-soft); border-color: var(--line-strong);
-    color: var(--ink-1); font-weight: 700; box-shadow: var(--pill-shadow);
+    background: var(--accent-soft); color: var(--ink-1); font-weight: 600;
+  }
+  .fig-nav-btn.active::before {
+    content: ""; position: absolute; left: 2px; top: 50%; transform: translateY(-50%);
+    height: 17px; width: 3px; border-radius: 999px; background: var(--accent);
   }
   .fig-nav-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
-  .fig-nav-badge { font-size: 12px; color: var(--ink-3); flex-shrink: 0; }
-  .fig-nav-btn.active .fig-nav-badge { color: var(--fresh-ink); font-weight: 700; }
+  .fig-nav-badge { font-size: var(--fs-meta); color: var(--ink-3); flex-shrink: 0; }
+  .fig-nav-btn.active .fig-nav-badge { color: var(--fresh-ink); font-weight: 600; }
 
-  /* Tier 3 + Tier 4 Stage: Date Batches + Diff Summary + Typed Lanes */
-  .batch-stage { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  /* Tier 3 + Tier 4 Stage: High-Clarity Work Plane */
+  .batch-stage {
+    flex: 1; min-width: 0; display: flex; flex-direction: column;
+    background: var(--bg-work);
+  }
   .batch-stage-head {
-    padding: 13px 20px 11px; border-bottom: 1px solid var(--line-soft); flex-shrink: 0;
+    padding: 14px 22px 12px; border-bottom: 1px solid var(--line-soft); flex-shrink: 0;
     display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
   }
-  .bs-title { font-family: var(--display-font); font-size: 20px; font-weight: 700; color: var(--ink-1); line-height: 1.25; }
-  .bs-meta { font-size: 13px; color: var(--ink-3); margin-top: 2px; }
-  .bs-type-filter { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .bs-title { font-family: var(--display-font); font-size: var(--fs-h2); font-weight: 600; color: var(--ink-1); line-height: 1.25; letter-spacing: -0.015em; }
+  .bs-meta { font-size: var(--fs-meta); color: var(--ink-3); margin-top: 2px; }
+
+  /* Compact Segmented Type Filter */
+  .bs-type-filter {
+    display: inline-flex; align-items: center; gap: 2px; padding: 2.5px;
+    border-radius: 7px; background: var(--seg-bg); border: 1px solid var(--line-soft); flex-wrap: wrap;
+  }
   .type-chip {
-    height: 29px; padding: 0 11px; border-radius: var(--radius-pill);
-    border: 1px solid var(--jelly-rim); background: var(--jelly-pill-bg); box-shadow: var(--pill-shadow);
-    color: var(--ink-2); font-size: 12.5px; font-weight: 500; cursor: pointer; transition: all 0.14s;
+    height: 25px; padding: 0 10px; border-radius: 5px;
+    border: none; background: transparent;
+    color: var(--ink-2); font-size: var(--fs-meta); font-weight: 500; cursor: pointer; transition: all 0.12s;
   }
   .type-chip:hover { color: var(--ink-1); }
   .type-chip.active {
-    background: var(--accent-soft); border-color: var(--accent);
-    color: var(--ink-1); font-weight: 700;
+    background: var(--seg-thumb); color: var(--ink-1); font-weight: 600; box-shadow: var(--seg-shadow);
   }
 
-  .batch-scroll { flex: 1 1 0; min-height: 0; overflow-y: auto; padding: 14px 18px 28px; display: flex; flex-direction: column; gap: 13px; }
+  .batch-scroll { flex: 1 1 0; min-height: 0; overflow-y: auto; padding: 14px 20px 30px; display: flex; flex-direction: column; gap: 12px; }
 
-  /* Date / Session Batch Card (CRITICAL: flex: 0 0 auto prevents vertical collapse!) */
+  /* Crisp Flat Date Batch Card (CRITICAL: flex: 0 0 auto prevents vertical collapse!) */
   .batch-card {
     flex: 0 0 auto;
-    border-radius: var(--radius-lg);
-    background: var(--jelly-card-bg); border: 1px solid var(--jelly-rim); box-shadow: var(--card-shadow);
+    border-radius: var(--r-card);
+    background: var(--bg-card); border: 1px solid var(--line-soft); box-shadow: var(--card-shadow);
     overflow: hidden;
   }
   .batch-card-head {
-    padding: 12px 15px 10px; display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    padding: 10px 15px; display: flex; align-items: center; justify-content: space-between; gap: 10px;
     border-bottom: 1px solid var(--line-soft); cursor: pointer;
   }
-  .batch-head-left { display: flex; align-items: center; gap: 9px; min-width: 0; flex-wrap: wrap; }
-  .batch-date-pill {
-    height: 27px; padding: 0 11px; border-radius: var(--radius-pill);
-    background: var(--accent-soft); border: 1px solid var(--line-strong);
-    color: var(--ink-1); font-size: 13px; font-weight: 700; display: inline-flex; align-items: center;
+  .batch-head-left { display: flex; align-items: center; gap: 8px; min-width: 0; flex-wrap: wrap; }
+  .batch-date-txt { font-size: 14px; font-weight: 600; color: var(--ink-1); letter-spacing: -0.01em; }
+  .batch-round-tag {
+    padding: 1px 7px; border-radius: var(--r-badge);
+    background: var(--accent-soft); color: var(--fresh-ink); font-size: var(--fs-meta); font-weight: 600;
   }
-  .batch-round-tag { font-size: 12.5px; font-weight: 700; color: var(--fresh-ink); }
-  .batch-proj-name { font-size: 14px; font-weight: 500; color: var(--ink-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 280px; }
+  .batch-proj-name { font-size: 14px; font-weight: 400; color: var(--ink-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 300px; }
   .batch-plat-tag {
-    padding: 2px 8px; border-radius: var(--radius-pill); font-size: 12px; font-weight: 600;
-    background: var(--bg-elevated); color: var(--ink-2); border: 1px solid var(--line-soft);
+    padding: 1px 6px; border-radius: var(--r-badge); font-size: var(--fs-meta); font-weight: 500;
+    background: var(--bg-subtle); color: var(--ink-3);
   }
-  .batch-head-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+  .batch-head-actions { display: flex; align-items: center; gap: 2px; flex-shrink: 0; }
 
-  /* Prominent Diff Summary Banner (Core A03 + A04 Feature) */
+  /* Linear / Notion Left-Bar Diff Callout */
   .diff-banner {
-    margin: 11px 14px 4px; padding: 10px 14px; border-radius: var(--radius-md);
-    background: var(--diff-bg); border: 1px solid var(--diff-border);
+    margin: 9px 15px 2px; padding: 7px 12px; border-radius: 0 var(--r-ctrl) var(--r-ctrl) 0;
+    background: var(--diff-bg); border-left: 3px solid var(--diff-bar);
     display: flex; align-items: center; justify-content: space-between; gap: 12px;
   }
-  .diff-banner-left { display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1; }
+  .diff-banner-left { display: flex; align-items: baseline; gap: 8px; min-width: 0; flex: 1; }
   .diff-badge {
-    flex-shrink: 0; padding: 3px 9px; border-radius: var(--radius-pill);
-    background: var(--diff-badge-bg); color: var(--diff-badge-ink);
-    font-size: 12px; font-weight: 700;
+    flex-shrink: 0; color: var(--diff-label); font-size: var(--fs-meta); font-weight: 600;
   }
-  .diff-text { font-size: 14px; font-weight: 600; color: var(--diff-ink); line-height: 1.45; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; }
+  .diff-text { font-size: var(--fs-body); font-weight: 500; color: var(--diff-ink); line-height: 1.46; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; }
   .diff-ai-btn {
-    flex-shrink: 0; height: 26px; padding: 0 10px; border-radius: var(--radius-pill);
-    border: 1px solid var(--diff-border); background: var(--jelly-pill-bg);
-    color: var(--ink-1); font-size: 12px; font-weight: 600; cursor: pointer;
+    flex-shrink: 0; height: 24px; padding: 0 8px; border-radius: var(--r-badge);
+    border: 1px solid var(--line-strong); background: var(--bg-card);
+    color: var(--ink-2); font-size: var(--fs-meta); font-weight: 500; cursor: pointer;
   }
-  .diff-ai-btn:hover { border-color: var(--accent); }
+  .diff-ai-btn:hover { border-color: var(--accent); color: var(--ink-1); }
 
-  /* Tier 4: File Type Lanes inside Batch Card */
-  .batch-body { padding: 10px 14px 14px; display: flex; flex-direction: column; gap: 12px; }
+  /* Tier 4: File Type Lanes */
+  .batch-body { padding: 10px 15px 13px; display: flex; flex-direction: column; gap: 12px; }
   .batch-card.collapsed .batch-body { display: none; }
-  .lane-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 7px; }
-  .lane-title { font-size: 13px; font-weight: 700; color: var(--ink-2); display: inline-flex; align-items: center; gap: 7px; }
-  .lane-cnt { font-size: 12px; color: var(--ink-3); font-weight: 500; }
+  .lane-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+  .lane-title { font-size: 13px; font-weight: 600; color: var(--ink-2); display: inline-flex; align-items: center; gap: 6px; }
+  .lane-cnt { font-size: var(--fs-meta); color: var(--ink-3); font-weight: 500; }
 
-  /* Visual Plate Grid (A4 PDFs & Single Subpanels) */
-  .plate-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(196px, 1fr)); gap: 11px; }
-  .plate-grid.subpanels { grid-template-columns: repeat(auto-fill, minmax(156px, 1fr)); gap: 9px; }
+  /* Visual Plate Grid (100% Clean Artboard — ZERO corner badge covering Panel A!) */
+  .plate-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(204px, 1fr)); gap: 12px; }
+  .plate-grid.subpanels { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; }
   .plate-card {
-    padding: 7px; border-radius: var(--radius-md);
-    background: var(--jelly-pill-bg); border: 1px solid var(--jelly-rim); box-shadow: var(--pill-shadow);
-    cursor: pointer; transition: transform 0.16s, border-color 0.16s; position: relative;
+    padding: 7px; border-radius: var(--r-art);
+    background: var(--bg-work-alt); border: 1px solid var(--line-soft);
+    cursor: pointer; transition: border-color 0.14s, background 0.14s; position: relative;
   }
-  .plate-card:hover { transform: translateY(-2px); border-color: var(--accent); }
-  .plate-card.selected { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-soft), var(--card-shadow); }
+  .plate-card:hover { border-color: var(--line-strong); background: var(--bg-card); }
+  .plate-card.selected { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); background: var(--bg-card); }
   .plate-artboard {
-    position: relative; height: 158px; border-radius: 10px; background: #FFFFFF;
+    position: relative; height: 164px; border-radius: 5px; background: #FFFFFF;
+    border: 1px solid rgba(15, 23, 42, 0.06);
     padding: 6px; display: flex; align-items: center; justify-content: center; overflow: hidden;
   }
-  .plate-grid.subpanels .plate-artboard { height: 118px; }
+  .plate-grid.subpanels .plate-artboard { height: 122px; }
   .plate-artboard img { max-width: 100%; max-height: 100%; object-fit: contain; display: block; }
-  .plate-tag {
-    position: absolute; top: 6px; left: 6px; padding: 2px 8px; border-radius: var(--radius-pill);
-    background-color: var(--tag-bg); background-image: var(--tag-grad); color: var(--tag-ink);
-    font-size: 12px; font-weight: 600; box-shadow: var(--tag-shadow); z-index: 2;
-  }
   .plate-cmp-btn {
-    position: absolute; top: 6px; right: 6px; height: 24px; padding: 0 8px; border-radius: var(--radius-pill);
-    border: 1px solid rgba(255,255,255,0.7); background: rgba(20, 26, 38, 0.78); color: #FFFFFF;
-    font-size: 12px; font-weight: 600; cursor: pointer; opacity: 0; transition: opacity 0.14s; z-index: 3;
+    position: absolute; top: 6px; right: 6px; height: 24px; padding: 0 8px; border-radius: var(--r-badge);
+    border: 1px solid rgba(255, 255, 255, 0.25); background: rgba(17, 24, 39, 0.84); color: #FFFFFF;
+    font-size: var(--fs-meta); font-weight: 500; cursor: pointer; opacity: 0; transition: opacity 0.12s; z-index: 3;
   }
   .plate-card:hover .plate-cmp-btn, .plate-card.selected .plate-cmp-btn { opacity: 1; }
   .plate-typo-fallback {
     display: none; flex-direction: column; align-items: center; justify-content: center;
-    text-align: center; gap: 4px; color: #364152; padding: 8px;
+    text-align: center; gap: 4px; color: #374151; padding: 8px;
   }
-  .plate-cap { padding: 7px 3px 1px; }
+  .plate-cap { padding: 7px 2px 1px; }
   .plate-name {
     font-size: 13.5px; font-weight: 600; color: var(--ink-1); line-height: 1.35;
     display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere;
   }
-  .plate-sub { font-size: 12px; color: var(--ink-3); display: flex; justify-content: space-between; gap: 6px; margin-top: 2px; }
+  .plate-sub { font-size: var(--fs-meta); color: var(--ink-3); display: flex; justify-content: space-between; gap: 6px; margin-top: 2px; }
 
   /* Clean Document / HTML Rows */
   .doc-list {
-    border-radius: var(--radius-md); border: 1px solid var(--line-soft);
-    background: var(--bg-surface); overflow: hidden;
+    border-radius: var(--r-art); border: 1px solid var(--line-soft);
+    background: var(--bg-work-alt); overflow: hidden;
   }
   .doc-row {
-    display: grid; grid-template-columns: 76px minmax(0, 1fr) auto; align-items: center; gap: 12px;
-    padding: 9px 13px; border-bottom: 1px solid var(--line-soft); cursor: pointer; transition: background 0.12s;
+    display: grid; grid-template-columns: 62px minmax(0, 1fr) auto; align-items: center; gap: 10px;
+    padding: 9px 12px; border-bottom: 1px solid var(--line-soft); cursor: pointer; transition: background 0.1s;
   }
   .doc-row:last-child { border-bottom: none; }
   .doc-row:hover { background: var(--bg-hover); }
   .doc-row.selected { background: var(--accent-soft); }
   .kind-pill {
-    height: 25px; padding: 0 9px; border-radius: var(--radius-pill);
-    background: var(--jelly-pill-bg); border: 1px solid var(--jelly-rim); box-shadow: var(--pill-shadow);
-    color: var(--ink-2); font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; white-space: nowrap;
+    height: 22px; padding: 0 7px; border-radius: var(--r-badge);
+    background: var(--bg-subtle); color: var(--ink-2);
+    font-size: var(--fs-meta); font-weight: 600; display: inline-flex; align-items: center; justify-content: center; white-space: nowrap;
   }
-  .kind-pill.primary { background: var(--accent-soft); border-color: var(--line-strong); color: var(--ink-1); }
-  .doc-title { font-size: 14px; font-weight: 600; color: var(--ink-1); line-height: 1.38; overflow-wrap: anywhere; }
-  .doc-sub { font-size: 12px; color: var(--ink-3); margin-top: 2px; }
-  .doc-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+  .kind-pill.primary { background: var(--accent-soft); color: var(--fresh-ink); }
+  .doc-title { font-size: var(--fs-body); font-weight: 500; color: var(--ink-1); line-height: 1.38; overflow-wrap: anywhere; }
+  .doc-sub { font-size: var(--fs-meta); color: var(--ink-3); margin-top: 2px; }
+  .doc-actions { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+  .row-chevron { color: var(--ink-2); opacity: 0.58; transition: opacity 0.12s, transform 0.12s; padding-right: 4px; }
+  .doc-row:hover .row-chevron { opacity: 0.96; transform: translateX(2px); }
 
   .fold-toggle-btn {
-    width: 100%; padding: 8px 12px; border: 1px dashed var(--line-strong); border-radius: var(--radius-md);
-    background: transparent; color: var(--ink-2); font-size: 13px; font-weight: 600; cursor: pointer;
-    margin-top: 6px; transition: background 0.14s;
+    width: 100%; padding: 7px 12px; border: 1px dashed var(--line-strong); border-radius: var(--r-ctrl);
+    background: transparent; color: var(--ink-2); font-size: 13px; font-weight: 500; cursor: pointer;
+    margin-top: 8px; transition: background 0.12s, color 0.12s;
   }
   .fold-toggle-btn:hover { background: var(--bg-hover); color: var(--ink-1); }
 
-  /* Right QuickLook Preview Island */
-  .preview-island { width: 432px; flex-shrink: 0; display: flex; flex-direction: column; }
-  .preview-island.collapsed { display: none; }
-  .pv-head { padding: 14px 18px 12px; border-bottom: 1px solid var(--line-soft); flex-shrink: 0; }
-  .pv-title { font-family: var(--display-font); font-size: 16.5px; font-weight: 700; color: var(--ink-1); line-height: 1.35; overflow-wrap: anywhere; }
-  .pv-path { margin-top: 4px; font-size: 12px; color: var(--ink-3); word-break: break-all; user-select: text; }
-  .pv-btn-row { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 6px; }
-  .pv-body { flex: 1; overflow: auto; padding: 12px; display: flex; flex-direction: column; }
+  /* Right QuickLook Preview Pane (Flush Split, Neutral Art Mat) */
+  .preview-pane {
+    width: 448px; flex-shrink: 0; display: flex; flex-direction: column;
+    background: var(--bg-work-alt); border-left: 1px solid var(--line-soft);
+  }
+  .preview-pane.collapsed { display: none; }
+  .pv-head { padding: 14px 18px 12px; border-bottom: 1px solid var(--line-soft); flex-shrink: 0; background: var(--bg-work); }
+  .pv-title { font-family: var(--font-sans); font-size: var(--fs-h3); font-weight: 600; color: var(--ink-1); line-height: 1.35; overflow-wrap: anywhere; }
+  .pv-path { margin-top: 3px; font-size: var(--fs-meta); color: var(--ink-3); word-break: break-all; user-select: text; }
+  .pv-btn-row { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 5px; }
+  .pv-body { flex: 1; overflow: auto; padding: 14px; display: flex; flex-direction: column; background: var(--bg-art-mat); }
   .pv-img-box {
-    flex: 1; display: flex; align-items: center; justify-content: center; padding: 10px;
-    background: var(--jelly-card-bg); border-radius: 16px; border: 1px solid var(--jelly-rim); overflow: auto;
+    flex: 1; display: flex; align-items: center; justify-content: center; overflow: auto;
   }
   .pv-img-box img {
     max-width: 100%; max-height: 100%; object-fit: contain; cursor: zoom-in;
-    background: #FFFFFF; padding: 8px; border-radius: 10px; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.10);
+    background: #FFFFFF; padding: 6px; border-radius: 6px;
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.09);
   }
   .pv-img-box.zoomed { align-items: flex-start; justify-content: flex-start; }
   .pv-img-box.zoomed img { max-width: none; max-height: none; cursor: zoom-out; }
-  .pv-iframe { width: 100%; height: 100%; border: none; border-radius: 12px; background: #FFFFFF; flex: 1; }
-  .pv-dossier { display: flex; flex-direction: column; gap: 11px; }
-  .pv-dossier-card { padding: 13px 15px; border-radius: var(--radius-md); background: var(--jelly-card-bg); border: 1px solid var(--jelly-rim); }
-  .pv-dossier-h { font-size: 13px; font-weight: 700; color: var(--ink-2); margin-bottom: 7px; }
-  .pv-toc-item { font-size: 13.5px; color: var(--ink-1); padding: 5px 0; border-bottom: 1px solid var(--line-soft); line-height: 1.45; }
+  .pv-iframe { width: 100%; height: 100%; border: 1px solid var(--line-soft); border-radius: var(--r-art); background: #FFFFFF; flex: 1; }
+  .pv-dossier { display: flex; flex-direction: column; gap: 10px; }
+  .pv-dossier-card { padding: 14px 16px; border-radius: var(--r-art); background: var(--bg-card); border: 1px solid var(--line-soft); }
+  .pv-dossier-h { font-size: var(--fs-meta); font-weight: 600; color: var(--ink-3); margin-bottom: 6px; }
+  .pv-toc-item { font-size: var(--fs-body); color: var(--ink-1); padding: 5px 0; border-bottom: 1px solid var(--line-soft); line-height: 1.45; }
   .pv-toc-item:last-child { border-bottom: none; }
   .pv-mini-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
-  .pv-mini-plate { padding: 5px; border-radius: 10px; background: var(--jelly-pill-bg); border: 1px solid var(--jelly-rim); cursor: pointer; }
-  .pv-mini-art { height: 96px; background: #FFFFFF; border-radius: 8px; padding: 4px; display: flex; align-items: center; justify-content: center; }
+  .pv-mini-plate { padding: 5px; border-radius: var(--r-ctrl); background: var(--bg-work-alt); border: 1px solid var(--line-soft); cursor: pointer; }
+  .pv-mini-plate:hover { border-color: var(--accent); }
+  .pv-mini-art { height: 96px; background: #FFFFFF; border-radius: 4px; padding: 4px; display: flex; align-items: center; justify-content: center; }
   .pv-mini-art img { max-width: 100%; max-height: 100%; object-fit: contain; }
-  .pv-mini-cap { padding: 4px 3px 0; font-size: 12px; color: var(--ink-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .pv-mini-cap { padding: 4px 2px 0; font-size: var(--fs-meta); color: var(--ink-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .pv-text-pre {
-    padding: 15px 16px; border-radius: var(--radius-md); background: var(--jelly-card-bg);
-    border: 1px solid var(--jelly-rim); font-size: 14px; line-height: 1.68; color: var(--ink-1);
+    padding: 16px 18px; border-radius: var(--r-art); background: var(--bg-card);
+    border: 1px solid var(--line-soft); font-size: var(--fs-body); line-height: 1.65; color: var(--ink-1);
     white-space: pre-wrap; overflow-wrap: anywhere; user-select: text;
   }
   .pv-md {
-    padding: 16px 18px; border-radius: var(--radius-md); background: var(--jelly-card-bg);
-    border: 1px solid var(--jelly-rim); font-size: 14px; line-height: 1.68; color: var(--ink-1); user-select: text;
+    padding: 18px 20px; border-radius: var(--r-art); background: var(--bg-card);
+    border: 1px solid var(--line-soft); font-size: var(--fs-body); line-height: 1.68; color: var(--ink-1); user-select: text;
   }
-  .pv-md h1 { font-family: var(--display-font); font-size: 18px; font-weight: 700; margin: 4px 0 10px; padding-bottom: 6px; border-bottom: 1px solid var(--line-soft); }
-  .pv-md h2 { font-family: var(--display-font); font-size: 16px; font-weight: 700; margin: 14px 0 6px; color: var(--ink-1); }
-  .pv-md h3 { font-size: 14.5px; font-weight: 700; margin: 10px 0 4px; color: var(--ink-2); }
+  .pv-md h1 { font-family: var(--display-font); font-size: 17px; font-weight: 600; margin: 2px 0 10px; padding-bottom: 6px; border-bottom: 1px solid var(--line-soft); }
+  .pv-md h2 { font-family: var(--display-font); font-size: 15.5px; font-weight: 600; margin: 14px 0 6px; color: var(--ink-1); }
+  .pv-md h3 { font-size: 14.5px; font-weight: 600; margin: 10px 0 4px; color: var(--ink-2); }
   .pv-md p { margin: 6px 0; color: var(--ink-2); }
   .pv-md ul { margin: 6px 0 8px 18px; color: var(--ink-2); }
   .pv-md li { margin: 3px 0; }
-  .pv-md code { padding: 1px 6px; border-radius: 5px; background: var(--bg-elevated); font-family: var(--font-sans); font-size: 13px; color: var(--fresh-ink); }
-  .pv-table { width: 100%; border-collapse: collapse; font-size: 13px; background: var(--jelly-card-bg); }
+  .pv-md code {
+    padding: 1px 6px; border-radius: 4px; background: var(--bg-subtle);
+    font-family: var(--font-sans); font-size: 13.5px; font-weight: 500; color: var(--fresh-ink);
+    display: inline-block; word-break: keep-all; overflow-wrap: break-word; max-width: 100%;
+  }
+  .pv-table { width: 100%; border-collapse: collapse; font-size: 13px; background: var(--bg-card); }
   .pv-table th, .pv-table td { padding: 6px 9px; border: 1px solid var(--line-soft); text-align: left; max-width: 190px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .pv-table th { background: var(--bg-elevated); font-weight: 600; position: sticky; top: 0; }
+  .pv-table th { background: var(--bg-work-alt); font-weight: 600; position: sticky; top: 0; }
 
   /* =========================================================
-     VIEW 2: REAL FOLDER BROWSER
+     VIEW 2: REAL FOLDER BROWSER (Seamless 3-Pane)
      ========================================================= */
-  .folders-layout { flex: 1; min-height: 0; display: flex; gap: 14px; padding: 6px 16px 16px; overflow: hidden; }
-  .folder-rail { width: 250px; flex-shrink: 0; display: flex; flex-direction: column; }
-  .folder-center { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .folders-layout { flex: 1; min-height: 0; display: flex; overflow: hidden; }
+  .folder-rail { width: 236px; flex-shrink: 0; display: flex; flex-direction: column; background: var(--bg-rail); backdrop-filter: blur(22px) saturate(135%); border-right: 1px solid var(--line-soft); }
+  .folder-center { flex: 1; min-width: 0; display: flex; flex-direction: column; background: var(--bg-work); }
 
   /* =========================================================
      VIEW 3: FOCUSED LINEAGE MIND-MAP
      ========================================================= */
-  .lineage-layout { flex: 1; min-height: 0; display: flex; gap: 14px; padding: 6px 16px 16px; overflow: hidden; }
-  .lineage-rail { width: 242px; flex-shrink: 0; display: flex; flex-direction: column; }
-  .mindmap-viewport { flex: 1; min-width: 0; display: flex; flex-direction: column; }
-  .mm-top-bar { padding: 14px 20px 12px; border-bottom: 1px solid var(--line-soft); display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-  .mm-canvas-wrap { flex: 1; overflow: auto; padding: 20px 24px; position: relative; }
-  .mm-canvas { position: relative; display: flex; align-items: flex-start; gap: 58px; min-width: max-content; }
+  .lineage-layout { flex: 1; min-height: 0; display: flex; overflow: hidden; }
+  .lineage-rail { width: 236px; flex-shrink: 0; display: flex; flex-direction: column; background: var(--bg-rail); backdrop-filter: blur(22px) saturate(135%); border-right: 1px solid var(--line-soft); }
+  .mindmap-viewport { flex: 1; min-width: 0; display: flex; flex-direction: column; background: var(--bg-work); }
+  .mm-top-bar { padding: 14px 22px 12px; border-bottom: 1px solid var(--line-soft); display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .mm-canvas-wrap { flex: 1; overflow: auto; padding: 22px 26px; position: relative; }
+  .mm-canvas { position: relative; display: flex; align-items: flex-start; gap: 56px; min-width: max-content; }
   .mm-svg { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; }
-  .mm-col { position: relative; z-index: 2; display: flex; flex-direction: column; gap: 18px; }
+  .mm-col { position: relative; z-index: 2; display: flex; flex-direction: column; gap: 16px; }
   .mm-root-node {
-    width: 224px; padding: 16px 18px; border-radius: var(--radius-lg);
-    background-color: var(--accent); background-image: var(--accent-grad); color: var(--accent-ink); box-shadow: var(--accent-glow);
+    width: 220px; padding: 14px 16px; border-radius: var(--r-card);
+    background: var(--accent); color: var(--accent-ink);
   }
   .mm-branch-node {
-    width: 248px; padding: 13px 15px; border-radius: var(--radius-md);
-    background: var(--jelly-card-bg); border: 1px solid var(--jelly-rim); box-shadow: var(--card-shadow);
+    width: 242px; padding: 12px 14px; border-radius: var(--r-art);
+    background: var(--bg-card); border: 1px solid var(--line-strong); box-shadow: var(--card-shadow);
   }
-  .mm-leaf-group { display: flex; flex-direction: column; gap: 9px; }
+  .mm-leaf-group { display: flex; flex-direction: column; gap: 8px; }
   .mm-leaf-node {
-    width: 390px; padding: 12px 14px; border-radius: var(--radius-md);
-    background: var(--jelly-pill-bg); border: 1px solid var(--jelly-rim); box-shadow: var(--pill-shadow);
-    cursor: pointer; transition: transform 0.14s, border-color 0.14s;
+    width: 390px; padding: 11px 14px; border-radius: var(--r-art);
+    background: var(--bg-card); border: 1px solid var(--line-soft); box-shadow: var(--card-shadow);
+    cursor: pointer; transition: border-color 0.12s;
   }
-  .mm-leaf-node:hover { transform: translateY(-1px); border-color: var(--accent); }
+  .mm-leaf-node:hover { border-color: var(--accent); }
 
   /* =========================================================
-     VIEW 4: MAINTENANCE, AUTO-UPDATE & LIGHTWEIGHT AI SETTINGS
+     VIEW 4: SETTINGS, AUTO-UPDATE & OPTIONAL AI MICRO-SUMMARY
      ========================================================= */
-  .settings-scroll { flex: 1; overflow-y: auto; padding: 8px 16px 24px; }
-  .settings-grid { max-width: 1240px; margin: 0 auto; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
-  .set-card { padding: 20px 22px; display: flex; flex-direction: column; gap: 12px; }
-  .set-h { font-family: var(--display-font); font-size: 18.5px; font-weight: 700; color: var(--ink-1); }
-  .set-p { font-size: 14px; color: var(--ink-2); line-height: 1.62; }
-  .field-row { display: flex; flex-direction: column; gap: 5px; }
-  .field-lbl { font-size: 13px; font-weight: 600; color: var(--ink-2); }
-  .field-input {
-    height: 36px; padding: 0 12px; border-radius: var(--radius-sm);
-    border: 1px solid var(--line-strong); background: var(--bg-surface-solid);
-    color: var(--ink-1); font-size: 14px; outline: none;
+  .settings-scroll { flex: 1; overflow-y: auto; padding: 22px 26px 32px; background: var(--bg-work); }
+  .settings-grid { max-width: 1180px; margin: 0 auto; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+  .set-card {
+    padding: 20px 22px; display: flex; flex-direction: column; gap: 12px;
+    border-radius: var(--r-card); background: var(--bg-card); border: 1px solid var(--line-soft); box-shadow: var(--card-shadow);
   }
-  .field-input:focus { border-color: var(--accent); }
-  .toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border-radius: var(--radius-md); background: var(--bg-elevated); }
+  .set-h { font-family: var(--display-font); font-size: 16px; font-weight: 600; color: var(--ink-1); }
+  .set-p { font-size: var(--fs-body); color: var(--ink-2); line-height: 1.6; }
+  .field-row { display: flex; flex-direction: column; gap: 5px; }
+  .field-lbl { font-size: 13px; font-weight: 500; color: var(--ink-2); }
+  .field-input {
+    height: 34px; padding: 0 10px; border-radius: var(--r-ctrl);
+    border: 1px solid var(--line-strong); background: var(--bg-work-alt);
+    color: var(--ink-1); font-size: var(--fs-body); outline: none;
+  }
+  .field-input:focus { border-color: var(--accent); background: var(--bg-card); }
+  .toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border-radius: var(--r-art); background: var(--bg-work-alt); border: 1px solid var(--line-soft); }
 
   /* =========================================================
-     A/B VISUAL DIFF LOUPE MODAL & SPACE LIGHTBOX & SEARCH OVERLAY
+     A/B VISUAL DIFF LOUPE, LIGHTBOX & OMNI SEARCH MODALS
      ========================================================= */
   .modal-bg {
     position: fixed; inset: 0; z-index: 90; display: none; align-items: center; justify-content: center;
-    background: rgba(12, 16, 24, 0.56); backdrop-filter: blur(14px); padding: 20px;
+    background: rgba(10, 14, 22, 0.56); backdrop-filter: blur(10px); padding: 20px;
   }
   .modal-bg.open { display: flex; }
 
   .compare-dialog {
     width: min(1440px, 96vw); height: min(900px, 94vh);
     display: flex; flex-direction: column; overflow: hidden;
-    background: var(--bg-surface-solid); border: 1px solid var(--jelly-rim);
-    border-radius: var(--radius-island); box-shadow: 0 28px 68px rgba(0, 0, 0, 0.42);
+    background: var(--bg-surface-solid); border: 1px solid var(--line-strong);
+    border-radius: var(--r-modal); box-shadow: 0 24px 64px rgba(0, 0, 0, 0.38);
   }
   .cmp-head {
-    padding: 10px 18px; border-bottom: 1px solid var(--line-soft);
+    padding: 11px 18px; border-bottom: 1px solid var(--line-soft);
     display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+    background: var(--bg-work);
   }
-  .cmp-title { font-family: var(--display-font); font-size: 17.5px; font-weight: 700; color: var(--ink-1); }
+  .cmp-title { font-family: var(--display-font); font-size: 16px; font-weight: 600; color: var(--ink-1); }
+  .cmp-toolbar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
   .cmp-controls {
-    padding: 8px 18px; border-bottom: 1px solid var(--line-soft); background: var(--bg-elevated);
-    display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+    padding: 8px 18px; border-bottom: 1px solid var(--line-soft); background: var(--bg-work-alt);
+    display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap;
   }
-  .cmp-pick-group { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 240px; }
-  .cmp-pick-lbl { font-size: 13px; font-weight: 700; color: var(--ink-1); white-space: nowrap; }
-  .cmp-select {
-    flex: 1; min-width: 0; height: 30px; padding: 0 10px; border-radius: var(--radius-pill);
-    border: 1px solid var(--line-strong); background: var(--bg-surface-solid); color: var(--ink-1); font-size: 13px;
-  }
+  .cmp-pick-group { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 260px; }
+  .cmp-pick-lbl { font-size: var(--fs-meta); font-weight: 600; color: var(--ink-2); white-space: nowrap; }
   .cmp-meta-ribbon {
-    padding: 6px 18px; border-bottom: 1px solid var(--line-soft); background: var(--bg-surface-solid);
+    padding: 6px 18px; border-bottom: 1px solid var(--line-soft); background: var(--bg-work);
     display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 13px; color: var(--ink-2);
   }
   .cmp-stage {
-    flex: 1; min-height: 0; position: relative; overflow: auto; padding: 12px 16px;
-    display: flex; align-items: center; justify-content: center; background: var(--bg-canvas);
+    flex: 1; min-height: 0; position: relative; overflow: auto; padding: 16px;
+    display: flex; align-items: center; justify-content: center; background: var(--bg-art-mat);
   }
   .cmp-stage.zoomed-stage { align-items: flex-start; justify-content: flex-start; }
 
-  /* Curtain Wipe Mode (Zero overlapping badges over artwork!) */
   .curtain-wrap {
     position: relative; display: inline-block;
-    border-radius: 12px; overflow: hidden; background: #FFFFFF;
-    box-shadow: 0 14px 36px rgba(0, 0, 0, 0.20); cursor: ew-resize; user-select: none;
+    border-radius: 6px; overflow: hidden; background: #FFFFFF;
+    border: 1px solid rgba(15, 23, 42, 0.10);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.16); cursor: ew-resize; user-select: none;
   }
-  .curtain-img-base { display: block; max-height: 75vh; max-width: 90vw; object-fit: contain; pointer-events: none; }
+  .curtain-img-base { display: block; max-height: 74vh; max-width: 90vw; object-fit: contain; pointer-events: none; }
   .curtain-overlay { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
   .curtain-overlay img { width: 100%; height: 100%; object-fit: contain; display: block; background: #FFFFFF; }
   .curtain-line {
-    position: absolute; top: 0; bottom: 0; width: 2.5px; background: var(--accent);
-    box-shadow: 0 0 12px rgba(0, 0, 0, 0.35); pointer-events: none;
+    position: absolute; top: 0; bottom: 0; width: 2px; background: var(--accent);
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.94), 0 0 10px rgba(0, 0, 0, 0.36); pointer-events: none;
   }
   .curtain-knob {
     position: absolute; top: 50%; transform: translate(-50%, -50%);
-    width: 36px; height: 36px; border-radius: 50%;
-    background-color: var(--accent); background-image: var(--accent-grad); color: #FFFFFF;
-    display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.45);
+    width: 28px; height: 28px; border-radius: 999px;
+    background: var(--accent); color: #FFFFFF;
+    border: 1.5px solid rgba(255, 255, 255, 0.94);
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.34);
   }
 
-  /* Side-by-Side Mode */
-  .sbs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; width: 100%; height: 100%; }
+  .sbs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; width: 100%; height: 100%; }
   .sbs-pane {
-    display: flex; flex-direction: column; border-radius: 14px; overflow: hidden;
-    background: var(--bg-surface-solid); border: 1px solid var(--line-soft);
+    display: flex; flex-direction: column; border-radius: var(--r-art); overflow: hidden;
+    background: var(--bg-card); border: 1px solid var(--line-soft);
   }
-  .sbs-head { padding: 8px 14px; border-bottom: 1px solid var(--line-soft); font-size: 13px; font-weight: 700; color: var(--ink-1); display: flex; justify-content: space-between; }
+  .sbs-head { padding: 8px 14px; border-bottom: 1px solid var(--line-soft); font-size: 13px; font-weight: 600; color: var(--ink-1); display: flex; justify-content: space-between; }
   .sbs-body { flex: 1; overflow: auto; background: #FFFFFF; display: flex; align-items: center; justify-content: center; padding: 10px; }
-  .sbs-body img { max-width: 100%; max-height: 100%; object-fit: contain; transition: transform 0.16s; }
+  .sbs-body img { max-width: 100%; max-height: 100%; object-fit: contain; transition: transform 0.14s; }
 
-  /* Lightbox Modal */
   .lightbox-dialog {
-    width: min(1240px, 92vw); height: min(860px, 90vh);
+    width: min(1280px, 94vw); height: min(880px, 92vh);
     display: flex; flex-direction: column; overflow: hidden;
-    background: var(--bg-surface-solid); border: 1px solid var(--jelly-rim); border-radius: var(--radius-island);
+    background: var(--bg-surface-solid); border: 1px solid var(--line-strong); border-radius: var(--r-modal);
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.42);
   }
-  .lb-body { flex: 1; overflow: auto; display: flex; align-items: center; justify-content: center; background: var(--bg-canvas); padding: 18px; }
-  .lb-body img { max-width: 100%; max-height: 100%; object-fit: contain; background: #FFFFFF; padding: 10px; border-radius: 12px; box-shadow: 0 12px 34px rgba(0, 0, 0, 0.16); }
+  .lb-body { flex: 1; overflow: auto; display: flex; align-items: center; justify-content: center; background: var(--bg-art-mat); padding: 18px; }
+  .lb-body img { max-width: 100%; max-height: 100%; object-fit: contain; background: #FFFFFF; padding: 8px; border-radius: 6px; box-shadow: 0 10px 28px rgba(0, 0, 0, 0.16); }
 
-  /* Search Overlay Dialog */
   .search-dialog {
-    width: min(860px, 90vw); max-height: 78vh; display: flex; flex-direction: column; overflow: hidden;
-    background: var(--bg-surface-solid); border: 1px solid var(--jelly-rim); border-radius: var(--radius-island);
-    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.36);
+    width: min(840px, 90vw); max-height: 78vh; display: flex; flex-direction: column; overflow: hidden;
+    background: var(--bg-surface-solid); border: 1px solid var(--line-strong); border-radius: var(--r-modal);
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.36);
   }
-  .search-head { padding: 14px 18px; border-bottom: 1px solid var(--line-soft); display: flex; align-items: center; gap: 10px; }
-  .search-big-input { flex: 1; border: none; background: transparent; font-size: 16px; color: var(--ink-1); outline: none; }
-  .search-results { flex: 1; overflow-y: auto; padding: 10px 14px 16px; display: flex; flex-direction: column; gap: 6px; }
+  .search-head { padding: 12px 16px; border-bottom: 1px solid var(--line-soft); display: flex; align-items: center; gap: 10px; }
+  .search-big-input { flex: 1; border: none; background: transparent; font-size: 15px; color: var(--ink-1); outline: none; }
+  .search-results { flex: 1; overflow-y: auto; padding: 8px 12px 14px; display: flex; flex-direction: column; gap: 4px; }
   .search-hit {
-    padding: 10px 13px; border-radius: var(--radius-md); background: var(--jelly-card-bg);
-    border: 1px solid var(--line-soft); cursor: pointer; display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    padding: 9px 12px; border-radius: var(--r-ctrl); background: transparent;
+    border: 1px solid transparent; cursor: pointer; display: flex; align-items: center; justify-content: space-between; gap: 10px;
   }
-  .search-hit:hover { border-color: var(--accent); }
+  .search-hit:hover { background: var(--bg-hover); border-color: var(--line-soft); }
 
-  /* Popovers: Font Picker (9 Fonts) & Theme Picker (5 Crystal-Jelly Palettes) */
+  /* =========================================================
+     CRISP POPOVERS: Font Picker, Theme Picker & Custom Dropdown Menu
+     ========================================================= */
   .pop-panel {
-    position: fixed; top: 56px; right: 16px; z-index: 80; display: none;
-    padding: 16px; border-radius: var(--radius-island);
-    background: var(--bg-surface-solid); border: 1px solid var(--jelly-rim);
-    box-shadow: 0 20px 52px rgba(0, 0, 0, 0.24);
+    position: fixed; top: 48px; right: 14px; z-index: 95; display: none;
+    padding: 14px; border-radius: var(--r-card);
+    background: var(--bg-surface-solid); border: 1px solid var(--line-strong);
+    box-shadow: var(--pop-shadow);
   }
   .pop-panel.open { display: block; }
-  .font-pop { width: 416px; right: 126px; }
-  .font-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 12px; }
+  .font-pop { width: 424px; right: 150px; }
+  .font-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; margin-top: 10px; }
   .font-card {
-    padding: 10px 12px; border-radius: var(--radius-md); border: 1px solid var(--line-soft);
-    background: var(--bg-elevated); text-align: left; cursor: pointer; transition: all 0.14s;
+    padding: 9px 11px; border-radius: var(--r-ctrl); border: 1px solid var(--line-soft);
+    background: var(--bg-work-alt); text-align: left; cursor: pointer; transition: border-color 0.12s, background 0.12s;
   }
   .font-card.span-two { grid-column: span 2; display: flex; align-items: center; justify-content: space-between; }
-  .font-card:hover { border-color: var(--accent); }
+  .font-card:hover { border-color: var(--line-strong); background: var(--bg-card); }
   .font-card.active { background: var(--accent-soft); border-color: var(--accent); }
-  .fc-title { font-size: 14px; font-weight: 700; color: var(--ink-1); }
-  .fc-sample { font-size: 12px; color: var(--ink-3); margin-top: 2px; }
+  .fc-title { font-size: 13.5px; font-weight: 600; color: var(--ink-1); }
+  .fc-sample { font-size: var(--fs-meta); color: var(--ink-3); margin-top: 2px; }
 
-  .tweaks-pop { width: 356px; }
+  .tweaks-pop { width: 344px; right: 140px; }
   .tweak-option {
-    width: 100%; margin-top: 8px; padding: 10px 12px; border-radius: var(--radius-md);
-    border: 1px solid var(--line-soft); background: var(--bg-elevated);
+    width: 100%; margin-top: 6px; padding: 9px 11px; border-radius: var(--r-ctrl);
+    border: 1px solid var(--line-soft); background: var(--bg-work-alt);
     display: flex; align-items: center; justify-content: space-between; gap: 10px;
-    text-align: left; cursor: pointer; transition: all 0.14s;
+    text-align: left; cursor: pointer; transition: border-color 0.12s, background 0.12s;
   }
-  .tweak-option:hover { border-color: var(--accent); }
+  .tweak-option:hover { border-color: var(--line-strong); background: var(--bg-card); }
   .tweak-option.active { background: var(--accent-soft); border-color: var(--accent); }
-  .tweak-opt-name { font-size: 14px; font-weight: 700; color: var(--ink-1); }
-  .tweak-opt-desc { font-size: 12px; color: var(--ink-3); margin-top: 2px; }
+  .tweak-opt-name { font-size: 13.5px; font-weight: 600; color: var(--ink-1); }
+  .tweak-opt-desc { font-size: var(--fs-meta); color: var(--ink-3); margin-top: 1px; }
+
+  /* Reusable Bespoke Dropdown Popover (Replaces ALL native HTML <select>!) */
+  .custom-menu-pop {
+    position: fixed; z-index: 110; display: none; min-width: 240px; max-width: 480px; max-height: 340px;
+    overflow-y: auto; padding: 5px; border-radius: var(--r-art);
+    background: var(--bg-surface-solid); border: 1px solid var(--line-strong);
+    box-shadow: var(--pop-shadow);
+  }
+  .custom-menu-pop.open { display: block; }
+  .cm-item {
+    width: 100%; padding: 7px 10px; border: none; border-radius: 5px; background: transparent;
+    color: var(--ink-1); font-size: 13px; text-align: left; cursor: pointer;
+    display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  }
+  .cm-item:hover { background: var(--bg-hover); }
+  .cm-item.active { background: var(--accent-soft); color: var(--fresh-ink); font-weight: 600; }
+  .cm-lbl { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
 
   .toast {
-    position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%) translateY(20px);
-    padding: 9px 18px; border-radius: var(--radius-pill);
-    background-color: var(--accent); background-image: var(--accent-grad); color: var(--accent-ink);
-    box-shadow: var(--accent-glow); font-size: 13.5px; font-weight: 600;
-    opacity: 0; pointer-events: none; transition: all 0.22s; z-index: 120;
+    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(18px);
+    padding: 8px 16px; border-radius: var(--r-ctrl);
+    background: var(--ink-1); color: var(--bg-card);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.22); font-size: 13px; font-weight: 500;
+    opacity: 0; pointer-events: none; transition: all 0.2s; z-index: 130;
   }
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 </style>
@@ -963,18 +1036,17 @@
 <div class="jelly-aurora" data-lint-skip="1"><span class="orb o1"></span><span class="orb o2"></span><span class="orb o3"></span><span class="orb o4"></span></div>
 
 <div class="app-shell">
-  <!-- Floating Frameless Crystal Titlebar -->
+  <!-- Native 44px Titlebar -->
   <header class="titlebar" id="titlebarDrag">
     <div class="brand-cluster">
       <div class="brand-mark">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M12 2.5L19.5 9L12 21.5L4.5 9L12 2.5Z" fill="rgba(255,255,255,0.25)"/>
-          <path d="M4.5 9H19.5"/>
-          <path d="M12 2.5L9 9L12 21.5L15 9L12 2.5Z"/>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="12 2 20 9 12 22 4 9 12 2"/>
+          <line x1="4" y1="9" x2="20" y2="9"/>
         </svg>
       </div>
       <span class="brand-title">模型输出管家</span>
-      <span class="brand-sub meta-caption num" id="brandStatSub">水晶星盘四级成果工作台</span>
+      <span class="brand-sub meta-caption num" id="brandStatSub">四级科研成果工作台</span>
     </div>
 
     <nav class="nav-tabs" data-no-drag="1">
@@ -986,8 +1058,8 @@
 
     <div class="toolbar-right" data-no-drag="1">
       <div class="top-search-box">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7.5"/><line x1="16.65" y1="16.65" x2="21" y2="21"/></svg>
-        <input type="text" class="top-search-input" id="topSearchTrigger" placeholder="秒搜 Fig / 报告 / 课题…" onfocus="openSearchModal()" oninput="openSearchModal(this.value)">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7.5"/><line x1="16.65" y1="16.65" x2="21" y2="21"/></svg>
+        <input type="text" class="top-search-input" id="topSearchTrigger" placeholder="搜索 Fig / 报告 / 课题" onfocus="openSearchModal()" oninput="openSearchModal(this.value)">
         <span class="top-search-kbd">/</span>
       </div>
 
@@ -995,28 +1067,35 @@
         <span id="topUpdateLabel">发现新版</span>
       </button>
 
-      <button class="icon-btn sq" onclick="nativeCall('pickRootDir')" title="切换纳管的大模型输出总目录">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+      <button class="icon-btn sq bordered" onclick="nativeCall('pickRootDir')" title="切换纳管的大模型输出总目录">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
       </button>
 
-      <button class="icon-btn sq" onclick="triggerRefresh()" id="btnRefresh" title="立即重新扫描目录">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><polyline points="21 3 21 9 15 9"/></svg>
+      <button class="icon-btn sq bordered" onclick="triggerRefresh()" id="btnRefresh" title="立即重新扫描目录">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><polyline points="21 3 21 9 15 9"/></svg>
       </button>
 
-      <button class="icon-btn" onclick="toggleFontPop(event)" id="btnFontPicker" title="切换 9 款中文字体与字重">
-        <span style="font-weight:700;font-size:13.5px;">Aa</span>
-        <span id="currentFontLabel">原装混排</span>
+      <button class="icon-btn bordered" onclick="toggleFontPop(event)" id="btnFontPicker" title="切换字体与字重">
+        <span style="font-weight:700;font-size:12.5px;">Aa</span>
+        <span id="currentFontLabel">原生清晰</span>
       </button>
 
-      <button class="icon-btn" onclick="toggleTweaks(event)" id="btnTweaks" title="切换 5 套柔和水晶果冻色板与字号">
-        <span id="currentParadigmDot" style="width:10px;height:10px;border-radius:50%;background:var(--accent-grad);display:inline-block;"></span>
-        <span id="currentParadigmLabel">蜜桃琥珀</span>
+      <button class="icon-btn bordered" onclick="toggleTweaks(event)" id="btnTweaks" title="切换 5 套柔和光学玻璃色板与字号">
+        <span id="currentParadigmDot" style="width:8px;height:8px;border-radius:999px;background:var(--accent);display:inline-block;"></span>
+        <span id="currentParadigmLabel">蜜桃暖珀</span>
       </button>
 
+      <!-- Native Windows 11 Caption Controls -->
       <div class="win-controls" data-lint-skip="1">
-        <button class="win-btn" onclick="nativeCall('minWindow')" title="最小化"><svg width="11" height="11" viewBox="0 0 12 12"><line x1="2" y1="6" x2="10" y2="6" stroke="currentColor" stroke-width="1.5"/></svg></button>
-        <button class="win-btn" onclick="nativeCall('maxWindow')" title="最大化 / 还原"><svg width="11" height="11" viewBox="0 0 12 12"><rect x="2" y="2" width="8" height="8" fill="none" stroke="currentColor" stroke-width="1.4"/></svg></button>
-        <button class="win-btn close" onclick="nativeCall('closeWindow')" title="最小化到系统托盘"><svg width="11" height="11" viewBox="0 0 12 12"><line x1="2.2" y1="2.2" x2="9.8" y2="9.8" stroke="currentColor" stroke-width="1.5"/><line x1="9.8" y1="2.2" x2="2.2" y2="9.8" stroke="currentColor" stroke-width="1.5"/></svg></button>
+        <button class="win-btn" onclick="nativeCall('minWindow')" title="最小化">
+          <svg width="10" height="10" viewBox="0 0 10 10"><line x1="0" y1="5" x2="10" y2="5" stroke="currentColor" stroke-width="1.1"/></svg>
+        </button>
+        <button class="win-btn" onclick="nativeCall('maxWindow')" title="最大化 / 还原">
+          <svg width="10" height="10" viewBox="0 0 10 10"><rect x="0.8" y="0.8" width="8.4" height="8.4" fill="none" stroke="currentColor" stroke-width="1.1"/></svg>
+        </button>
+        <button class="win-btn close" onclick="nativeCall('closeWindow')" title="最小化到系统托盘">
+          <svg width="10" height="10" viewBox="0 0 10 10"><line x1="1" y1="1" x2="9" y2="9" stroke="currentColor" stroke-width="1.15"/><line x1="9" y1="1" x2="1" y2="9" stroke="currentColor" stroke-width="1.15"/></svg>
+        </button>
       </div>
     </div>
   </header>
@@ -1024,13 +1103,13 @@
   <main class="stage-wrap">
     <!-- VIEW 1: STAR-ATLAS <-> FOUR-TIER WORKBENCH -->
     <section class="view-page active" id="view-atlas">
-      <!-- State A: Star-Atlas Home -->
+      <!-- State A: Optical Star-Atlas Home -->
       <div class="atlas-home-grid" id="atlasHomeStage">
-        <div class="jelly-island atlas-dial-island">
+        <div class="atlas-dial-pane">
           <div class="atlas-dial-head">
             <div>
-              <h1 class="atlas-h1">科研课题水晶星盘</h1>
-              <p class="atlas-sub meta-caption">单击任意课题星轨，按「课题 / Fig / 日期与改动 / 文件类型」四级脉络直达定稿</p>
+              <h1 class="atlas-h1">科研课题星盘</h1>
+              <p class="atlas-sub meta-caption">单击任意课题星轨，按「课题 / Fig / 日期批次与改动 / 文件类型」四级脉络直达定稿</p>
             </div>
             <div class="atlas-legend">
               <span class="legend-item"><span class="dot-live"></span>活跃写入中</span>
@@ -1040,19 +1119,19 @@
 
           <div class="mandala-stage" id="mandalaContainer"></div>
 
-          <div class="atlas-guard-bar">
+          <div class="atlas-status-bar">
             <div class="guard-left">
               <span class="dot-live"></span>
-              <span id="guardSummaryText">本地纯离线引擎运行中</span>
+              <span id="guardSummaryText" class="meta-caption">纯离线引擎运行中</span>
             </div>
             <div style="display:flex;gap:8px;flex-shrink:0;">
-              <button class="deliv-btn sm" onclick="switchView('folders')">真实文件夹直览</button>
+              <button class="deliv-btn sm ghost" onclick="switchView('folders')">真实文件夹直览</button>
               <button class="deliv-btn sm primary" onclick="enterLatestActiveTopic()">进入最近活跃课题</button>
             </div>
           </div>
         </div>
 
-        <div class="jelly-island atlas-side-island">
+        <div class="atlas-side-pane">
           <div class="atlas-side-head">
             <div class="atlas-side-title">近期课题推进动态</div>
             <div class="atlas-kpi-row" id="atlasKpiRow"></div>
@@ -1065,22 +1144,31 @@
       <div class="drill-shell" id="atlasDrillStage" style="display:none;">
         <div class="crumb-bar">
           <div class="crumb-left">
-            <button class="deliv-btn sm" onclick="backToStarAtlas()">返回课题星盘</button>
+            <button class="deliv-btn sm ghost" onclick="backToStarAtlas()">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+              课题星盘
+            </button>
             <span class="crumb-sep">/</span>
-            <select class="crumb-select" id="topicQuickSelect" onchange="enterTopic(this.value)"></select>
+            <button class="custom-sel-btn" id="topicQuickBtn" onclick="openTopicMenu(this, event)">
+              <span class="custom-sel-lbl" id="topicQuickLabel">选择课题</span>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;opacity:0.6;"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
             <span class="crumb-sep">/</span>
-            <span class="crumb-fig-pill" id="crumbFigLabel">Fig 1</span>
-            <span class="meta-caption num" id="crumbSummaryMeta" style="font-size:13px;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"></span>
+            <span class="crumb-fig-tag" id="crumbFigLabel">Fig 1</span>
+            <span class="meta-caption num" id="crumbSummaryMeta" style="font-size:12px;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"></span>
           </div>
           <div class="crumb-right">
-            <button class="deliv-btn sm primary" id="btnOpenFigCompare" onclick="openCompareForCurrentFig()" style="display:none;">A/B 拉帘对比新旧版</button>
-            <button class="deliv-btn sm" id="btnTogglePreview" onclick="togglePreviewPane()">阅览席</button>
+            <button class="deliv-btn sm tint" id="btnOpenFigCompare" onclick="openCompareForCurrentFig()" style="display:none;">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="12" y1="4" x2="12" y2="20"/></svg>
+              A/B 拉帘对比
+            </button>
+            <button class="deliv-btn sm sub" id="btnTogglePreview" onclick="togglePreviewPane()">阅览席</button>
           </div>
         </div>
 
         <div class="drill-columns">
           <!-- Tier 2: Fig Navigator Rail -->
-          <aside class="jelly-island fig-rail">
+          <aside class="fig-rail">
             <div class="fig-rail-head">
               <div class="fig-rail-title" id="figRailTopicName">课题 Fig 专席</div>
               <div class="fig-rail-sub meta-caption" id="figRailTopicStats">按论文图序归整</div>
@@ -1089,7 +1177,7 @@
           </aside>
 
           <!-- Tier 3 & 4: Date Batches with Diff Summary -> Typed File Lanes -->
-          <div class="jelly-island batch-stage">
+          <div class="batch-stage">
             <div class="batch-stage-head">
               <div style="min-width:0;">
                 <h2 class="bs-title" id="batchStageTitle">Fig 1</h2>
@@ -1100,14 +1188,14 @@
             <div class="batch-scroll" id="batchScrollArea"></div>
           </div>
 
-          <!-- Right QuickLook Preview Island -->
-          <aside class="jelly-island preview-island" id="drillPreviewIsland">
+          <!-- Right QuickLook Preview Pane -->
+          <aside class="preview-pane" id="drillPreviewIsland">
             <div class="pv-head" id="pvHeaderBox">
               <div class="pv-title">即时阅览席</div>
-              <div class="pv-path meta-caption">单击任意文件即刻在此预览高清组图、交互报告导览、文稿或数据表；按 Space 打开全屏灯箱</div>
+              <div class="pv-path meta-caption">单击左侧卡片预览高清组图、报告导览或文稿，按 Space 开启全屏灯箱</div>
             </div>
             <div class="pv-body" id="pvBodyBox">
-              <div style="padding:48px 24px;text-align:center;color:var(--ink-3);font-size:14px;">单击左侧卡片预览高清内容，双击调用系统默认程序打开原件。</div>
+              <div style="padding:48px 24px;text-align:center;color:var(--ink-3);font-size:14px;">单击左侧文件即时预览，双击调用系统默认程序打开原件。</div>
             </div>
           </aside>
         </div>
@@ -1117,27 +1205,30 @@
     <!-- VIEW 2: REAL DISK FOLDER BROWSER -->
     <section class="view-page" id="view-folders">
       <div class="folders-layout">
-        <aside class="jelly-island folder-rail">
+        <aside class="folder-rail">
           <div class="fig-rail-head">
             <div class="fig-rail-title">磁盘输出目录</div>
             <div class="fig-rail-sub meta-caption">原样直览真实文件夹</div>
           </div>
           <div class="fig-rail-scroll" id="folderRailScroll"></div>
         </aside>
-        <div class="jelly-island folder-center">
+        <div class="folder-center">
           <div class="batch-stage-head">
             <div style="min-width:0;">
               <h2 class="bs-title" id="folderCenterTitle">输出根目录</h2>
               <div class="bs-meta meta-caption" id="folderCenterPath" style="user-select:text;"></div>
             </div>
-            <div style="display:flex;gap:8px;">
-              <button class="deliv-btn sm" id="btnFolderUp" onclick="goParentFolder()" style="display:none;">上一级</button>
-              <button class="deliv-btn sm primary" onclick="openCurrentFolderInExplorer()">在资源管理器打开</button>
+            <div style="display:flex;gap:6px;">
+              <button class="deliv-btn sm sub" id="btnFolderUp" onclick="goParentFolder()" style="display:none;">上一级</button>
+              <button class="deliv-btn sm tint" onclick="openCurrentFolderInExplorer()">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+                在资源管理器打开
+              </button>
             </div>
           </div>
           <div class="batch-scroll" id="folderCenterScroll"></div>
         </div>
-        <aside class="jelly-island preview-island" id="folderPreviewIsland">
+        <aside class="preview-pane" id="folderPreviewIsland">
           <div class="pv-head" id="fpvHeaderBox"><div class="pv-title">文件预览</div></div>
           <div class="pv-body" id="fpvBodyBox"></div>
         </aside>
@@ -1147,22 +1238,22 @@
     <!-- VIEW 3: FOCUSED LINEAGE MIND-MAP -->
     <section class="view-page" id="view-lineage">
       <div class="lineage-layout">
-        <aside class="jelly-island lineage-rail">
+        <aside class="lineage-rail">
           <div class="fig-rail-head">
             <div class="fig-rail-title">课题演进谱系</div>
             <div class="fig-rail-sub meta-caption">选择课题展开版本分支树</div>
           </div>
           <div class="fig-rail-scroll" id="lineageRailScroll"></div>
         </aside>
-        <div class="jelly-island mindmap-viewport">
+        <div class="mindmap-viewport">
           <div class="mm-top-bar">
             <div>
               <h2 class="bs-title" id="mmTopicTitle">课题谱系树</h2>
-              <div class="bs-meta meta-caption" id="mmTopicDesc">100% 原大字号横向演进树，单击项目节点直入四级视图</div>
+              <div class="bs-meta meta-caption" id="mmTopicDesc">横向演进分支树，单击项目节点直入四级工作台</div>
             </div>
-            <div style="display:flex;gap:8px;">
+            <div style="display:flex;gap:6px;">
               <button class="deliv-btn sm" onclick="toggleAllMmExpand()" id="btnMmExpandAll">展开全部历史版本</button>
-              <button class="deliv-btn sm primary" onclick="enterTopic(STATE.lineageTopicId)">进入该课题四级视图</button>
+              <button class="deliv-btn sm primary" onclick="enterTopic(STATE.lineageTopicId)">进入四级工作台</button>
             </div>
           </div>
           <div class="mm-canvas-wrap" id="mmCanvasWrap">
@@ -1181,30 +1272,28 @@
     <section class="view-page" id="view-settings">
       <div class="settings-scroll">
         <div class="settings-grid">
-          <!-- Card 1: Offline & GitHub Auto-Updater -->
-          <div class="jelly-island set-card">
+          <div class="set-card">
             <h2 class="set-h">离线单文件与 GitHub 自动更新</h2>
-            <p class="set-p">本程序为纯离线免安装单文件，断网时所有星盘归类、本地改动差分、高清 PDF 预览与 A/B 叠图对比均可 100% 运行；联网时支持一键检查并无缝热替换升级。</p>
+            <p class="set-p">本程序为纯离线免安装单文件，断网时星盘归类、本地改动差分、4K 高清 PDF 预览与 A/B 叠图对比均可 100% 运行；联网时支持一键检测并热替换升级。</p>
             <div class="toggle-row">
               <div>
-                <div style="font-weight:700;font-size:14.5px;" id="setVerLine">当前版本：v4.0.0</div>
-                <div class="meta-caption" style="font-size:12.5px;color:var(--ink-3);" id="setUpdateStatus">尚未检测远程更新</div>
+                <div style="font-weight:600;font-size:14px;" id="setVerLine">当前版本：v4.1.0</div>
+                <div class="meta-caption" style="font-size:12px;color:var(--ink-3);" id="setUpdateStatus">尚未检测远程更新</div>
               </div>
-              <div style="display:flex;gap:8px;">
+              <div style="display:flex;gap:6px;">
                 <button class="deliv-btn sm" onclick="checkGithubUpdate(true)" id="btnManualCheckUpd">检查更新</button>
                 <button class="deliv-btn sm primary" onclick="triggerAutoUpdate()" id="btnSettingsApplyUpd" style="display:none;">立即更新并重启</button>
               </div>
             </div>
-            <div class="meta-caption" style="font-size:12.5px;color:var(--ink-3);" id="setExePathLine"></div>
+            <div class="meta-caption" style="font-size:12px;color:var(--ink-3);" id="setExePathLine"></div>
           </div>
 
-          <!-- Card 2: Optional Ultra-Low-Cost Micro-Summary LLM API (A04) -->
-          <div class="jelly-island set-card">
+          <div class="set-card">
             <h2 class="set-h">可选轻量 AI 改动微摘要（极低成本）</h2>
-            <p class="set-p">默认由纯本地零费用引擎自动对比前后两轮文件差异。如需把每个日期批次的改动说明提炼得更凝练，可按需配置任意 OpenAI 兼容轻量模型接口（仅传入 ≤120 token 文件名差异，禁止深度推理，结果永久缓存本地，单次成本低于 0.0001 元）。</p>
+            <p class="set-p">默认由纯本地零费用引擎自动对比前后两轮文件差异。如需把每个日期批次的改动说明提炼得更凝练，可配置 OpenAI 兼容轻量模型接口（仅传 ≤120 token 文件名差异，结果永久缓存本地）。</p>
             <div class="toggle-row">
-              <span style="font-weight:600;font-size:14px;">启用轻量 AI 微摘要辅助（手动触发并永久缓存）</span>
-              <input type="checkbox" id="llmEnabledChk" style="width:18px;height:18px;accent-color:var(--accent);cursor:pointer;">
+              <span style="font-weight:500;font-size:14px;">启用轻量 AI 微摘要辅助（手动触发并永久缓存）</span>
+              <input type="checkbox" id="llmEnabledChk" style="width:16px;height:16px;accent-color:var(--accent);cursor:pointer;">
             </div>
             <div class="field-row">
               <label class="field-lbl" for="llmBaseUrl">API Base URL（OpenAI 兼容地址）</label>
@@ -1221,24 +1310,22 @@
               </div>
             </div>
             <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:4px;">
-              <span class="meta-caption" style="font-size:12.5px;color:var(--ink-3);" id="llmKeyHint">未配置密钥</span>
+              <span class="meta-caption" style="font-size:12px;color:var(--ink-3);" id="llmKeyHint">未配置密钥</span>
               <button class="deliv-btn primary" onclick="saveLlmSettings()">保存微摘要配置</button>
             </div>
           </div>
 
-          <!-- Card 3: Disk Storage & Non-Destructive Tidy -->
-          <div class="jelly-island set-card">
+          <div class="set-card">
             <h2 class="set-h">磁盘存储分布与无损归整</h2>
             <p class="set-p" id="storageDetailText">正在读取本地存储统计...</p>
-            <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;">
+            <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:2px;">
               <button class="deliv-btn primary" onclick="triggerSafeTidy()" id="btnRunTidy">增量更新快捷方式与无损归整</button>
               <button class="deliv-btn" onclick="openFolderShortcut('00_按课题总览')">打开按课题总览目录</button>
               <button class="deliv-btn" onclick="openFolderShortcut('_归档与杂项')">查看隔离杂项</button>
             </div>
           </div>
 
-          <!-- Card 4: Live Write-Lock Guard -->
-          <div class="jelly-island set-card">
+          <div class="set-card">
             <h2 class="set-h">活跃写入保护清单</h2>
             <p class="set-p">最近 2 小时有写入或正处于交接链活跃状态的课题目录会自动加锁保护，增量归整绝不移动其路径。</p>
             <div id="guideLiveList" style="display:flex;flex-direction:column;gap:8px;"></div>
@@ -1249,16 +1336,24 @@
   </main>
 </div>
 
-<!-- Font Picker Popover (All 9 Fonts Preserved) -->
+<!-- Font Picker Popover (Native Crisp Default + All 9 Classic Fonts Preserved) -->
 <div class="pop-panel font-pop" id="fontPop">
   <div style="display:flex;align-items:baseline;justify-content:space-between;">
-    <span style="font-size:14.5px;font-weight:700;color:var(--ink-1);">全局字体与字重切换（9 款）</span>
-    <span class="meta-caption" style="font-size:12px;color:var(--ink-3);">实时切换并自动记忆</span>
+    <span style="font-size:14px;font-weight:600;color:var(--ink-1);">全局字体与清晰度切换（10 款）</span>
+    <span class="meta-caption" style="font-size:12px;color:var(--ink-3);">实时切换并记忆</span>
   </div>
   <div class="font-grid">
     <button class="font-card span-two active" data-f="default" onclick="setFontFamily('default')">
-      <div class="fc-title" style="font-family:'Noto Serif SC',serif;">原装杂志混排（思源宋标题 + 思源黑正文）</div>
-      <div class="fc-sample" style="margin-top:0;">默认推荐</div>
+      <div class="fc-title" style="font-family:'Segoe UI Variable Text','Microsoft YaHei UI',sans-serif;">原生清晰（Segoe UI + 微软雅黑 UI）</div>
+      <div class="fc-sample" style="margin-top:0;">默认锐利</div>
+    </button>
+    <button class="font-card" data-f="editorial" onclick="setFontFamily('editorial')">
+      <div class="fc-title" style="font-family:'Noto Serif SC',serif;">杂志混排</div>
+      <div class="fc-sample" style="font-family:'Noto Sans SC',sans-serif;">思源宋标 + 思源黑文</div>
+    </button>
+    <button class="font-card" data-f="yahei" onclick="setFontFamily('yahei')">
+      <div class="fc-title" style="font-family:'Microsoft YaHei UI',sans-serif;">微软雅黑 UI</div>
+      <div class="fc-sample" style="font-family:'Microsoft YaHei UI',sans-serif;">经典清晰屏显黑体</div>
     </button>
     <button class="font-card" data-f="wenkai_bold" onclick="setFontFamily('wenkai_bold')">
       <div class="fc-title" style="font-family:'HubWenKaiBold',serif;">霞鹜文楷 加粗</div>
@@ -1268,99 +1363,106 @@
       <div class="fc-title" style="font-family:'HubWenKaiXBold',serif;">霞鹜文楷 特粗</div>
       <div class="fc-sample" style="font-family:'HubWenKaiXBold',serif;">浓墨重笔大屏醒目</div>
     </button>
-    <button class="font-card" data-f="yahei" onclick="setFontFamily('yahei')">
-      <div class="fc-title" style="font-family:'Microsoft YaHei UI',sans-serif;">微软雅黑</div>
-      <div class="fc-sample" style="font-family:'Microsoft YaHei UI',sans-serif;">现代清晰屏显标准</div>
-    </button>
-    <button class="font-card" data-f="kaiti" onclick="setFontFamily('kaiti')">
-      <div class="fc-title" style="font-family:'KaiTi',serif;font-synthesis:weight;">标准楷体</div>
-      <div class="fc-sample" style="font-family:'KaiTi',serif;">端庄正楷传统书韵</div>
-    </button>
-    <button class="font-card" data-f="stkaiti" onclick="setFontFamily('stkaiti')">
-      <div class="fc-title" style="font-family:'STKaiti',serif;font-synthesis:weight;">华文楷体</div>
-      <div class="fc-sample" style="font-family:'STKaiti',serif;">舒展碑帖书法笔意</div>
-    </button>
     <button class="font-card" data-f="wenkai_reg" onclick="setFontFamily('wenkai_reg')">
-      <div class="fc-title" style="font-family:'HubWenKaiReg',serif;font-synthesis:weight;">霞鹜文楷 常规</div>
+      <div class="fc-title" style="font-family:'HubWenKaiReg',serif;">霞鹜文楷 常规</div>
       <div class="fc-sample" style="font-family:'HubWenKaiReg',serif;">清隽轻盈手写书卷</div>
-    </button>
-    <button class="font-card" data-f="notoserif" onclick="setFontFamily('notoserif')">
-      <div class="fc-title" style="font-family:'Noto Serif SC',serif;">思源宋体</div>
-      <div class="fc-sample" style="font-family:'Noto Serif SC',serif;">典雅学术期刊衬线</div>
     </button>
     <button class="font-card" data-f="dengxian" onclick="setFontFamily('dengxian')">
       <div class="fc-title" style="font-family:'DengXian',sans-serif;">现代等线</div>
       <div class="fc-sample" style="font-family:'DengXian',sans-serif;">修长简净几何黑体</div>
     </button>
+    <button class="font-card" data-f="notoserif" onclick="setFontFamily('notoserif')">
+      <div class="fc-title" style="font-family:'Noto Serif SC',serif;">思源宋体</div>
+      <div class="fc-sample" style="font-family:'Noto Serif SC',serif;">学术期刊衬线风韵</div>
+    </button>
+    <button class="font-card" data-f="kaiti" onclick="setFontFamily('kaiti')">
+      <div class="fc-title" style="font-family:'KaiTi',serif;">标准楷体</div>
+      <div class="fc-sample" style="font-family:'KaiTi',serif;">端庄正楷传统书韵</div>
+    </button>
+    <button class="font-card span-two" data-f="stkaiti" onclick="setFontFamily('stkaiti')">
+      <div class="fc-title" style="font-family:'STKaiti',serif;">华文楷体</div>
+      <div class="fc-sample" style="margin-top:0;font-family:'STKaiti',serif;">舒展碑帖书法笔意</div>
+    </button>
   </div>
 </div>
 
-<!-- Theme & Scale Popover (5 Soft Crystal-Jelly Palettes) -->
+<!-- Theme & Scale Popover (5 Refined Optical Crystal Palettes) -->
 <div class="pop-panel tweaks-pop" id="tweaksPop">
-  <div style="font-size:14.5px;font-weight:700;color:var(--ink-1);">柔和水晶果冻色板（5 套）</div>
-  <div class="meta-caption" style="font-size:12px;color:var(--ink-3);margin-top:2px;">主视觉蜜桃琥珀，含新增凝脂偏白与黑曜偏黑两套果冻</div>
+  <div style="font-size:14px;font-weight:600;color:var(--ink-1);">柔和光学玻璃色板（5 套）</div>
+  <div class="meta-caption" style="font-size:12px;color:var(--ink-3);margin-top:2px;">通透微光侧栏搭配高锐度纯实阅读工作面</div>
 
   <button class="tweak-option active" data-p="peach" onclick="setParadigm('peach')">
-    <div><div class="tweak-opt-name">蜜桃琥珀果冻（默认主视觉）</div><div class="tweak-opt-desc">暖透奶油蜜桃珊瑚水晶折射</div></div>
-    <span style="width:20px;height:20px;border-radius:50%;background:linear-gradient(180deg,#FF8266,#C73A22);box-shadow:inset 0 2px 1.5px rgba(255,255,255,0.82);flex-shrink:0;"></span>
+    <div><div class="tweak-opt-name">蜜桃暖珀（默认主视觉）</div><div class="tweak-opt-desc">丝缎奶油蜜桃微光配暖炭高锐文字</div></div>
+    <span style="width:16px;height:16px;border-radius:999px;background:#C2412D;border:2px solid #F5E6DD;flex-shrink:0;"></span>
   </button>
 
   <button class="tweak-option" data-p="alabaster" onclick="setParadigm('alabaster')">
-    <div><div class="tweak-opt-name">凝脂白玉果冻（偏白浅色系）</div><div class="tweak-opt-desc">极简凝脂白瓷冻玉配沉静墨青</div></div>
-    <span style="width:20px;height:20px;border-radius:50%;background:linear-gradient(180deg,#FFFFFF,#DCE4F2);border:1px solid #B5C2D8;box-shadow:inset 0 2px 1.5px #FFFFFF;flex-shrink:0;"></span>
+    <div><div class="tweak-opt-name">凝脂月白（偏白浅色系）</div><div class="tweak-opt-desc">极简瓷白凝光配沉静墨蓝强调</div></div>
+    <span style="width:16px;height:16px;border-radius:999px;background:#1E3A63;border:2px solid #EEF1F6;flex-shrink:0;"></span>
   </button>
 
   <button class="tweak-option" data-p="obsidian" onclick="setParadigm('obsidian')">
-    <div><div class="tweak-opt-name">黑曜墨晶果冻（偏黑深色系）</div><div class="tweak-opt-desc">深邃黑曜玄墨烟晶配冰蓝水光</div></div>
-    <span style="width:20px;height:20px;border-radius:50%;background:linear-gradient(180deg,#3A4252,#0E1117);border:1px solid rgba(255,255,255,0.28);flex-shrink:0;"></span>
+    <div><div class="tweak-opt-name">玄曜墨晶（偏黑深色系）</div><div class="tweak-opt-desc">深邃黑曜精工暗面配纯净冰蓝</div></div>
+    <span style="width:16px;height:16px;border-radius:999px;background:#3B82F6;border:2px solid #0B0D12;flex-shrink:0;"></span>
   </button>
 
   <button class="tweak-option" data-p="dewdrop" onclick="setParadigm('dewdrop')">
-    <div><div class="tweak-opt-name">晨雾冰晶果冻</div><div class="tweak-opt-desc">冰川晴空柔光水透质感</div></div>
-    <span style="width:20px;height:20px;border-radius:50%;background:linear-gradient(180deg,#52A6FF,#1864BC);box-shadow:inset 0 2px 1.5px rgba(255,255,255,0.82);flex-shrink:0;"></span>
+    <div><div class="tweak-opt-name">晨雾清露（冰晶浅蓝）</div><div class="tweak-opt-desc">极淡冰川雾蓝微透配静谧蓝印</div></div>
+    <span style="width:16px;height:16px;border-radius:999px;background:#1A60B5;border:2px solid #E0EFFC;flex-shrink:0;"></span>
   </button>
 
   <button class="tweak-option" data-p="amethyst" onclick="setParadigm('amethyst')">
-    <div><div class="tweak-opt-name">星云紫晶果冻</div><div class="tweak-opt-desc">暮光薰衣草紫晶柔晕</div></div>
-    <span style="width:20px;height:20px;border-radius:50%;background:linear-gradient(180deg,#BA84FF,#7C3AED);box-shadow:inset 0 2px 1.5px rgba(255,255,255,0.75);flex-shrink:0;"></span>
+    <div><div class="tweak-opt-name">星云紫晶（暮光深紫）</div><div class="tweak-opt-desc">沉静暮夜靛紫暗晶配柔和薰衣紫</div></div>
+    <span style="width:16px;height:16px;border-radius:999px;background:#8B5CF6;border:2px solid #131022;flex-shrink:0;"></span>
   </button>
 
   <div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--line-soft);display:flex;align-items:center;justify-content:space-between;">
-    <span style="font-size:13.5px;font-weight:600;">字号舒适度</span>
-    <div style="display:flex;gap:6px;">
-      <button class="type-chip active" id="scaleNormalBtn" onclick="setFontScale('normal')">灵动标准</button>
+    <span style="font-size:13px;font-weight:600;">字号舒适度</span>
+    <div class="bs-type-filter">
+      <button class="type-chip active" id="scaleNormalBtn" onclick="setFontScale('normal')">清晰标准</button>
       <button class="type-chip" id="scaleLargeBtn" onclick="setFontScale('large')">舒朗放大</button>
     </div>
   </div>
 </div>
+
+<!-- Shared Custom Popover Dropdown (Replaces native <select>) -->
+<div class="custom-menu-pop" id="customMenuPop"></div>
 
 <!-- A/B Visual Diff Loupe Modal -->
 <div class="modal-bg" id="compareModal" onclick="if(event.target===this)closeCompareModal()">
   <div class="compare-dialog">
     <div class="cmp-head">
       <div>
-        <div class="cmp-title" id="cmpModalTitle">新旧组图 A/B 拉帘对比镜</div>
-        <div class="meta-caption" style="font-size:12.5px;color:var(--ink-3);" id="cmpModalSub">拖动拉杆扫过同一张 Fig 的旧版与新版，逐像素核对字号、配色与排版差异</div>
+        <div class="cmp-title" id="cmpModalTitle">新旧组图 A/B 对比镜</div>
+        <div class="meta-caption" style="font-size:12px;color:var(--ink-3);" id="cmpModalSub">拖动拉杆扫过同一张 Fig 的旧版与新版，逐像素核对字号、配色与排版差异</div>
       </div>
-      <div style="display:flex;align-items:center;gap:8px;">
-        <button class="type-chip active" id="btnCmpModeCurtain" onclick="setCompareMode('curtain')">拉帘叠图</button>
-        <button class="type-chip" id="btnCmpModeSbs" onclick="setCompareMode('sbs')">双图并排</button>
+      <div class="cmp-toolbar">
+        <div class="bs-type-filter">
+          <button class="type-chip active" id="btnCmpModeCurtain" onclick="setCompareMode('curtain')">拉帘叠图</button>
+          <button class="type-chip" id="btnCmpModeSbs" onclick="setCompareMode('sbs')">双图并排</button>
+        </div>
+        <div class="bs-type-filter" id="cmpZoomBar">
+          <button class="type-chip active" data-z="1" onclick="setCmpZoom(1)">适应画幅</button>
+          <button class="type-chip" data-z="1.45" onclick="setCmpZoom(1.45)">145%</button>
+          <button class="type-chip" data-z="2" onclick="setCmpZoom(2)">200%</button>
+        </div>
         <button class="deliv-btn sm" onclick="closeCompareModal()">关闭</button>
       </div>
     </div>
     <div class="cmp-controls">
       <div class="cmp-pick-group">
         <span class="cmp-pick-lbl">左 / 旧版 A</span>
-        <select class="cmp-select" id="cmpSelectA" onchange="renderCompareStage()"></select>
+        <button class="custom-sel-btn wide" id="cmpBtnA" onclick="openCompareVersionMenu('A', this, event)">
+          <span class="custom-sel-lbl meta-caption" id="cmpLabelA">选择旧版</span>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;opacity:0.6;"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
       </div>
       <div class="cmp-pick-group">
         <span class="cmp-pick-lbl">右 / 新版 B</span>
-        <select class="cmp-select" id="cmpSelectB" onchange="renderCompareStage()"></select>
-      </div>
-      <div style="display:flex;align-items:center;gap:6px;" id="cmpZoomBar">
-        <button class="type-chip active" data-z="1" onclick="setCmpZoom(1)">适应画幅</button>
-        <button class="type-chip" data-z="1.45" onclick="setCmpZoom(1.45)">145%</button>
-        <button class="type-chip" data-z="2" onclick="setCmpZoom(2)">200%</button>
+        <button class="custom-sel-btn wide" id="cmpBtnB" onclick="openCompareVersionMenu('B', this, event)">
+          <span class="custom-sel-lbl meta-caption" id="cmpLabelB">选择新版</span>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;opacity:0.6;"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
       </div>
     </div>
     <div class="cmp-meta-ribbon" id="cmpMetaRibbon"></div>
@@ -1368,15 +1470,15 @@
   </div>
 </div>
 
-<!-- Fullscreen Spacebar Crystal Lightbox -->
+<!-- Fullscreen Spacebar Lightbox -->
 <div class="modal-bg" id="lightboxModal" onclick="if(event.target===this)closeLightbox()">
   <div class="lightbox-dialog">
     <div class="cmp-head">
       <div style="min-width:0;">
         <div class="cmp-title" id="lbTitle">高清灯箱</div>
-        <div class="meta-caption" style="font-size:12.5px;color:var(--ink-3);" id="lbSub"></div>
+        <div class="meta-caption" style="font-size:12px;color:var(--ink-3);" id="lbSub"></div>
       </div>
-      <div style="display:flex;gap:8px;flex-shrink:0;">
+      <div style="display:flex;gap:6px;flex-shrink:0;">
         <button class="deliv-btn sm" onclick="stepLightbox(-1)">上一张</button>
         <button class="deliv-btn sm" onclick="stepLightbox(1)">下一张</button>
         <button class="deliv-btn sm primary" id="lbOpenBtn">打开原件</button>
@@ -1391,9 +1493,9 @@
 <div class="modal-bg" id="searchModal" onclick="if(event.target===this)closeSearchModal()">
   <div class="search-dialog">
     <div class="search-head">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7.5"/><line x1="16.65" y1="16.65" x2="21" y2="21"/></svg>
-      <input type="text" class="search-big-input" id="omniSearchInput" placeholder="输入课题名、Fig 号、文件名或关键词（支持全盘磁盘实时穿透检索）..." oninput="onOmniSearchInput()">
-      <button class="deliv-btn sm" onclick="closeSearchModal()">关闭</button>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="color:var(--ink-3);"><circle cx="11" cy="11" r="7.5"/><line x1="16.65" y1="16.65" x2="21" y2="21"/></svg>
+      <input type="text" class="search-big-input" id="omniSearchInput" placeholder="输入课题名、Fig 号、文件名或关键词（支持全盘实时穿透检索）" oninput="onOmniSearchInput()">
+      <button class="deliv-btn sm ghost" onclick="closeSearchModal()">关闭</button>
     </div>
     <div class="search-results" id="omniSearchResults"></div>
   </div>
@@ -1403,8 +1505,8 @@
 
 <script>
   let HUB = null;
-  let USER_META = { ui_gen: 5, starred: [], starred_files: [], notes: {}, topic_overrides: {}, ui_paradigm: 'peach', ui_scale: 'normal', ui_font: 'default' };
-  let APP_INFO = { version: '4.0.0', repo: 'benweilu316/model-output-hub', llm_enabled: false };
+  let USER_META = { ui_gen: 6, starred: [], starred_files: [], notes: {}, topic_overrides: {}, ui_paradigm: 'peach', ui_scale: 'normal', ui_font: 'default' };
+  let APP_INFO = { version: '4.1.0', repo: 'benweilu316/model-output-hub', llm_enabled: false };
   let UPDATE_INFO = null;
   let BATCH_DIFF_CACHE = {};
   let ALL_FILES = [];
@@ -1431,22 +1533,25 @@
     cmpPos: 52,
     cmpZoom: 1,
     cmpPool: [],
+    cmpIdxA: 1,
+    cmpIdxB: 0,
     lbIndex: -1,
     lbPool: []
   };
 
   const PARADIGM_META = {
-    peach:     { label: '蜜桃琥珀', dark: false, ring: 'rgba(198,118,90,0.40)',  spoke: 'rgba(208,142,116,0.32)', accent: '#C73A22', live: '#C73A22', archiveRing: '#965D48', center: '#FFF9F5', ink1: '#2F150E', ink2: '#683629' },
-    alabaster: { label: '凝脂白玉', dark: false, ring: 'rgba(128,148,180,0.40)', spoke: 'rgba(156,172,198,0.32)', accent: '#223B61', live: '#C23C32', archiveRing: '#4B5F80', center: '#FFFFFF', ink1: '#141923', ink2: '#4B576E' },
-    obsidian:  { label: '黑曜墨晶', dark: true,  ring: 'rgba(182,196,222,0.28)', spoke: 'rgba(154,170,198,0.22)', accent: '#5F9BFF', live: '#FF8A7A', archiveRing: '#8AA0C4', center: '#171B24', ink1: '#F5F7FB', ink2: '#B4BFCF' },
-    dewdrop:   { label: '晨雾冰晶', dark: false, ring: 'rgba(112,166,224,0.42)', spoke: 'rgba(138,184,232,0.34)', accent: '#1864BC', live: '#DC543E', archiveRing: '#1864BC', center: '#FFFFFF', ink1: '#0E2238', ink2: '#355370' },
-    amethyst:  { label: '星云紫晶', dark: true,  ring: 'rgba(196,176,255,0.30)', spoke: 'rgba(178,156,246,0.22)', accent: '#B983FF', live: '#FF948A', archiveRing: '#B983FF', center: '#2E2354', ink1: '#F7F4FF', ink2: '#C9BFEF' }
+    peach:     { label: '蜜桃暖珀', dark: false, canvasHex: '#F5DFD2', ring: 'rgba(138,107,92,0.22)',  tick: 'rgba(138,107,92,0.34)', spoke: 'rgba(138,107,92,0.18)', leader: 'rgba(138,107,92,0.36)', accent: '#C2412D', live: '#C94632', archiveRing: '#8A6B5C', center: '#FFFFFF', centerEdge: 'rgba(138,107,92,0.26)', ink1: '#1C1917', ink2: '#6B625C' },
+    alabaster: { label: '凝脂月白', dark: false, canvasHex: '#F0F3F8', ring: 'rgba(82,100,128,0.20)',  tick: 'rgba(82,100,128,0.32)', spoke: 'rgba(82,100,128,0.16)', leader: 'rgba(82,100,128,0.32)', accent: '#1E3A63', live: '#C23C32', archiveRing: '#526480', center: '#FFFFFF', centerEdge: 'rgba(30,58,99,0.20)',   ink1: '#111827', ink2: '#5B6472' },
+    obsidian:  { label: '玄曜墨晶', dark: true,  canvasHex: '#0B0D12', ring: 'rgba(160,176,204,0.18)', tick: 'rgba(160,176,204,0.30)', spoke: 'rgba(160,176,204,0.15)', leader: 'rgba(160,176,204,0.30)', accent: '#2563EB', live: '#F87171', archiveRing: '#7C8CA8', center: '#171B26', centerEdge: 'rgba(255,255,255,0.14)', ink1: '#F3F5F9', ink2: '#8C97AB' },
+    dewdrop:   { label: '晨雾清露', dark: false, canvasHex: '#D6EAFC', ring: 'rgba(75,116,166,0.22)',  tick: 'rgba(75,116,166,0.34)', spoke: 'rgba(75,116,166,0.18)', leader: 'rgba(75,116,166,0.34)', accent: '#1A60B5', live: '#D4513E', archiveRing: '#4B74A6', center: '#FFFFFF', centerEdge: 'rgba(26,96,181,0.22)',  ink1: '#0F172A', ink2: '#52647A' },
+    amethyst:  { label: '星云紫晶', dark: true,  canvasHex: '#131022', ring: 'rgba(186,172,240,0.20)', tick: 'rgba(186,172,240,0.32)', spoke: 'rgba(186,172,240,0.16)', leader: 'rgba(186,172,240,0.32)', accent: '#7C3AED', live: '#FB7185', archiveRing: '#A78BFA', center: '#221C3D', centerEdge: 'rgba(220,210,255,0.16)', ink1: '#F5F3FF', ink2: '#A59AC9' }
   };
   const LEGACY_PARADIGM_MAP = { takram: 'dewdrop', pentagram: 'peach', sugiura: 'amethyst' };
 
   const FONT_NAMES = {
-    default: '原装混排', wenkai_bold: '文楷加粗', wenkai_xbold: '文楷特粗', wenkai_reg: '文楷常规',
-    yahei: '微软雅黑', kaiti: '标准楷体', stkaiti: '华文楷体', notoserif: '思源宋体', dengxian: '现代等线'
+    default: '原生清晰', editorial: '杂志混排', yahei: '微软雅黑',
+    wenkai_bold: '文楷加粗', wenkai_xbold: '文楷特粗', wenkai_reg: '文楷常规',
+    dengxian: '现代等线', notoserif: '思源宋体', kaiti: '标准楷体', stkaiti: '华文楷体'
   };
 
   const PLUMBING_NOISE_RX = /^(?:_index|_map|manifest|readme|license|changelog|direction-approved|polish-log|state|ledger|donotretry|annotations|claim|prompt)\b|\.exe$|modeloutputhub|模型输出管家|便携包/i;
@@ -1518,7 +1623,7 @@
     el.textContent = msg;
     el.classList.add('show');
     clearTimeout(window.__toastTimer);
-    window.__toastTimer = setTimeout(() => el.classList.remove('show'), 2500);
+    window.__toastTimer = setTimeout(() => el.classList.remove('show'), 2400);
   }
   function nativeCall(action, payload = {}) {
     const msg = Object.assign({ action }, payload);
@@ -1534,9 +1639,67 @@
     nativeCall('openFolder', { path: HUB.root_path.replace(/[\\/]+$/, '') + '\\' + sub });
   }
 
+  // Reusable Bespoke Dropdown Menu (Zero native <select>!)
+  let __customMenuHandler = null;
+  function closeCustomMenu() {
+    const pop = document.getElementById('customMenuPop');
+    if (pop) pop.classList.remove('open');
+    __customMenuHandler = null;
+  }
+  function showCustomMenu(anchorEl, items, activeValue, onSelect) {
+    const pop = document.getElementById('customMenuPop');
+    if (!pop || !anchorEl) return;
+    const r = anchorEl.getBoundingClientRect();
+    const width = Math.max(r.width, 248);
+    let left = r.left;
+    if (left + width > window.innerWidth - 12) left = Math.max(12, window.innerWidth - width - 12);
+    let top = r.bottom + 5;
+    if (top + 280 > window.innerHeight - 12) top = Math.max(48, r.top - 280);
+
+    pop.style.left = Math.round(left) + 'px';
+    pop.style.top = Math.round(top) + 'px';
+    pop.style.width = Math.min(480, Math.round(width)) + 'px';
+    __customMenuHandler = onSelect;
+    const checkSvg = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="flex-shrink:0;"><polyline points="20 6 9 17 4 12"/></svg>`;
+    pop.innerHTML = items.map((it, idx) => `
+      <button class="cm-item ${String(it.value) === String(activeValue) ? 'active' : ''}" onclick="pickCustomMenuItem(${idx})">
+        <span class="cm-lbl">${esc(it.label)}</span>
+        ${String(it.value) === String(activeValue) ? checkSvg : ''}
+      </button>
+    `).join('');
+    pop._items = items;
+    pop.classList.add('open');
+  }
+  function pickCustomMenuItem(idx) {
+    const pop = document.getElementById('customMenuPop');
+    const it = pop && pop._items && pop._items[idx];
+    const fn = __customMenuHandler;
+    closeCustomMenu();
+    if (it && typeof fn === 'function') fn(it.value);
+  }
+  function openTopicMenu(btn, e) {
+    e.stopPropagation();
+    if (!HUB) return;
+    const items = (HUB.topics || []).filter(t => t.project_count > 0).map(t => ({
+      value: t.id,
+      label: `${cleanLabel(t.short)} (${t.project_count} 目录)`
+    }));
+    showCustomMenu(btn, items, STATE.topicId, (tid) => enterTopic(tid));
+  }
+  function openCompareVersionMenu(slot, btn, e) {
+    e.stopPropagation();
+    const items = (STATE.cmpPool || []).map((v, i) => ({ value: String(i), label: v.label }));
+    const cur = slot === 'A' ? String(STATE.cmpIdxA) : String(STATE.cmpIdxB);
+    showCustomMenu(btn, items, cur, (val) => {
+      if (slot === 'A') STATE.cmpIdxA = parseInt(val, 10);
+      else STATE.cmpIdxB = parseInt(val, 10);
+      renderCompareStage();
+    });
+  }
+
   // Frameless window drag
   document.getElementById('titlebarDrag').addEventListener('mousedown', (e) => {
-    if (e.button !== 0 || e.target.closest('[data-no-drag], button, input, select')) return;
+    if (e.button !== 0 || e.target.closest('[data-no-drag], button, input')) return;
     if (e.detail === 2) nativeCall('maxWindow');
     else nativeCall('dragWindow');
   });
@@ -1545,7 +1708,7 @@
   window.__focusMainSearch = function() { openSearchModal(); };
   document.addEventListener('keydown', (e) => {
     const tag = (document.activeElement && document.activeElement.tagName) || '';
-    const inInput = tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT';
+    const inInput = tag === 'INPUT' || tag === 'TEXTAREA';
 
     if ((e.ctrlKey || e.metaKey) && (e.key.toLowerCase() === 'k' || e.key.toLowerCase() === 'f')) {
       e.preventDefault(); openSearchModal();
@@ -1563,7 +1726,7 @@
       else if (e.key === 'ArrowRight') { e.preventDefault(); stepLightbox(1); }
       else if (e.key === 'Escape') closeLightbox();
     } else if (e.key === 'Escape') {
-      closeCompareModal(); closeSearchModal(); closeLightbox();
+      closeCustomMenu(); closeCompareModal(); closeSearchModal(); closeLightbox();
       document.getElementById('tweaksPop').classList.remove('open');
       document.getElementById('fontPop').classList.remove('open');
     }
@@ -1574,14 +1737,16 @@
     if (tp.classList.contains('open') && !tp.contains(e.target) && !tb.contains(e.target)) tp.classList.remove('open');
     const fp = document.getElementById('fontPop'), fb = document.getElementById('btnFontPicker');
     if (fp.classList.contains('open') && !fp.contains(e.target) && !fb.contains(e.target)) fp.classList.remove('open');
+    const cm = document.getElementById('customMenuPop');
+    if (cm.classList.contains('open') && !cm.contains(e.target) && !e.target.closest('.custom-sel-btn')) closeCustomMenu();
   });
 
-  function toggleTweaks(e) { e.stopPropagation(); document.getElementById('fontPop').classList.remove('open'); document.getElementById('tweaksPop').classList.toggle('open'); }
-  function toggleFontPop(e) { e.stopPropagation(); document.getElementById('tweaksPop').classList.remove('open'); document.getElementById('fontPop').classList.toggle('open'); }
+  function toggleTweaks(e) { e.stopPropagation(); closeCustomMenu(); document.getElementById('fontPop').classList.remove('open'); document.getElementById('tweaksPop').classList.toggle('open'); }
+  function toggleFontPop(e) { e.stopPropagation(); closeCustomMenu(); document.getElementById('tweaksPop').classList.remove('open'); document.getElementById('fontPop').classList.toggle('open'); }
 
   function persistUiPrefs() {
     nativeCall('savePrefs', {
-      ui_gen: 5,
+      ui_gen: 6,
       ui_paradigm: USER_META.ui_paradigm || 'peach',
       ui_scale: USER_META.ui_scale || 'normal',
       ui_font: USER_META.ui_font || 'default'
@@ -1602,11 +1767,13 @@
   function setParadigm(p, skipSave) {
     if (LEGACY_PARADIGM_MAP[p]) p = LEGACY_PARADIGM_MAP[p];
     if (!PARADIGM_META[p]) p = 'peach';
+    const pm = PARADIGM_META[p];
     document.body.setAttribute('data-paradigm', p);
-    document.getElementById('currentParadigmLabel').textContent = PARADIGM_META[p].label;
+    document.getElementById('currentParadigmLabel').textContent = pm.label;
     document.querySelectorAll('.tweak-option').forEach(b => b.classList.toggle('active', b.getAttribute('data-p') === p));
     USER_META.ui_paradigm = p;
-    if (!skipSave) { persistUiPrefs(); showToast('已切换果冻色板：' + PARADIGM_META[p].label); }
+    nativeCall('syncTheme', { dark: pm.dark, bg: pm.canvasHex });
+    if (!skipSave) { persistUiPrefs(); showToast('已切换主题：' + pm.label); }
     if (HUB && STATE.view === 'atlas' && STATE.topicId === 'ALL') renderMandala();
     if (HUB && STATE.view === 'lineage') setTimeout(drawMindmapWires, 30);
   }
@@ -1622,6 +1789,7 @@
   }
 
   function switchView(v) {
+    closeCustomMenu();
     STATE.view = v;
     document.querySelectorAll('.nav-tab').forEach(t => t.classList.toggle('active', t.getAttribute('data-view') === v));
     document.querySelectorAll('.view-page').forEach(p => p.classList.toggle('active', p.id === 'view-' + v));
@@ -1687,14 +1855,12 @@
     }
 
     const diffs = [];
-    // 1. Version jump check
     const vPrev = extractVerToken(prev.projName + ' ' + (prev.lanes.html[0]?.name || '') + ' ' + (prev.lanes.a4[0]?.rel || ''));
     const vCurr = extractVerToken(curr.projName + ' ' + (curr.lanes.html[0]?.name || '') + ' ' + (curr.lanes.a4[0]?.rel || ''));
     if (vCurr && vCurr.toLowerCase() !== vPrev.toLowerCase()) {
       diffs.push(vPrev ? `版本推进 ${vPrev} 至 ${vCurr}` : `升至 ${vCurr}`);
     }
 
-    // 2. A4 PDF dim / size / update check
     const a4C = curr.lanes.a4[0];
     const a4P = prev.lanes.a4[0];
     if (a4C && a4P) {
@@ -1710,7 +1876,6 @@
       diffs.push(`新增A4整页PDF(${a4Cnt}张)`);
     }
 
-    // 3. Subpanel diff check
     const prevPanels = new Set(prev.lanes.single.map(x => x.figPanel || x.name).filter(Boolean));
     const currPanels = curr.lanes.single.map(x => x.figPanel || '').filter(Boolean);
     const addedPanels = Array.from(new Set(currPanels.filter(p => !prevPanels.has(p)))).sort();
@@ -1722,7 +1887,6 @@
       else diffs.push(`更新${sgCnt}张单图子图`);
     }
 
-    // 4. HTML report diff
     if (htmlCnt > 0) {
       const hNew = curr.lanes.html[0];
       const hOld = prev.lanes.html[0];
@@ -1745,9 +1909,7 @@
     TOPIC_TREE_V4 = {};
     if (!HUB || !HUB.projects) return;
 
-    const tMap = {};
     (HUB.topics || []).forEach(t => {
-      tMap[t.id] = t;
       TOPIC_TREE_V4[t.id] = { topic: t, figMap: new Map(), figs: [], latestMtime: 0, latestHint: '', latestHtml: null };
     });
 
@@ -1765,7 +1927,6 @@
           const ext = (f.name.includes('.') ? '.' + f.name.split('.').pop() : '').toLowerCase();
           let fg = f.fig_group || ((ftype === 'a4' || ftype === 'single' || ftype === 'image') ? '专题与汇总图' : '综合报告与整本交付');
           let ford = f.fig_order != null ? f.fig_order : ((ftype === 'a4' || ftype === 'single' || ftype === 'image') ? 90 : 999);
-          // Tuck slide export PNGs neatly into general deliverables instead of cluttering Fig rail
           if (fg === 'PPT 幻灯片页') { fg = '综合报告与整本交付'; ford = 999; }
 
           const rawTitle = (ftype === 'html' && f.title && f.title !== f.name) ? cleanLabel(f.title) : f.name;
@@ -1824,11 +1985,9 @@
 
     ALL_FILES.sort((a, b) => b.mtime - a.mtime);
 
-    // Build ordered Figs & Date/Session Batches with Diff Summaries per Topic
     Object.values(TOPIC_TREE_V4).forEach(tEntry => {
       const figs = Array.from(tEntry.figMap.values()).sort((a, b) => (a.figOrder - b.figOrder) || a.figGroup.localeCompare(b.figGroup));
       figs.forEach(fgObj => {
-        // Group items by (dayStr, projKey, subBucket) then split same-key time gaps > 90 min
         const rawGroups = new Map();
         fgObj.items.forEach(it => {
           const gk = `${it.dayStr}|${it.projKey}|${it.subBucket}`;
@@ -1851,7 +2010,6 @@
           if (cluster.length) batches.push(cluster);
         }
 
-        // Transform clusters into structured Batch objects
         const built = batches.map(arr => {
           arr.sort((a, b) => b.mtime - a.mtime);
           const lead = arr[0];
@@ -1879,7 +2037,6 @@
           };
         });
 
-        // Sort oldest -> newest to compute sequential diffs & same-day round numbers
         built.sort((a, b) => a.mtime - b.mtime);
         const dayCounts = {};
         built.forEach(b => { dayCounts[b.dayStr] = (dayCounts[b.dayStr] || 0) + 1; });
@@ -1894,23 +2051,21 @@
           b.compactDesc = `${b.dayStr} ${b.hmStr} [${b.projName}] A4:${b.lanes.a4.map(x=>x.name).slice(0,2).join(',')} Single:${b.lanes.single.length} HTML:${b.lanes.html.map(x=>x.displayTitle.slice(0,22)).slice(0,1).join(',')}`;
         });
 
-        // Reverse to newest -> oldest for UI presentation
         built.reverse();
         fgObj.batches = built;
         fgObj.hasA4 = built.some(b => b.lanes.a4.length > 0);
         fgObj.latestMtime = built.length ? built[0].mtime : 0;
 
-        // Build visual comparison pool (prefer 1 representative A4 per batch, then additional visuals)
         const vPool = [];
         const seenVp = new Set();
-        built.forEach((b, idx) => {
+        built.forEach(b => {
           const rep = b.lanes.a4[0] || b.lanes.single[0];
           if (rep && !seenVp.has(rep.path)) {
             seenVp.add(rep.path);
             vPool.push({
               path: rep.path,
               name: rep.name,
-              label: `${b.dayStr} ${b.hmStr} ${b.dayRoundLabel ? '(' + b.dayRoundLabel + ') ' : ''}${rep.name}`,
+              label: `${b.dayStr} ${b.hmStr} ${b.dayRoundLabel ? '(' + b.dayRoundLabel + ') ' : ''}[${b.projName.slice(0, 14)}] ${rep.name}`,
               date: `${b.dayStr} ${b.hmStr}`,
               dimMm: rep.dimMm,
               sizeMb: rep.sizeMb,
@@ -1930,7 +2085,7 @@
   }
 
   // =========================================================
-  // RENDER VIEW 1A: CRYSTAL STAR-ATLAS HOME
+  // RENDER VIEW 1A: PRECISION OPTICAL STAR-ATLAS HOME
   // =========================================================
   function renderAtlasOrDrill() {
     const homeEl = document.getElementById('atlasHomeStage');
@@ -1952,7 +2107,7 @@
     document.getElementById('atlasKpiRow').innerHTML = `
       <div class="kpi-cell"><div class="kpi-val num">${s.total_projects || 0}</div><div class="kpi-lbl">阶段目录</div></div>
       <div class="kpi-cell"><div class="kpi-val num">${s.total_html || 0}</div><div class="kpi-lbl">交互报告</div></div>
-      <div class="kpi-cell"><div class="kpi-val num" style="color:var(--accent);">${s.total_a4_pdf || 0}</div><div class="kpi-lbl">A4 组图</div></div>
+      <div class="kpi-cell"><div class="kpi-val num">${s.total_a4_pdf || 0}</div><div class="kpi-lbl">A4 组图</div></div>
       <div class="kpi-cell"><div class="kpi-val num">${s.total_single_pdf || 0}</div><div class="kpi-lbl">单图子图</div></div>
     `;
 
@@ -1964,7 +2119,6 @@
 
     renderMandala();
 
-    // Recent active topics cards (top 6 by latest mtime)
     const ranked = (HUB.topics || [])
       .filter(t => t.project_count > 0)
       .map(t => ({ topic: t, entry: TOPIC_TREE_V4[t.id] }))
@@ -1982,86 +2136,130 @@
           </div>
           <div class="tfc-hint">${esc(hint)}</div>
           <div class="tfc-foot">
-            <span class="tfc-stats meta-caption num">${figCnt} 组 Fig / ${topic.a4_pdf_count || 0} A4图 / ${topic.html_count || 0} 报告</span>
-            ${topHtml ? `<button class="deliv-btn sm" onclick="event.stopPropagation();openDeliverable('${escAttr(topHtml.path)}')">最新报告</button>` : ''}
+            <span class="tfc-stats meta-caption num">${figCnt} 组 Fig / ${topic.a4_pdf_count || 0} A4 / ${topic.html_count || 0} 报告</span>
+            ${topHtml ? `<button class="tfc-link" onclick="event.stopPropagation();openDeliverable('${escAttr(topHtml.path)}')">最新报告 ›</button>` : ''}
           </div>
         </div>
       `;
     }).join('');
   }
 
+  /* Precision Swiss / Astronomical Optical Astrolabe SVG (Centered, +16% Scale, 12/6 o'clock Leaders, Crystal Petals!) */
   function renderMandala(hoverTopicId) {
     const box = document.getElementById('mandalaContainer');
     if (!box || !HUB) return;
     const topics = HUB.topics || [];
-    const W = 760, H = 468;
+    const W = 920, H = 560;
     const cx = W / 2, cy = H / 2;
-    const rInner = 64, rArc = 104, rNode = 142, rLabel = 172;
+    const rCore = 62, rVernier = 108, rOrbit = 164, rOuter = 188;
     const pKey = document.body.getAttribute('data-paradigm') || 'peach';
     const pm = PARADIGM_META[pKey] || PARADIGM_META.peach;
+    const maxProj = Math.max(12, ...topics.map(t => t.project_count || 1));
 
     let ticks = '';
-    for (let i = 0; i < 72; i++) {
-      const a = (i * 5) * Math.PI / 180;
-      const r1 = i % 6 === 0 ? rArc - 14 : rArc - 9;
-      const r2 = rArc - 3;
-      ticks += `<line x1="${(cx + r1 * Math.cos(a)).toFixed(1)}" y1="${(cy + r1 * Math.sin(a)).toFixed(1)}" x2="${(cx + r2 * Math.cos(a)).toFixed(1)}" y2="${(cy + r2 * Math.sin(a)).toFixed(1)}" stroke="${pm.ring}" stroke-width="${i % 6 === 0 ? 1.4 : 0.85}"/>`;
+    for (let i = 0; i < 120; i++) {
+      const a = (i * 3) * Math.PI / 180;
+      const major = (i % 10 === 0);
+      const r1 = major ? rVernier - 9.5 : rVernier - 5;
+      const r2 = rVernier;
+      ticks += `<line x1="${(cx + r1 * Math.cos(a)).toFixed(1)}" y1="${(cy + r1 * Math.sin(a)).toFixed(1)}" x2="${(cx + r2 * Math.cos(a)).toFixed(1)}" y2="${(cy + r2 * Math.sin(a)).toFixed(1)}" stroke="${pm.tick}" stroke-width="${major ? 1.05 : 0.6}" opacity="${major ? 0.85 : 0.42}"/>`;
     }
 
-    let arcs = '', nodes = '';
+    let petals = '', spokes = '', nodes = '';
+    const N = Math.max(1, topics.length);
+    const step = (2 * Math.PI) / N;
+
     topics.forEach((t, idx) => {
-      const ang = -Math.PI / 2 + (idx * 2 * Math.PI / Math.max(1, topics.length));
-      const nx = cx + rNode * Math.cos(ang), ny = cy + rNode * Math.sin(ang);
-      const lx = cx + rLabel * Math.cos(ang), ly = cy + rLabel * Math.sin(ang);
-
-      const halfSpan = Math.min(0.23, Math.max(0.06, (t.project_count / 70) * 0.23));
-      const sa1 = ang - halfSpan, sa2 = ang + halfSpan;
-      const ax1 = (cx + rArc * Math.cos(sa1)).toFixed(1), ay1 = (cy + rArc * Math.sin(sa1)).toFixed(1);
-      const ax2 = (cx + rArc * Math.cos(sa2)).toFixed(1), ay2 = (cy + rArc * Math.sin(sa2)).toFixed(1);
-
+      const ang = -Math.PI / 2 + idx * step;
+      const cosV = Math.cos(ang), sinV = Math.sin(ang);
       const isHov = hoverTopicId === t.id;
       const isLive = t.locked_count > 0;
       const col = isLive ? pm.live : pm.archiveRing;
-      const op = hoverTopicId ? (isHov ? '1' : '0.32') : '0.84';
 
-      arcs += `<path d="M ${ax1} ${ay1} A ${rArc} ${rArc} 0 0 1 ${ax2} ${ay2}" fill="none" stroke="${col}" stroke-width="${isHov ? 8 : 5}" stroke-linecap="round" opacity="${op}"/>`;
-      arcs += `<line x1="${(cx + rInner * Math.cos(ang)).toFixed(1)}" y1="${(cy + rInner * Math.sin(ang)).toFixed(1)}" x2="${nx.toFixed(1)}" y2="${ny.toFixed(1)}" stroke="${isHov ? col : pm.spoke}" stroke-width="${isHov ? 2 : 1.1}"/>`;
+      const ratio = Math.sqrt((t.project_count || 1) / maxProj);
+      const rPetal = rVernier + 15 + ratio * (rOrbit - rVernier - 20);
+      const halfA = step * 0.34;
+      const a1 = ang - halfA, a2 = ang + halfA;
+      const px1 = (cx + rVernier * Math.cos(a1)).toFixed(1), py1 = (cy + rVernier * Math.sin(a1)).toFixed(1);
+      const px2 = (cx + rPetal * Math.cos(a1)).toFixed(1),   py2 = (cy + rPetal * Math.sin(a1)).toFixed(1);
+      const px3 = (cx + rPetal * Math.cos(a2)).toFixed(1),   py3 = (cy + rPetal * Math.sin(a2)).toFixed(1);
+      const px4 = (cx + rVernier * Math.cos(a2)).toFixed(1), py4 = (cy + rVernier * Math.sin(a2)).toFixed(1);
 
-      const cosV = Math.cos(ang), sinV = Math.sin(ang);
-      const anchor = Math.abs(cosV) < 0.22 ? 'middle' : (cosV > 0 ? 'start' : 'end');
-      const dx = anchor === 'start' ? 8 : (anchor === 'end' ? -8 : 0);
-      const dy = sinV < -0.78 ? -12 : (sinV > 0.78 ? 12 : 0);
-      const rDot = Math.min(13, Math.max(7, 6 + Math.sqrt(t.project_count) * 0.88));
+      petals += `<path d="M ${px1} ${py1} L ${px2} ${py2} A ${rPetal.toFixed(1)} ${rPetal.toFixed(1)} 0 0 1 ${px3} ${py3} L ${px4} ${py4} A ${rVernier} ${rVernier} 0 0 0 ${px1} ${py1} Z" fill="url(#${isLive ? 'petalLiveGrad' : 'petalArchGrad'})" fill-opacity="${isHov ? '1' : '0.82'}" stroke="${col}" stroke-opacity="${isHov ? '0.68' : '0.24'}" stroke-width="0.8"/>`;
+
+      const g1x = (cx + rPetal * Math.cos(a1)).toFixed(1), g1y = (cy + rPetal * Math.sin(a1)).toFixed(1);
+      const g2x = (cx + rPetal * Math.cos(a2)).toFixed(1), g2y = (cy + rPetal * Math.sin(a2)).toFixed(1);
+      petals += `<path d="M ${g1x} ${g1y} A ${rPetal.toFixed(1)} ${rPetal.toFixed(1)} 0 0 1 ${g2x} ${g2y}" fill="none" stroke="${col}" stroke-width="${isHov ? 2.5 : 1.9}" stroke-linecap="round" opacity="${isHov ? 1 : 0.88}"/>`;
+
+      const nx = cx + rOrbit * cosV, ny = cy + rOrbit * sinV;
+      spokes += `<line x1="${(cx + rCore * cosV).toFixed(1)}" y1="${(cy + rCore * sinV).toFixed(1)}" x2="${nx.toFixed(1)}" y2="${ny.toFixed(1)}" stroke="${isHov ? col : pm.spoke}" stroke-width="${isHov ? 1.3 : 0.8}"/>`;
+
+      const ex = cx + (rOuter + 14) * cosV, ey = cy + (rOuter + 14) * sinV;
+      const isTopOrBottom = Math.abs(cosV) < 0.16;
       const figCnt = TOPIC_TREE_V4[t.id] ? TOPIC_TREE_V4[t.id].figs.filter(f => f.figOrder < 900).length : 0;
+      const shortLbl = cleanLabel(t.short);
+      const subLbl = `${figCnt} 组 Fig / ${t.a4_pdf_count || 0} A4 / ${t.html_count || 0} 报告`;
+
+      let leaderPath = '', tx = 0, ty = 0, anchor = 'middle';
+      if (isTopOrBottom) {
+        const dirY = sinV < 0 ? -1 : 1;
+        const startY = ny + dirY * 14;
+        const tipY = ny + dirY * 34;
+        leaderPath = `<line x1="${nx.toFixed(1)}" y1="${startY.toFixed(1)}" x2="${nx.toFixed(1)}" y2="${tipY.toFixed(1)}" stroke="${pm.leader}" stroke-width="0.9"/>`;
+        tx = nx;
+        ty = dirY < 0 ? (tipY - 24) : (tipY + 17);
+        anchor = 'middle';
+      } else {
+        const side = cosV >= 0 ? 1 : -1;
+        const elbowX = ex + side * 26;
+        leaderPath = `<polyline points="${(nx + cosV * 8).toFixed(1)},${(ny + sinV * 8).toFixed(1)} ${ex.toFixed(1)},${ey.toFixed(1)} ${elbowX.toFixed(1)},${ey.toFixed(1)}" fill="none" stroke="${pm.leader}" stroke-width="0.9"/>`;
+        tx = elbowX + side * 9;
+        ty = ey - 2;
+        anchor = side > 0 ? 'start' : 'end';
+      }
+
+      const jewelNode = isLive
+        ? `<circle cx="${nx.toFixed(1)}" cy="${ny.toFixed(1)}" r="12.5" fill="${pm.live}" fill-opacity="0.18"/>
+           <circle cx="${nx.toFixed(1)}" cy="${ny.toFixed(1)}" r="5" fill="${pm.live}"/>`
+        : `<circle class="mn-ring" cx="${nx.toFixed(1)}" cy="${ny.toFixed(1)}" r="4.5" fill="${pm.center}" stroke="${pm.archiveRing}" stroke-width="1.6"/>`;
 
       nodes += `
         <g class="mandala-node" onclick="enterTopic('${escAttr(t.id)}')" onmouseenter="updateMandalaCenter('${escAttr(t.id)}')" onmouseleave="updateMandalaCenter('')">
-          ${isLive ? `<circle cx="${nx.toFixed(1)}" cy="${ny.toFixed(1)}" r="${(rDot + 5.5).toFixed(1)}" fill="none" stroke="${pm.live}" stroke-width="1.5" opacity="0.65"/>` : ''}
-          <circle cx="${nx.toFixed(1)}" cy="${ny.toFixed(1)}" r="${rDot.toFixed(1)}" fill="${isLive ? pm.live : pm.center}" stroke="${col}" stroke-width="2.2"/>
-          <text x="${(lx + dx).toFixed(1)}" y="${(ly + dy - 2).toFixed(1)}" text-anchor="${anchor}" fill="${pm.ink1}" font-size="14.5" font-weight="${isHov ? '700' : '600'}">${esc(cleanLabel(t.short))}</text>
-          <text x="${(lx + dx).toFixed(1)}" y="${(ly + dy + 16).toFixed(1)}" text-anchor="${anchor}" fill="${pm.ink2}" font-size="13">${figCnt} 组Fig / ${t.a4_pdf_count || 0} A4 / ${t.html_count || 0} 报告</text>
+          ${leaderPath}
+          ${jewelNode}
+          <text class="mn-title" x="${tx.toFixed(1)}" y="${ty.toFixed(1)}" text-anchor="${anchor}" fill="${pm.ink1}" font-size="14" font-weight="600">${esc(shortLbl)}</text>
+          <text x="${tx.toFixed(1)}" y="${(ty + 17).toFixed(1)}" text-anchor="${anchor}" fill="${pm.ink2}" font-size="12" font-weight="400">${esc(subLbl)}</text>
         </g>
       `;
     });
 
     box.innerHTML = `
-      <svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
+      <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet">
         <defs>
-          <radialGradient id="jellyCoreGrad" cx="35%" cy="30%" r="70%">
-            <stop offset="0%" stop-color="${pm.center}" stop-opacity="0.98"/>
-            <stop offset="100%" stop-color="${pm.accent}" stop-opacity="0.16"/>
+          <filter id="hubSoftShadow" x="-30%" y="-30%" width="160%" height="160%">
+            <feDropShadow dx="0" dy="5" stdDeviation="11" flood-color="#000000" flood-opacity="${pm.dark ? '0.48' : '0.09'}"/>
+          </filter>
+          <radialGradient id="petalLiveGrad" cx="${cx}" cy="${cy}" r="${rOrbit}" gradientUnits="userSpaceOnUse">
+            <stop offset="56%" stop-color="${pm.live}" stop-opacity="0.03"/>
+            <stop offset="100%" stop-color="${pm.live}" stop-opacity="0.16"/>
+          </radialGradient>
+          <radialGradient id="petalArchGrad" cx="${cx}" cy="${cy}" r="${rOrbit}" gradientUnits="userSpaceOnUse">
+            <stop offset="56%" stop-color="${pm.archiveRing}" stop-opacity="0.02"/>
+            <stop offset="100%" stop-color="${pm.archiveRing}" stop-opacity="0.12"/>
           </radialGradient>
         </defs>
-        <circle cx="${cx}" cy="${cy}" r="${rNode + 18}" fill="none" stroke="${pm.ring}" stroke-width="0.9" opacity="0.48"/>
-        <circle cx="${cx}" cy="${cy}" r="${rNode}" fill="none" stroke="${pm.ring}" stroke-width="1.1" stroke-dasharray="3 4"/>
-        <circle cx="${cx}" cy="${cy}" r="${rArc}" fill="none" stroke="${pm.ring}" stroke-width="1.1"/>
+        <circle cx="${cx}" cy="${cy}" r="${rOuter}" fill="none" stroke="${pm.ring}" stroke-width="0.75" stroke-dasharray="2 5"/>
+        <circle cx="${cx}" cy="${cy}" r="${rOrbit}" fill="none" stroke="${pm.ring}" stroke-width="0.85"/>
+        <circle cx="${cx}" cy="${cy}" r="${rVernier}" fill="none" stroke="${pm.ring}" stroke-width="0.85"/>
         ${ticks}
-        ${arcs}
+        ${petals}
+        ${spokes}
         ${nodes}
-        <g style="cursor:pointer;" onclick="enterLatestActiveTopic()">
-          <circle cx="${cx}" cy="${cy}" r="${rInner}" fill="url(#jellyCoreGrad)" stroke="${pm.accent}" stroke-width="2.2"/>
-          <text id="mandalaCenterNum" x="${cx}" y="${cy - 4}" text-anchor="middle" fill="${pm.ink1}" style="font-family:var(--display-font);" font-size="31" font-weight="700">${HUB.summary.total_projects}</text>
-          <text id="mandalaCenterCap" x="${cx}" y="${cy + 20}" text-anchor="middle" fill="${pm.ink2}" font-size="13" font-weight="600">全部课题总库</text>
+        <g style="cursor:pointer;" onclick="enterLatestActiveTopic()" filter="url(#hubSoftShadow)">
+          <circle cx="${cx}" cy="${cy}" r="${rCore}" fill="${pm.center}" stroke="${pm.centerEdge}" stroke-width="1"/>
+          <circle cx="${cx}" cy="${cy}" r="${rCore - 3.5}" fill="none" stroke="${pm.ring}" stroke-width="0.6" opacity="0.65"/>
+          <text id="mandalaCenterNum" x="${cx}" y="${cy - 2}" text-anchor="middle" fill="${pm.ink1}" style="font-family:var(--display-font);font-variant-numeric:tabular-nums;" font-size="33" font-weight="600">${HUB.summary.total_projects}</text>
+          <text id="mandalaCenterCap" x="${cx}" y="${cy + 20}" text-anchor="middle" fill="${pm.ink2}" font-size="12" font-weight="500">全部阶段目录</text>
         </g>
       </svg>
     `;
@@ -2073,13 +2271,13 @@
     if (!numEl || !capEl || !HUB) return;
     if (!tid) {
       numEl.textContent = HUB.summary.total_projects;
-      capEl.textContent = '全部课题总库';
+      capEl.textContent = '全部阶段目录';
       return;
     }
     const t = (HUB.topics || []).find(x => x.id === tid);
     if (!t) return;
     numEl.textContent = t.a4_pdf_count || t.project_count;
-    capEl.textContent = (t.a4_pdf_count ? '张A4组图' : '个阶段目录');
+    capEl.textContent = (t.a4_pdf_count ? '张 A4 组图' : '个阶段目录');
   }
 
   function enterLatestActiveTopic() {
@@ -2089,6 +2287,7 @@
   }
 
   function backToStarAtlas() {
+    closeCustomMenu();
     STATE.topicId = 'ALL';
     STATE.figGroup = '';
     STATE.typeFilter = 'ALL';
@@ -2107,7 +2306,6 @@
     if (preferredFig && tEntry.figMap.has(preferredFig)) {
       STATE.figGroup = preferredFig;
     } else {
-      // Pick first main Fig that has multi-round A4 PDFs, else first Fig
       const bestFig = tEntry.figs.find(f => f.figOrder >= 1 && f.figOrder < 90 && f.hasA4 && f.batches.length >= 2)
         || tEntry.figs.find(f => f.hasA4)
         || tEntry.figs[0];
@@ -2140,17 +2338,12 @@
     const tEntry = TOPIC_TREE_V4[STATE.topicId];
     if (!tEntry) { backToStarAtlas(); return; }
 
-    // Breadcrumb Topic Dropdown
-    const selEl = document.getElementById('topicQuickSelect');
-    selEl.innerHTML = (HUB.topics || []).filter(t => t.project_count > 0).map(t =>
-      `<option value="${escAttr(t.id)}" ${t.id === STATE.topicId ? 'selected' : ''}>${esc(cleanLabel(t.short))} (${t.project_count}目录)</option>`
-    ).join('');
+    document.getElementById('topicQuickLabel').textContent = `${cleanLabel(tEntry.topic.short)} (${tEntry.topic.project_count})`;
 
     const figOnlyCnt = tEntry.figs.filter(f => f.figOrder < 900).length;
     document.getElementById('figRailTopicName').textContent = cleanLabel(tEntry.topic.short);
     document.getElementById('figRailTopicStats').textContent = `${figOnlyCnt} 组Fig / ${tEntry.topic.a4_pdf_count || 0} A4 / ${tEntry.topic.html_count || 0} 报告`;
 
-    // Tier 2: Fig Rail partitioned cleanly
     const mainFigs = tEntry.figs.filter(f => f.figOrder < 90);
     const suppFigs = tEntry.figs.filter(f => f.figOrder >= 100 && f.figOrder < 300);
     const generalFigs = tEntry.figs.filter(f => f.figOrder === 90 || f.figOrder >= 300);
@@ -2163,9 +2356,9 @@
     `).join('');
 
     let railHtml = '';
-    if (mainFigs.length) railHtml += `<div class="fig-sec-lbl">主图专席 (Main Figs)</div>${renderFigList(mainFigs)}`;
-    if (suppFigs.length) railHtml += `<div class="fig-sec-lbl">附图与附表 (Supp)</div>${renderFigList(suppFigs)}`;
-    if (generalFigs.length) railHtml += `<div class="fig-sec-lbl">综合报告与全局件</div>${renderFigList(generalFigs)}`;
+    if (mainFigs.length) railHtml += `<div class="fig-sec-lbl">主图专席</div>${renderFigList(mainFigs)}`;
+    if (suppFigs.length) railHtml += `<div class="fig-sec-lbl">附图与附表</div>${renderFigList(suppFigs)}`;
+    if (generalFigs.length) railHtml += `<div class="fig-sec-lbl">综合报告与整本件</div>${renderFigList(generalFigs)}`;
     document.getElementById('figRailScroll').innerHTML = railHtml || `<div style="padding:18px;color:var(--ink-3);font-size:13.5px;">该课题暂无交付文件</div>`;
 
     document.getElementById('drillPreviewIsland').classList.toggle('collapsed', !STATE.previewOpen);
@@ -2184,32 +2377,31 @@
     }
     STATE.figGroup = fgObj.figGroup;
     document.getElementById('crumbFigLabel').textContent = fgObj.figGroup;
-    document.getElementById('crumbSummaryMeta').textContent = `${fgObj.batches.length} 轮日期批次 / 共 ${fgObj.items.length} 份产物`;
+    document.getElementById('crumbSummaryMeta').textContent = `${fgObj.batches.length} 轮批次 / ${fgObj.items.length} 份产物`;
     document.getElementById('batchStageTitle').textContent = `${cleanLabel(tEntry.topic.short)} / ${fgObj.figGroup}`;
-    document.getElementById('batchStageSub').textContent = `共 ${fgObj.batches.length} 轮日期与对话修订记录，顶部高亮条自动标明每轮核心改动`;
+    document.getElementById('batchStageSub').textContent = `按日期与会话批次倒序排列，顶部提示条自动标明每轮核心改动`;
 
     const cmpBtn = document.getElementById('btnOpenFigCompare');
     cmpBtn.style.display = fgObj.visualPool.length >= 2 ? 'inline-flex' : 'none';
 
-    // Tier 4 Type Filter Chips
     const counts = { ALL: fgObj.items.length, html: 0, a4: 0, single: 0, other: 0 };
     fgObj.items.forEach(it => { counts[it.lane] = (counts[it.lane] || 0) + 1; });
     const chips = [
-      { id: 'ALL', label: '全部类型' },
+      { id: 'ALL', label: '全部' },
       { id: 'html', label: 'HTML 报告' },
-      { id: 'a4', label: 'A4 整页 PDF' },
-      { id: 'single', label: '单图 / 子图' },
-      { id: 'other', label: 'PPT / 文稿表格' }
+      { id: 'a4', label: 'A4 PDF' },
+      { id: 'single', label: '单图子图' },
+      { id: 'other', label: '文稿表格' }
     ].filter(c => c.id === 'ALL' || counts[c.id] > 0);
 
     document.getElementById('batchTypeFilters').innerHTML = chips.map(c => `
-      <button class="type-chip ${STATE.typeFilter === c.id ? 'active' : ''}" onclick="setBatchTypeFilter('${c.id}')">${esc(c.label)} (${counts[c.id]})</button>
+      <button class="type-chip ${STATE.typeFilter === c.id ? 'active' : ''}" onclick="setBatchTypeFilter('${c.id}')">${esc(c.label)} ${counts[c.id]}</button>
     `).join('');
 
-    // Render Date Batches (Tier 3) + Typed Lanes (Tier 4)
     CURRENT_BATCH_FILES = [];
     const scrollBox = document.getElementById('batchScrollArea');
     const htmlParts = [];
+    const firstVisualIdx = fgObj.batches.findIndex(x => (x.lanes.a4.length + x.lanes.single.length) > 0);
 
     fgObj.batches.forEach((b, bIdx) => {
       const showHtml = (STATE.typeFilter === 'ALL' || STATE.typeFilter === 'html') ? b.lanes.html : [];
@@ -2221,59 +2413,43 @@
 
       showHtml.concat(showA4, showSingle, showOther).forEach(x => CURRENT_BATCH_FILES.push(x));
 
-      const isExpanded = (bIdx < 2) || EXPANDED_BATCHES.has(b.batchKey);
+      const isExpanded = (bIdx < 1) || (firstVisualIdx >= 0 && bIdx === firstVisualIdx) || (firstVisualIdx < 0 && bIdx < 2) || EXPANDED_BATCHES.has(b.batchKey);
       const diffText = BATCH_DIFF_CACHE[b.hash] || b.localDiff;
       const isAiPolished = Boolean(BATCH_DIFF_CACHE[b.hash]);
 
-      const corePaths = b.lanes.html.slice(0, 2).concat(b.lanes.a4.slice(0, 8), b.lanes.other.filter(x => x.ftype === 'pptx' || x.ftype === 'doc').slice(0, 3)).map(x => x.path);
-      const exportPaths = corePaths.length ? corePaths : b.items.slice(0, 12).map(x => x.path);
-
-      // Build Tier 4 Lanes HTML
       let lanesHtml = '';
-
       if (showHtml.length) {
         lanesHtml += `
           <div>
             <div class="lane-head"><span class="lane-title">交互式审阅报告 (HTML)</span><span class="lane-cnt meta-caption num">${showHtml.length} 份</span></div>
-            <div class="doc-list">
-              ${showHtml.map(f => renderDocRow(f, 'HTML', true)).join('')}
-            </div>
+            <div class="doc-list">${showHtml.map(f => renderDocRow(f, 'HTML', true)).join('')}</div>
           </div>
         `;
       }
-
       if (showA4.length) {
         lanesHtml += `
           <div>
             <div class="lane-head"><span class="lane-title">A4 整页拼图 (矢量 PDF)</span><span class="lane-cnt meta-caption num">${showA4.length} 张</span></div>
-            <div class="plate-grid">
-              ${showA4.map(f => renderPlateCard(f, false, fgObj.visualPool.length >= 2)).join('')}
-            </div>
+            <div class="plate-grid">${showA4.map(f => renderPlateCard(f, false, fgObj.visualPool.length >= 2)).join('')}</div>
           </div>
         `;
       }
-
       if (showSingle.length) {
         const spOpen = EXPANDED_SUBPANELS.has(b.batchKey) || showSingle.length <= 6;
         const visSp = spOpen ? showSingle : showSingle.slice(0, 6);
         lanesHtml += `
           <div>
-            <div class="lane-head"><span class="lane-title">单图与各个子图 (Panel PDF / PNG)</span><span class="lane-cnt meta-caption num">${showSingle.length} 张</span></div>
-            <div class="plate-grid subpanels">
-              ${visSp.map(f => renderPlateCard(f, true, fgObj.visualPool.length >= 2)).join('')}
-            </div>
+            <div class="lane-head"><span class="lane-title">单图与各个子图 (Panel)</span><span class="lane-cnt meta-caption num">${showSingle.length} 张</span></div>
+            <div class="plate-grid subpanels">${visSp.map(f => renderPlateCard(f, true, fgObj.visualPool.length >= 2)).join('')}</div>
             ${(!spOpen) ? `<button class="fold-toggle-btn" onclick="expandSubpanels('${escAttr(b.batchKey)}')">展开本轮全部 ${showSingle.length} 张单图与子图</button>` : ''}
           </div>
         `;
       }
-
       if (showOther.length) {
         lanesHtml += `
           <div>
             <div class="lane-head"><span class="lane-title">演示文稿、图注与数据表</span><span class="lane-cnt meta-caption num">${showOther.length} 份</span></div>
-            <div class="doc-list">
-              ${showOther.slice(0, 12).map(f => renderDocRow(f, f.ftype === 'pptx' ? 'PPTX' : (f.ftype === 'table' ? '表格' : (f.ftype === 'archive' ? 'ZIP' : '文稿')), false)).join('')}
-            </div>
+            <div class="doc-list">${showOther.slice(0, 12).map(f => renderDocRow(f, f.ftype === 'pptx' ? 'PPTX' : (f.ftype === 'table' ? '表格' : (f.ftype === 'archive' ? 'ZIP' : '文稿')), false)).join('')}</div>
           </div>
         `;
       }
@@ -2281,27 +2457,27 @@
       const prevB = (bIdx + 1 < fgObj.batches.length) ? fgObj.batches[bIdx + 1] : null;
       const aiBtnHtml = APP_INFO.llm_enabled && !isAiPolished
         ? `<button class="diff-ai-btn" id="aiBtn_${escAttr(b.hash)}" onclick="event.stopPropagation();triggerBatchAiSummary('${escAttr(b.batchKey)}','${escAttr(b.hash)}','${escAttr(prevB ? prevB.compactDesc : '')}','${escAttr(b.compactDesc)}')">AI 精炼</button>`
-        : (isAiPolished ? `<span class="meta-caption" style="font-size:12px;color:var(--fresh-ink);font-weight:700;flex-shrink:0;">AI已精炼</span>` : '');
+        : (isAiPolished ? `<span class="meta-caption" style="font-size:12px;color:var(--fresh-ink);font-weight:600;flex-shrink:0;">AI已精炼</span>` : '');
 
       htmlParts.push(`
         <article class="batch-card ${isExpanded ? '' : 'collapsed'}" id="bc_${escAttr(b.hash)}">
           <div class="batch-card-head" onclick="toggleBatchExpand('${escAttr(b.batchKey)}')">
             <div class="batch-head-left">
-              <span class="batch-date-pill num">${esc(b.dayStr)} ${esc(b.hmStr)}</span>
+              <span class="batch-date-txt num">${esc(b.dayStr)} ${esc(b.hmStr)}</span>
               ${b.dayRoundLabel ? `<span class="batch-round-tag">${esc(b.dayRoundLabel)}</span>` : ''}
               <span class="batch-proj-name" title="${escAttr(b.projName)}">${esc(b.projName)}</span>
               ${b.platform ? `<span class="batch-plat-tag">${esc(b.platform)}</span>` : ''}
             </div>
             <div class="batch-head-actions" onclick="event.stopPropagation()">
-              <button class="deliv-btn sm" onclick="copyBatchPaths('${escAttr(b.batchKey)}')" title="复制本轮核心交付文件的完整绝对路径">复制路径</button>
-              <button class="deliv-btn sm" onclick="exportBatchZip('${escAttr(b.batchKey)}')" title="一键将本轮核心定稿打包为 ZIP">打包ZIP</button>
-              <button class="deliv-btn sm" onclick="toggleBatchExpand('${escAttr(b.batchKey)}')">${isExpanded ? '收起' : `展开 (${visibleTotal})`}</button>
+              <button class="deliv-btn sm ghost" onclick="copyBatchPaths('${escAttr(b.batchKey)}')" title="复制本轮核心交付文件的完整绝对路径">复制路径</button>
+              <button class="deliv-btn sm ghost" onclick="exportBatchZip('${escAttr(b.batchKey)}')" title="一键将本轮核心定稿打包为 ZIP">打包ZIP</button>
+              <button class="deliv-btn sm ghost" onclick="toggleBatchExpand('${escAttr(b.batchKey)}')">${isExpanded ? '收起' : `展开 (${visibleTotal})`}</button>
             </div>
           </div>
 
           <div class="diff-banner">
             <div class="diff-banner-left">
-              <span class="diff-badge">${bIdx === fgObj.batches.length - 1 ? '初版记录' : '本轮变动'}</span>
+              <span class="diff-badge">${bIdx === fgObj.batches.length - 1 ? '初版' : '变动'}</span>
               <span class="diff-text" id="diffTxt_${escAttr(b.hash)}">${esc(diffText)}</span>
             </div>
             ${aiBtnHtml}
@@ -2314,7 +2490,6 @@
 
     scrollBox.innerHTML = htmlParts.join('') || `<div style="padding:48px;text-align:center;color:var(--ink-3);">当前类型筛选下暂无文件</div>`;
 
-    // Auto-select first visual/HTML file for preview
     if (CURRENT_BATCH_FILES.length) {
       const stillIn = CURRENT_BATCH_FILES.some(x => x.path === STATE.selectedPath);
       if (!stillIn) {
@@ -2328,23 +2503,22 @@
 
   function renderPlateCard(f, isSub, allowCompare) {
     const thumb = 'https://hub.local/api/thumb?path=' + encodeURIComponent(f.path);
-    const tagText = isSub ? (f.figPanel ? `Panel ${f.figPanel}` : '单图') : (f.dimMm || 'A4 PDF');
+    const dimMeta = isSub ? (f.figPanel ? `Panel ${f.figPanel}` : '单图') : (f.dimMm || 'A4 PDF');
     return `
       <div class="plate-card ${f.path === STATE.selectedPath ? 'selected' : ''}" data-fpath="${escAttr(f.path)}"
            onclick="selectFileForPreview('${escAttr(f.path)}','pvHeaderBox','pvBodyBox')"
            ondblclick="openDeliverable('${escAttr(f.path)}')">
         <div class="plate-artboard">
-          <span class="plate-tag">${esc(tagText)}</span>
           ${allowCompare ? `<button class="plate-cmp-btn" onclick="event.stopPropagation();openCompareWithTarget('${escAttr(f.path)}')">对比</button>` : ''}
           <img src="${thumb}" alt="" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
           <div class="plate-typo-fallback">
-            <div style="font-weight:700;font-size:13.5px;">${esc(f.figGroup || 'PDF')}</div>
-            <div class="meta-caption" style="font-size:12px;">${esc(f.dimMm || f.ext.toUpperCase())}</div>
+            <div style="font-weight:600;font-size:13.5px;">${esc(f.figGroup || 'PDF')}</div>
+            <div class="meta-caption" style="font-size:12px;">${esc(dimMeta)}</div>
           </div>
         </div>
         <div class="plate-cap">
           <div class="plate-name" title="${escAttr(f.name)}">${esc(f.name)}</div>
-          <div class="plate-sub meta-caption num"><span>${formatFileSize(f.sizeMb)}</span><span>${esc(f.hmStr)}</span></div>
+          <div class="plate-sub meta-caption num"><span>${esc(dimMeta)} / ${formatFileSize(f.sizeMb)}</span><span>${esc(f.hmStr)}</span></div>
         </div>
       </div>
     `;
@@ -2362,7 +2536,7 @@
           <div class="doc-sub meta-caption num">${subPrefix}${formatFileSize(f.sizeMb)} / ${esc(f.date)}</div>
         </div>
         <div class="doc-actions" onclick="event.stopPropagation()">
-          <button class="deliv-btn sm ${isPrimary ? 'primary' : ''}" onclick="openDeliverable('${escAttr(f.path)}')">打开</button>
+          <button class="deliv-btn sm ${isPrimary ? 'primary' : 'ghost'}" onclick="openDeliverable('${escAttr(f.path)}')">打开</button>
           <button class="deliv-btn sm ghost" onclick="revealInExplorer('${escAttr(f.path)}')">定位</button>
         </div>
       </div>
@@ -2372,7 +2546,6 @@
   function toggleBatchExpand(bk) {
     if (EXPANDED_BATCHES.has(bk)) EXPANDED_BATCHES.delete(bk);
     else EXPANDED_BATCHES.add(bk);
-    // For top-2 default-expanded batches, toggle collapsed class directly if present
     renderBatchStageOnly();
   }
   function expandSubpanels(bk) { EXPANDED_SUBPANELS.add(bk); renderBatchStageOnly(); }
@@ -2440,16 +2613,20 @@
     const ext = (fp.includes('.') ? '.' + fp.split('.').pop() : '').toLowerCase();
     const isVisual = ['.pdf', '.png', '.jpg', '.jpeg', '.svg', '.webp'].includes(ext);
 
+    const icExpand = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>`;
+    const icDoc = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>`;
+    const icLoc = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>`;
+    const icCopy = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>`;
     headBox.innerHTML = `
       <div class="pv-title">${esc(title)}</div>
       <div class="pv-path meta-caption">${esc(fp)}</div>
       <div class="pv-btn-row">
         <button class="deliv-btn sm primary" onclick="openDeliverable('${escAttr(fp)}')">打开原件</button>
-        ${isVisual ? `<button class="deliv-btn sm" onclick="openLightbox('${escAttr(fp)}')">全屏灯箱</button>` : ''}
-        ${ext === '.html' || ext === '.htm' ? `<button class="deliv-btn sm" onclick="mountInlineLivePreview('${escAttr(fp)}','html','${escAttr(bodyId || 'pvBodyBox')}')">内嵌网页</button>` : ''}
-        ${ext === '.pdf' ? `<button class="deliv-btn sm" onclick="mountInlineLivePreview('${escAttr(fp)}','pdf','${escAttr(bodyId || 'pvBodyBox')}')">多页阅读</button>` : ''}
-        <button class="deliv-btn sm" onclick="revealInExplorer('${escAttr(fp)}')">定位</button>
-        <button class="deliv-btn sm" onclick="copyText('${escAttr(fp)}','已复制绝对路径')">复制路径</button>
+        ${isVisual ? `<button class="deliv-btn sm sub" onclick="openLightbox('${escAttr(fp)}')">${icExpand}全屏灯箱</button>` : ''}
+        ${ext === '.html' || ext === '.htm' ? `<button class="deliv-btn sm sub" onclick="mountInlineLivePreview('${escAttr(fp)}','html','${escAttr(bodyId || 'pvBodyBox')}')">${icDoc}内嵌网页</button>` : ''}
+        ${ext === '.pdf' ? `<button class="deliv-btn sm sub" onclick="mountInlineLivePreview('${escAttr(fp)}','pdf','${escAttr(bodyId || 'pvBodyBox')}')">${icDoc}多页阅读</button>` : ''}
+        <button class="deliv-btn sm sub" onclick="revealInExplorer('${escAttr(fp)}')">${icLoc}定位</button>
+        <button class="deliv-btn sm sub" onclick="copyText('${escAttr(fp)}','已复制绝对路径')">${icCopy}复制</button>
       </div>
     `;
 
@@ -2477,7 +2654,7 @@
           <div class="pv-dossier">
             <div class="pv-dossier-card">
               <div class="pv-dossier-h">交互式审阅报告导览（${info.size_mb} MB）</div>
-              <div style="font-size:15px;font-weight:700;color:var(--ink-1);line-height:1.45;">${esc(info.html_title || info.name)}</div>
+              <div style="font-size:15px;font-weight:600;color:var(--ink-1);line-height:1.45;">${esc(info.html_title || info.name)}</div>
               ${info.excerpt ? `<div style="font-size:14px;color:var(--ink-2);margin-top:7px;line-height:1.58;">${esc(info.excerpt)}</div>` : ''}
               <div style="margin-top:11px;display:flex;gap:8px;flex-wrap:wrap;">
                 <button class="deliv-btn sm primary" onclick="openDeliverable('${escAttr(fp)}')">浏览器全屏打开</button>
@@ -2521,8 +2698,8 @@
       } else {
         bodyBox.innerHTML = `
           <div class="pv-dossier-card">
-            <div style="font-size:15px;font-weight:700;margin-bottom:6px;">${esc(info.name)}</div>
-            <div class="meta-caption num" style="font-size:13.5px;color:var(--ink-2);">体积 ${info.size_mb} MB / 修改于 ${esc(info.date)}</div>
+            <div style="font-size:15px;font-weight:600;margin-bottom:6px;">${esc(info.name)}</div>
+            <div class="meta-caption num" style="font-size:13px;color:var(--ink-2);">体积 ${info.size_mb} MB / 修改于 ${esc(info.date)}</div>
             <div style="margin-top:12px;"><button class="deliv-btn primary" onclick="openDeliverable('${escAttr(fp)}')">调用系统程序打开原件</button></div>
           </div>
         `;
@@ -2571,13 +2748,6 @@
     if (!fgObj || fgObj.visualPool.length < 2) { showToast('当前 Fig 需至少 2 轮视觉版本方可对比'); return; }
 
     STATE.cmpPool = fgObj.visualPool;
-    const selA = document.getElementById('cmpSelectA');
-    const selB = document.getElementById('cmpSelectB');
-    const opts = STATE.cmpPool.map((v, i) => `<option value="${i}">${esc(v.label)}</option>`).join('');
-    selA.innerHTML = opts;
-    selB.innerHTML = opts;
-
-    // Default: B = newest (0), A = previous (1)
     let idxB = 0, idxA = 1;
     if (targetPath) {
       const ti = STATE.cmpPool.findIndex(v => v.path === targetPath);
@@ -2586,16 +2756,16 @@
         idxA = (ti + 1 < STATE.cmpPool.length) ? ti + 1 : 0;
       }
     }
-    selA.value = String(idxA);
-    selB.value = String(idxB);
+    STATE.cmpIdxA = idxA;
+    STATE.cmpIdxB = idxB;
 
-    document.getElementById('cmpModalTitle').textContent = `${cleanLabel(tEntry.topic.short)} / ${fgObj.figGroup} 新旧组图 A/B 对比镜`;
+    document.getElementById('cmpModalTitle').textContent = `${cleanLabel(tEntry.topic.short)} / ${fgObj.figGroup} 新旧组图对比`;
     document.getElementById('compareModal').classList.add('open');
     syncModalLintMask();
     renderCompareStage();
   }
   function openCompareWithTarget(fp) { openCompareForCurrentFig(fp); }
-  function closeCompareModal() { document.getElementById('compareModal').classList.remove('open'); syncModalLintMask(); }
+  function closeCompareModal() { closeCustomMenu(); document.getElementById('compareModal').classList.remove('open'); syncModalLintMask(); }
   function setCompareMode(m) {
     STATE.cmpMode = m;
     document.getElementById('btnCmpModeCurtain').classList.toggle('active', m === 'curtain');
@@ -2616,9 +2786,12 @@
   }
 
   function renderCompareStage() {
-    const a = STATE.cmpPool[parseInt(document.getElementById('cmpSelectA').value || '1', 10)] || STATE.cmpPool[1];
-    const b = STATE.cmpPool[parseInt(document.getElementById('cmpSelectB').value || '0', 10)] || STATE.cmpPool[0];
+    const a = STATE.cmpPool[STATE.cmpIdxA] || STATE.cmpPool[1];
+    const b = STATE.cmpPool[STATE.cmpIdxB] || STATE.cmpPool[0];
     if (!a || !b) return;
+    document.getElementById('cmpLabelA').textContent = a.label;
+    document.getElementById('cmpLabelB').textContent = b.label;
+
     const srcA = visualSrcForPath(a.path), srcB = visualSrcForPath(b.path);
     const stage = document.getElementById('cmpStageBox');
     const ribbon = document.getElementById('cmpMetaRibbon');
@@ -2627,9 +2800,9 @@
     const deltaStr = Math.abs(sizeDelta) >= 0.01 ? `${sizeDelta > 0 ? '+' : ''}${sizeDelta.toFixed(2)} MB` : '体积相近';
     if (ribbon) {
       ribbon.innerHTML = `
-        <span><strong>旧版 A：</strong>${esc(a.date)} / ${esc(a.dimMm || 'PDF')} / ${formatFileSize(a.sizeMb)}</span>
-        <span class="meta-caption num" style="color:var(--fresh-ink);font-weight:700;">对比变化：${esc(deltaStr)}</span>
-        <span><strong>新版 B：</strong>${esc(b.date)} / ${esc(b.dimMm || 'PDF')} / ${formatFileSize(b.sizeMb)}</span>
+        <span><strong>旧版 A：</strong>${esc(a.date)} [${esc(a.projName.slice(0, 14))}] / ${esc(a.dimMm || 'PDF')} / ${formatFileSize(a.sizeMb)}</span>
+        <span class="meta-caption num" style="color:var(--fresh-ink);font-weight:600;">变化：${esc(deltaStr)}</span>
+        <span><strong>新版 B：</strong>${esc(b.date)} [${esc(b.projName.slice(0, 14))}] / ${esc(b.dimMm || 'PDF')} / ${formatFileSize(b.sizeMb)}</span>
       `;
     }
 
@@ -2646,7 +2819,9 @@
             <img src="${srcA}" alt="">
           </div>
           <div class="curtain-line" id="curtainLine" style="left:${STATE.cmpPos}%;">
-            <div class="curtain-knob">⇄</div>
+            <div class="curtain-knob">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="9 18 3 12 9 6"/><polyline points="15 6 21 12 15 18"/></svg>
+            </div>
           </div>
         </div>
       `;
@@ -2687,7 +2862,7 @@
   }
 
   // =========================================================
-  // VIEW 2: REAL FOLDER BROWSER
+  // VIEW 2: REAL FOLDER BROWSER (Zero repetitive row buttons!)
   // =========================================================
   async function loadFolderBrowser(dirPath) {
     try {
@@ -2718,13 +2893,14 @@
     document.getElementById('btnFolderUp').style.display = fd.parent ? 'inline-flex' : 'none';
 
     let html = '';
-    const folderSvg = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--fresh-ink)" stroke-width="1.9"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>`;
+    const folderSvg = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--fresh-ink)" stroke-width="1.8"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>`;
+    const chevSvg = `<svg class="row-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="9 18 15 12 9 6"/></svg>`;
     if ((fd.dirs || []).length) {
       html += `<div class="doc-list">` + fd.dirs.map(d => `
-        <div class="doc-row" style="grid-template-columns:36px minmax(0,1fr) auto;" onclick="loadFolderBrowser('${escAttr(d.path)}')">
+        <div class="doc-row" style="grid-template-columns:30px minmax(0,1fr) auto;" onclick="loadFolderBrowser('${escAttr(d.path)}')">
           <span style="display:flex;align-items:center;justify-content:center;">${folderSvg}</span>
           <div style="min-width:0;"><div class="doc-title">${esc(d.name)}</div><div class="doc-sub meta-caption num">更新于 ${esc(d.date)}</div></div>
-          <div class="doc-actions" onclick="event.stopPropagation()"><button class="deliv-btn sm ghost" onclick="loadFolderBrowser('${escAttr(d.path)}')">进入</button></div>
+          <span style="display:flex;align-items:center;">${chevSvg}</span>
         </div>
       `).join('') + `</div>`;
     }
@@ -2766,20 +2942,20 @@
 
     document.getElementById('mmColRoot').innerHTML = `
       <div class="mm-root-node" id="mmRootCard">
-        <div style="font-size:16.5px;font-weight:700;">${esc(cleanLabel(curTopic.short))}</div>
-        <div class="meta-caption num" style="font-size:12.5px;opacity:0.88;margin-top:6px;">${(curTopic.branches || []).length} 条分支 / ${curTopic.a4_pdf_count || 0} A4 / ${curTopic.html_count || 0} 报告</div>
+        <div style="font-size:15.5px;font-weight:600;">${esc(cleanLabel(curTopic.short))}</div>
+        <div class="meta-caption num" style="font-size:12px;opacity:0.88;margin-top:5px;">${(curTopic.branches || []).length} 条分支 / ${curTopic.a4_pdf_count || 0} A4 / ${curTopic.html_count || 0} 报告</div>
       </div>
     `;
 
     const bHtml = [], lHtml = [];
     (curTopic.branches || []).forEach((b, bi) => {
       const bId = `mm_b_${bi}`, gId = `mm_g_${bi}`;
-      bHtml.push(`<div class="mm-branch-node" id="${bId}"><div style="font-size:14.5px;font-weight:700;color:var(--ink-1);">${esc(b.name.replace(/^\d+_/, ''))}</div><div class="meta-caption num" style="font-size:12px;color:var(--ink-3);margin-top:3px;">${b.count} 个阶段版本</div></div>`);
+      bHtml.push(`<div class="mm-branch-node" id="${bId}"><div style="font-size:14px;font-weight:600;color:var(--ink-1);">${esc(b.name.replace(/^\d+_/, ''))}</div><div class="meta-caption num" style="font-size:12px;color:var(--ink-3);margin-top:2px;">${b.count} 个阶段版本</div></div>`);
       const vis = STATE.mmExpandAll ? b.projects : b.projects.slice(0, 4);
       lHtml.push(`<div class="mm-leaf-group" id="${gId}">` + vis.map(p => `
         <div class="mm-leaf-node" onclick="enterTopic('${escAttr(curTopic.id)}')">
-          <div style="display:flex;justify-content:space-between;gap:8px;"><span style="font-size:14px;font-weight:700;color:var(--ink-1);">${esc(p.name)}</span><span class="meta-caption num" style="font-size:12px;color:var(--fresh-ink);flex-shrink:0;">${esc(p.date)}</span></div>
-          <div class="meta-caption" style="font-size:12.5px;color:var(--ink-3);margin-top:4px;">${esc(cleanLabel(p.change_hint || ''))}</div>
+          <div style="display:flex;justify-content:space-between;gap:8px;"><span style="font-size:14px;font-weight:600;color:var(--ink-1);">${esc(p.name)}</span><span class="meta-caption num" style="font-size:12px;color:var(--fresh-ink);flex-shrink:0;">${esc(p.date)}</span></div>
+          <div class="meta-caption" style="font-size:12px;color:var(--ink-3);margin-top:3px;">${esc(cleanLabel(p.change_hint || ''))}</div>
         </div>
       `).join('') + `</div>`);
     });
@@ -2798,14 +2974,14 @@
       const br = bn.getBoundingClientRect();
       const bx1 = br.left - cr.left, by = br.top + br.height / 2 - cr.top, bx2 = br.right - cr.left;
       const mx = (rx + bx1) / 2;
-      paths.push(`<path d="M ${rx} ${ry} C ${mx} ${ry}, ${mx} ${by}, ${bx1} ${by}" fill="none" stroke="var(--line-strong)" stroke-width="1.6"/>`);
+      paths.push(`<path d="M ${rx} ${ry} C ${mx} ${ry}, ${mx} ${by}, ${bx1} ${by}" fill="none" stroke="var(--line-strong)" stroke-width="1.4"/>`);
       const grp = document.getElementById('mm_g_' + i);
       if (grp) {
         grp.querySelectorAll('.mm-leaf-node').forEach(lf => {
           const lr = lf.getBoundingClientRect();
           const lx = lr.left - cr.left, ly = lr.top + lr.height / 2 - cr.top;
           const m2 = (bx2 + lx) / 2;
-          paths.push(`<path d="M ${bx2} ${by} C ${m2} ${by}, ${m2} ${ly}, ${lx} ${ly}" fill="none" stroke="var(--line-soft)" stroke-width="1.3"/>`);
+          paths.push(`<path d="M ${bx2} ${by} C ${m2} ${by}, ${m2} ${ly}, ${lx} ${ly}" fill="none" stroke="var(--line-soft)" stroke-width="1.2"/>`);
         });
       }
     });
@@ -2816,6 +2992,7 @@
   // GLOBAL OMNI SEARCH MODAL
   // =========================================================
   function openSearchModal(initText) {
+    closeCustomMenu();
     document.getElementById('searchModal').classList.add('open');
     syncModalLintMask();
     const inp = document.getElementById('omniSearchInput');
@@ -2869,12 +3046,12 @@
     box.innerHTML = hits.map(f => `
       <div class="search-hit" onclick="jumpFromSearch('${escAttr(f.topicId || '')}','${escAttr(f.figGroup || '')}','${escAttr(f.path)}')">
         <div style="min-width:0;">
-          <div style="font-size:14px;font-weight:600;color:var(--ink-1);overflow-wrap:anywhere;">${esc(f.displayTitle)}</div>
+          <div style="font-size:14px;font-weight:500;color:var(--ink-1);overflow-wrap:anywhere;">${esc(f.displayTitle)}</div>
           <div class="meta-caption num" style="font-size:12px;color:var(--ink-3);">${esc(f.topicShort || '本地')} / ${esc(f.figGroup || f.projName)} / ${esc(f.date || '')}</div>
         </div>
-        <div style="display:flex;gap:6px;flex-shrink:0;" onclick="event.stopPropagation()">
+        <div style="display:flex;gap:4px;flex-shrink:0;" onclick="event.stopPropagation()">
           <button class="deliv-btn sm primary" onclick="openDeliverable('${escAttr(f.path)}')">打开</button>
-          <button class="deliv-btn sm" onclick="revealInExplorer('${escAttr(f.path)}')">定位</button>
+          <button class="deliv-btn sm ghost" onclick="revealInExplorer('${escAttr(f.path)}')">定位</button>
         </div>
       </div>
     `).join('') || `<div style="padding:32px;text-align:center;color:var(--ink-3);">未找到匹配文件</div>`;
@@ -2896,15 +3073,15 @@
   async function renderSettingsView() {
     if (!HUB) return;
     const s = HUB.summary || {};
-    document.getElementById('setVerLine').textContent = `当前版本：v${APP_INFO.version || '4.0.0'}（纯离线单文件）`;
+    document.getElementById('setVerLine').textContent = `当前版本：v${APP_INFO.version || '4.1.0'}（纯离线单文件 / PerMonitorV2 4K锐显）`;
     document.getElementById('setExePathLine').textContent = APP_INFO.exe_path ? `程序路径：${APP_INFO.exe_path}` : '';
     document.getElementById('storageDetailText').textContent =
       `当前纳管 ${s.total_projects || 0} 个阶段目录、共 ${ALL_FILES.length.toLocaleString()} 份核心文件，总体积 ${(s.total_size_gb || 0).toFixed(2)} GB（含约 ${(s.total_cache_gb || 0).toFixed(2)} GB 中间缓存）。`;
 
     const lockedProjs = (HUB.projects || []).filter(p => p.locked).slice(0, 8);
     document.getElementById('guideLiveList').innerHTML = lockedProjs.length
-      ? lockedProjs.map(p => `<div style="padding:9px 12px;border-radius:10px;background:var(--bg-elevated);font-size:13px;"><div style="font-weight:700;color:var(--ink-1);">${esc(p.name)}</div><div class="meta-caption" style="font-size:12px;color:var(--ink-3);">${esc((p.lock_reasons || []).join(' / '))}</div></div>`).join('')
-      : `<div style="padding:12px;border-radius:10px;background:var(--bg-elevated);font-size:13.5px;color:var(--ink-2);">当前无活跃写入锁定目录，可随时安全整理。</div>`;
+      ? lockedProjs.map(p => `<div style="padding:9px 12px;border-radius:6px;background:var(--bg-work-alt);border:1px solid var(--line-soft);font-size:13px;"><div style="font-weight:600;color:var(--ink-1);">${esc(p.name)}</div><div class="meta-caption" style="font-size:12px;color:var(--ink-3);">${esc((p.lock_reasons || []).join(' / '))}</div></div>`).join('')
+      : `<div style="padding:12px;border-radius:6px;background:var(--bg-work-alt);border:1px solid var(--line-soft);font-size:13.5px;color:var(--ink-2);">当前无活跃写入锁定目录，可随时安全整理。</div>`;
 
     try {
       const r = await fetch('https://hub.local/api/llm-config');
@@ -2979,7 +3156,7 @@
       const el = document.getElementById('diffTxt_' + res.hash);
       if (el) el.textContent = res.summary;
       const btn = document.getElementById('aiBtn_' + res.hash);
-      if (btn) btn.outerHTML = `<span class="meta-caption" style="font-size:12px;color:var(--fresh-ink);font-weight:700;flex-shrink:0;">AI已精炼</span>`;
+      if (btn) btn.outerHTML = `<span class="meta-caption" style="font-size:12px;color:var(--fresh-ink);font-weight:600;flex-shrink:0;">AI已精炼</span>`;
       showToast(res.cached ? '已命中本地缓存微摘要（0 费用）' : '已生成极简改动摘要并永久缓存');
     } else {
       showToast(res.error || '微摘要调用未启用');
@@ -3016,11 +3193,11 @@
 
     rebuildFourTierIndex();
 
-    if (USER_META.ui_gen !== 5) {
-      USER_META.ui_gen = 5;
+    if (USER_META.ui_gen !== 6) {
+      USER_META.ui_gen = 6;
       USER_META.ui_paradigm = 'peach';
       USER_META.ui_scale = 'normal';
-      if (!USER_META.ui_font) USER_META.ui_font = 'default';
+      USER_META.ui_font = 'default';
       persistUiPrefs();
     }
 
@@ -3037,7 +3214,6 @@
     setFontFamily(initFont, true);
 
     if (autoTopic && HUB && HUB.topics && HUB.topics.length) {
-      // Pick rich topic with multi-round Fig iterations for showcase
       const rich = HUB.topics.find(t => (t.a4_pdf_count || 0) >= 6 && TOPIC_TREE_V4[t.id]?.figs.some(f => f.visualPool.length >= 2))
         || HUB.topics.find(t => t.project_count > 0)
         || HUB.topics[0];
@@ -3052,10 +3228,9 @@
     switchView(initView);
 
     if (autoCompare && STATE.topicId !== 'ALL') {
-      setTimeout(() => openCompareForCurrentFig(), 180);
+      openCompareForCurrentFig();
     }
 
-    // Non-blocking background update check (skip during headless preview capture)
     if (!params.get('paradigm')) {
       setTimeout(() => checkGithubUpdate(false), 2600);
     }

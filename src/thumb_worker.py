@@ -16,7 +16,7 @@ except ImportError:
     sys.exit(2)
 
 
-def render_pdf_thumb(pdf_path: str, out_png: str, target_w: int = 560) -> bool:
+def render_pdf_thumb(pdf_path: str, out_png: str, target_w: int = 840) -> bool:
     doc = None
     try:
         doc = fitz.open(pdf_path)
@@ -25,7 +25,7 @@ def render_pdf_thumb(pdf_path: str, out_png: str, target_w: int = 560) -> bool:
         page = doc[0]
         rect = page.rect
         w = max(1.0, float(rect.width))
-        scale = min(2.5, max(0.4, target_w / w))
+        scale = min(3.6, max(0.5, target_w / w))
         pix = page.get_pixmap(matrix=fitz.Matrix(scale, scale), alpha=False)
         os.makedirs(os.path.dirname(out_png), exist_ok=True)
         tmp_png = out_png + ".tmp"
@@ -54,7 +54,7 @@ def main() -> None:
             sys.stdout.write("ERR\n")
             sys.stdout.flush()
             continue
-        tw = int(parts[2]) if len(parts) >= 3 and parts[2].isdigit() else 560
+        tw = int(parts[2]) if len(parts) >= 3 and parts[2].isdigit() else 840
         ok = render_pdf_thumb(parts[0], parts[1], tw)
         sys.stdout.write("OK\n" if ok else "ERR\n")
         sys.stdout.flush()
