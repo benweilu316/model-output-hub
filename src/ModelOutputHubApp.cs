@@ -1,9 +1,9 @@
 // -*- coding: utf-8 -*-
-// ModelOutputHubApp.cs — Model Output Hub (v3.0 Huashu-Design Editorial Monograph & Instant Chronicle Finder)
+// ModelOutputHubApp.cs — Model Output Hub (v4.0 Soft Crystal-Jelly Star-Atlas & Four-Tier Monograph Workbench)
 // 1. True Single-File Zero-Dependency .exe (100% offline, immune to Windows MOTW Zone.Identifier & ZIP-preview launch)
-// 2. Everything-grade Live Disk Search (/api/live-search) + Real Folder Tree Browser (/api/folder-list)
-// 3. Instant Built-in QuickLook Folio (/rawfile, /api/preview-info) + Fast Cached Thumbnails (/api/thumb via fitz pipe or Win32 Shell)
-// 4. Built-in Pure C# NativeScanner (9 deliverable categories) + Auto-Refresh on Window Activate + System Tray Resident
+// 2. Four-Tier Architecture: Topic Star-Atlas -> Fig Group -> Date/Session Batch (with Diff Summary) -> File Type Lanes
+// 3. Built-in Visual A/B Diff Loupe + Instant QuickLook Folio (/rawfile, /api/preview-info, /api/thumb via fitz or Shell)
+// 4. Optional Ultra-Light Cached Micro-Summary API + Background GitHub Release Auto-Updater (.old zero-flicker hot swap)
 
 using System;
 using System.Collections.Generic;
@@ -44,6 +44,9 @@ namespace ModelOutputHub
         [DllImport("shell32.dll", SetLastError = true)]
         private static extern void SetCurrentProcessExplicitAppUserModelID([MarshalAs(UnmanagedType.LPWStr)] string AppID);
 
+        public const string AppVersion = "4.0.0";
+        public const string GithubRepo = "benweilu316/model-output-hub";
+
         private static string s_appLocalDataDir;
         private static string s_fallbackLibDir;
         private static readonly Dictionary<string, Assembly> s_loadedAssemblies = new Dictionary<string, Assembly>(StringComparer.OrdinalIgnoreCase);
@@ -51,6 +54,24 @@ namespace ModelOutputHub
         [STAThread]
         public static int Main(string[] args)
         {
+            try
+            {
+                ServicePointManager.SecurityProtocol = (SecurityProtocolType)3072 | SecurityProtocolType.Tls12 | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls;
+            }
+            catch { }
+
+            // Clean up any leftover .old executable from a prior seamless self-update
+            try
+            {
+                string curExe = Process.GetCurrentProcess().MainModule.FileName;
+                string oldExe = curExe + ".old";
+                if (File.Exists(oldExe))
+                {
+                    try { File.Delete(oldExe); } catch { }
+                }
+            }
+            catch { }
+
             AppDomain.CurrentDomain.UnhandledException += (s, e) =>
             {
                 try
@@ -66,7 +87,7 @@ namespace ModelOutputHub
 
             try
             {
-                try { SetCurrentProcessExplicitAppUserModelID("ModelOutputHub.Studio.Desktop.v3_0"); } catch { }
+                try { SetCurrentProcessExplicitAppUserModelID("ModelOutputHub.Studio.Desktop.v4_0"); } catch { }
 
                 s_appLocalDataDir = Path.Combine(
                     Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
@@ -440,6 +461,50 @@ namespace ModelOutputHub
             @"/MediaBox\s*\[\s*([-\d.]+)\s+([-\d.]+)\s+([-\d.]+)\s+([-\d.]+)\s*\]",
             RegexOptions.Compiled);
 
+        private static readonly Regex s_slideImgDirRx = new Regex(
+            @"(?:^|[/\\])(?:slides?[_-]?hd\d*|slides?[_-]?pair|slide[_-]?preview|offslide|deck[_-]?pages)(?:[/\\]|$)",
+            RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
+        private static readonly Regex s_figRangeRx = new Regex(
+            @"(?:fig(?:ure)?|图)[_\s-]*s?\d+\s*[-~至到_]\s*s?\d+",
+            RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
+        private static string ExtractProjectChangeHint(string pdir, List<Dictionary<string, object>> htmls, string projName)
+        {
+            try
+            {
+                if (htmls != null && htmls.Count > 0)
+                {
+                    object tObj;
+                    if (htmls[0].TryGetValue("title", out tObj))
+                    {
+                        string t = Regex.Replace(Convert.ToString(tObj ?? ""), @"\s+", " ").Trim();
+                        string n = Convert.ToString(htmls[0]["name"] ?? "");
+                        if (t.Length >= 6 && !t.Equals(n, StringComparison.OrdinalIgnoreCase))
+                            return t.Length > 46 ? t.Substring(0, 44) + "…" : t;
+                    }
+                }
+                foreach (string fn in new[] { "polish-log.md", "CHANGELOG.md", "README.md", "_INDEX.md" })
+                {
+                    string fp = Path.Combine(pdir, fn);
+                    if (!File.Exists(fp)) continue;
+                    byte[] buf = new byte[2400];
+                    int rd;
+                    using (var fs = new FileStream(fp, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                        rd = fs.Read(buf, 0, buf.Length);
+                    string head = Encoding.UTF8.GetString(buf, 0, rd);
+                    foreach (string rawLn in head.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries))
+                    {
+                        string s = Regex.Replace(rawLn.Trim(), @"^[#>\-*0-9.\s]+", "").Trim();
+                        if (s.Length >= 6 && s.Length <= 58 && !Regex.IsMatch(s, @"(?:http|C:\\|/data|verbatim|sha1)", RegexOptions.IgnoreCase))
+                            return s.Length > 46 ? s.Substring(0, 44) + "…" : s;
+                    }
+                }
+            }
+            catch { }
+            return projName.Length > 44 ? projName.Substring(0, 42) + "…" : projName;
+        }
+
         private class TopicDef
         {
             public string id;
@@ -448,6 +513,153 @@ namespace ModelOutputHub
             public string title;
             public string color;
             public string[] keywords;
+        }
+
+        private class CustomRuleDef
+        {
+            public string[] any;
+            public string[] notAny;
+            public string topicId;
+            public List<Tuple<string[], string>> branches = new List<Tuple<string[], string>>();
+            public string defaultBranch = "01_主线迭代归档";
+        }
+
+        private class LoadedProfile
+        {
+            public List<TopicDef> topics;
+            public List<CustomRuleDef> rules;
+            public string fallbackTopicId;
+            public string fallbackBranch;
+            public HashSet<string> claudeGroups;
+        }
+
+        private static LoadedProfile LoadActiveProfile(string rootDir)
+        {
+            string hubDir = Path.Combine(rootDir ?? "", "_hub_app");
+            var js = new JavaScriptSerializer { MaxJsonLength = int.MaxValue };
+            foreach (string fn in new[] { "private_profile.json", "custom_topics.json" })
+            {
+                string fp = Path.Combine(hubDir, fn);
+                if (!File.Exists(fp)) continue;
+                try
+                {
+                    var cfg = js.Deserialize<Dictionary<string, object>>(File.ReadAllText(fp, Encoding.UTF8));
+                    if (cfg == null || !cfg.ContainsKey("topics") || !(cfg["topics"] is System.Collections.IEnumerable)) continue;
+                    var lp = new LoadedProfile
+                    {
+                        topics = new List<TopicDef>(),
+                        rules = new List<CustomRuleDef>(),
+                        fallbackTopicId = cfg.ContainsKey("fallback_topic_id") ? Convert.ToString(cfg["fallback_topic_id"]) : "08_misc_projects",
+                        fallbackBranch = cfg.ContainsKey("fallback_branch") ? Convert.ToString(cfg["fallback_branch"]) : "01_独立任务与探索归档",
+                        claudeGroups = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+                    };
+                    if (cfg.ContainsKey("claude_group_names") && cfg["claude_group_names"] is System.Collections.IEnumerable)
+                    {
+                        foreach (object g in (System.Collections.IEnumerable)cfg["claude_group_names"])
+                            if (g != null) lp.claudeGroups.Add(Convert.ToString(g));
+                    }
+                    foreach (object tObj in (System.Collections.IEnumerable)cfg["topics"])
+                    {
+                        var td = tObj as Dictionary<string, object>;
+                        if (td == null || !td.ContainsKey("id")) continue;
+                        lp.topics.Add(new TopicDef
+                        {
+                            id = Convert.ToString(td["id"]),
+                            folder = td.ContainsKey("folder") ? Convert.ToString(td["folder"]) : Convert.ToString(td["id"]),
+                            shortName = td.ContainsKey("short") ? Convert.ToString(td["short"]) : Convert.ToString(td["id"]),
+                            title = td.ContainsKey("title") ? Convert.ToString(td["title"]) : "",
+                            color = td.ContainsKey("color") ? Convert.ToString(td["color"]) : "#2E5B88",
+                            keywords = new string[0]
+                        });
+                    }
+                    if (cfg.ContainsKey("rules") && cfg["rules"] is System.Collections.IEnumerable)
+                    {
+                        foreach (object rObj in (System.Collections.IEnumerable)cfg["rules"])
+                        {
+                            var rd = rObj as Dictionary<string, object>;
+                            if (rd == null || !rd.ContainsKey("topic_id")) continue;
+                            var cr = new CustomRuleDef { topicId = Convert.ToString(rd["topic_id"]) };
+                            var anyList = new List<string>();
+                            if (rd.ContainsKey("any") && rd["any"] is System.Collections.IEnumerable)
+                                foreach (object kw in (System.Collections.IEnumerable)rd["any"])
+                                    anyList.Add(Convert.ToString(kw ?? "").ToLowerInvariant());
+                            cr.any = anyList.ToArray();
+                            var notList = new List<string>();
+                            if (rd.ContainsKey("not_any") && rd["not_any"] is System.Collections.IEnumerable)
+                                foreach (object kw in (System.Collections.IEnumerable)rd["not_any"])
+                                    notList.Add(Convert.ToString(kw ?? "").ToLowerInvariant());
+                            cr.notAny = notList.ToArray();
+                            if (rd.ContainsKey("branches") && rd["branches"] is System.Collections.IEnumerable)
+                            {
+                                foreach (object bObj in (System.Collections.IEnumerable)rd["branches"])
+                                {
+                                    var bd = bObj as Dictionary<string, object>;
+                                    if (bd == null) continue;
+                                    if (bd.ContainsKey("default")) cr.defaultBranch = Convert.ToString(bd["default"]);
+                                    else if (bd.ContainsKey("any") && bd.ContainsKey("name") && bd["any"] is System.Collections.IEnumerable)
+                                    {
+                                        var bkws = new List<string>();
+                                        foreach (object kw in (System.Collections.IEnumerable)bd["any"])
+                                            bkws.Add(Convert.ToString(kw ?? "").ToLowerInvariant());
+                                        cr.branches.Add(Tuple.Create(bkws.ToArray(), Convert.ToString(bd["name"])));
+                                    }
+                                }
+                            }
+                            lp.rules.Add(cr);
+                        }
+                    }
+                    if (lp.topics.Count > 0) return lp;
+                }
+                catch { }
+            }
+            return new LoadedProfile
+            {
+                topics = s_defaultTopics.ToList(),
+                rules = new List<CustomRuleDef>(),
+                fallbackTopicId = "08_misc_projects",
+                fallbackBranch = "01_主线迭代归档",
+                claudeGroups = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            };
+        }
+
+        private static void ClassifyWithProfile(LoadedProfile prof, string projName, string parentGroup, out string topicId, out string subBranch)
+        {
+            string hay = ((parentGroup ?? "") + " " + (projName ?? "")).ToLowerInvariant();
+            if (prof.rules != null && prof.rules.Count > 0)
+            {
+                foreach (var r in prof.rules)
+                {
+                    if (r.any.Length > 0 && r.any.Any(k => k.Length > 0 && hay.Contains(k)))
+                    {
+                        if (r.notAny.Length > 0 && r.notAny.Any(nk => nk.Length > 0 && hay.Contains(nk)))
+                            continue;
+                        topicId = r.topicId;
+                        foreach (var br in r.branches)
+                        {
+                            if (br.Item1.Any(k => k.Length > 0 && hay.Contains(k)))
+                            {
+                                subBranch = br.Item2;
+                                return;
+                            }
+                        }
+                        subBranch = r.defaultBranch;
+                        return;
+                    }
+                }
+                topicId = prof.fallbackTopicId;
+                subBranch = prof.fallbackBranch;
+                return;
+            }
+            topicId = prof.fallbackTopicId;
+            subBranch = "01_主线迭代归档";
+            foreach (var td in prof.topics)
+            {
+                if (td.keywords != null && td.keywords.Any(k => hay.Contains(k)))
+                {
+                    topicId = td.id;
+                    return;
+                }
+            }
         }
 
         private static readonly TopicDef[] s_defaultTopics = new[]
@@ -479,6 +691,7 @@ namespace ModelOutputHub
                     notesMap[kv.Key] = Convert.ToString(kv.Value ?? "");
             }
 
+            var profile = LoadActiveProfile(rootDir);
             var projects = new List<Dictionary<string, object>>();
             double nowUnix = ToUnixTime(DateTime.UtcNow);
 
@@ -506,7 +719,19 @@ namespace ModelOutputHub
                             {
                                 string cn = Path.GetFileName(child);
                                 if (cn.StartsWith(".") || cn.StartsWith("_")) continue;
-                                projects.Add(ScanSingleProject(child, rootDir, pName, starredSet, notesMap, nowUnix));
+                                if (pName.Equals("claude输出", StringComparison.OrdinalIgnoreCase) && profile.claudeGroups.Contains(cn))
+                                {
+                                    foreach (string sub in Directory.GetDirectories(child))
+                                    {
+                                        string sn = Path.GetFileName(sub);
+                                        if (sn.StartsWith(".") || sn.StartsWith("_")) continue;
+                                        projects.Add(ScanSingleProject(sub, rootDir, pName, cn, profile, starredSet, notesMap, nowUnix));
+                                    }
+                                }
+                                else
+                                {
+                                    projects.Add(ScanSingleProject(child, rootDir, pName, "", profile, starredSet, notesMap, nowUnix));
+                                }
                             }
                         }
                         catch { }
@@ -516,7 +741,7 @@ namespace ModelOutputHub
                 {
                     try
                     {
-                        var rootLoose = ScanRootLooseProject(rootDir, starredSet, notesMap, nowUnix);
+                        var rootLoose = ScanRootLooseProject(rootDir, profile, starredSet, notesMap, nowUnix);
                         if (rootLoose != null) projects.Add(rootLoose);
 
                         foreach (string child in Directory.GetDirectories(rootDir))
@@ -526,7 +751,7 @@ namespace ModelOutputHub
                                 cn.Equals("runtime", StringComparison.OrdinalIgnoreCase) ||
                                 cn.Equals("wv2_profile", StringComparison.OrdinalIgnoreCase))
                                 continue;
-                            projects.Add(ScanSingleProject(child, rootDir, "本地项目", starredSet, notesMap, nowUnix));
+                            projects.Add(ScanSingleProject(child, rootDir, "本地项目", "", profile, starredSet, notesMap, nowUnix));
                         }
                     }
                     catch { }
@@ -536,7 +761,7 @@ namespace ModelOutputHub
             projects.Sort((a, b) => Convert.ToDouble(b["mtime"]).CompareTo(Convert.ToDouble(a["mtime"])));
 
             var topicTree = new List<Dictionary<string, object>>();
-            foreach (var td in s_defaultTopics)
+            foreach (var td in profile.topics)
             {
                 var tProjs = projects.Where(p => Convert.ToString(p["topic_id"]) == td.id).ToList();
                 var brGroups = new Dictionary<string, List<Dictionary<string, object>>>();
@@ -636,7 +861,7 @@ namespace ModelOutputHub
         }
 
         private static Dictionary<string, object> ScanSingleProject(
-            string pdir, string rootDir, string platformDir,
+            string pdir, string rootDir, string platformDir, string parentGroup, LoadedProfile profile,
             HashSet<string> starredSet, Dictionary<string, string> notesMap, double nowUnix)
         {
             string projName = Path.GetFileName(pdir);
@@ -644,17 +869,8 @@ namespace ModelOutputHub
                 ? pdir.Substring(rootDir.Length).TrimStart('\\', '/').Replace('\\', '/')
                 : projName;
 
-            string topicId = "08_misc_projects";
-            string lowName = projName.ToLowerInvariant();
-            foreach (var td in s_defaultTopics)
-            {
-                if (td.keywords.Any(k => lowName.Contains(k)))
-                {
-                    topicId = td.id;
-                    break;
-                }
-            }
-            string subBranch = "01_主线迭代归档";
+            string topicId, subBranch;
+            ClassifyWithProfile(profile, projName, parentGroup, out topicId, out subBranch);
             string platLabel = InferPlatformLabel(platformDir);
 
             int totalFiles = 0;
@@ -674,7 +890,7 @@ namespace ModelOutputHub
             var scripts = new List<Dictionary<string, object>>();
 
             WalkProjectFiles(
-                pdir, pdir, 0, false, false,
+                pdir, pdir, projName, 0, false, false,
                 ref totalFiles, ref totalBytes, ref cacheBytes, ref latestMtime, ref latestFile,
                 htmls, pptxs, a4Pdfs, sgPdfs, images, docs, tables, archives, scripts);
 
@@ -724,7 +940,7 @@ namespace ModelOutputHub
             {
                 { "key", relKey },
                 { "name", projName },
-                { "parent_group", "" },
+                { "parent_group", parentGroup ?? "" },
                 { "path", pdir },
                 { "platform_dir", platformDir },
                 { "platform", platLabel },
@@ -742,6 +958,7 @@ namespace ModelOutputHub
                 { "lock_reasons", lockReasons },
                 { "starred", starredSet.Contains(relKey) },
                 { "note", noteVal ?? "" },
+                { "change_hint", ExtractProjectChangeHint(pdir, htmls, projName) },
                 { "htmls", htmls.Take(30).ToList() },
                 { "pptxs", pptxs.Take(20).ToList() },
                 { "a4_pdfs", a4Pdfs.Take(80).ToList() },
@@ -753,13 +970,13 @@ namespace ModelOutputHub
                 { "archives", archives.Take(20).ToList() },
                 { "scripts", scripts.Take(25).ToList() },
                 { "counts", counts },
-                { "_schema_ver", 3 }
+                { "_schema_ver", 4 }
             };
         }
 
 
         private static Dictionary<string, object> ScanRootLooseProject(
-            string rootDir, HashSet<string> starredSet, Dictionary<string, string> notesMap, double nowUnix)
+            string rootDir, LoadedProfile profile, HashSet<string> starredSet, Dictionary<string, string> notesMap, double nowUnix)
         {
             int totalFiles = 0;
             long totalBytes = 0;
@@ -778,7 +995,7 @@ namespace ModelOutputHub
             var scripts = new List<Dictionary<string, object>>();
 
             WalkProjectFiles(
-                rootDir, rootDir, 99, false, false,
+                rootDir, rootDir, "", 99, false, false,
                 ref totalFiles, ref totalBytes, ref cacheBytes, ref latestMtime, ref latestFile,
                 htmls, pptxs, a4Pdfs, sgPdfs, images, docs, tables, archives, scripts, true);
 
@@ -803,7 +1020,7 @@ namespace ModelOutputHub
                 { "platform_dir", "本地目录" },
                 { "platform", "本地" },
                 { "platform_color", "#1E513F" },
-                { "topic_id", "08_misc_projects" },
+                { "topic_id", profile.fallbackTopicId },
                 { "sub_branch", "00_根目录直存文件" },
                 { "total_files", totalFiles },
                 { "size_mb", Math.Round(totalBytes / 1048576.0, 2) },
@@ -816,6 +1033,7 @@ namespace ModelOutputHub
                 { "lock_reasons", new string[0] },
                 { "starred", starredSet.Contains("_root_files_") },
                 { "note", notesMap.ContainsKey("_root_files_") ? notesMap["_root_files_"] : "" },
+                { "change_hint", "根目录直存成果" },
                 { "htmls", htmls.Take(30).ToList() },
                 { "pptxs", pptxs.Take(20).ToList() },
                 { "a4_pdfs", a4Pdfs.Take(80).ToList() },
@@ -827,12 +1045,12 @@ namespace ModelOutputHub
                 { "archives", archives.Take(20).ToList() },
                 { "scripts", scripts.Take(25).ToList() },
                 { "counts", counts },
-                { "_schema_ver", 3 }
+                { "_schema_ver", 4 }
             };
         }
 
         private static void WalkProjectFiles(
-            string rootProjDir, string curDir, int depth, bool inNoise, bool inPanel,
+            string rootProjDir, string curDir, string projName, int depth, bool inNoise, bool inPanel,
             ref int totalFiles, ref long totalBytes, ref long cacheBytes, ref double latestMtime, ref string latestFile,
             List<Dictionary<string, object>> htmls, List<Dictionary<string, object>> pptxs,
             List<Dictionary<string, object>> a4Pdfs, List<Dictionary<string, object>> sgPdfs,
@@ -884,11 +1102,17 @@ namespace ModelOutputHub
                     if ((ext == ".html" || ext == ".htm") && effDepth <= 4)
                     {
                         baseObj["title"] = ExtractHtmlTitle(fp, stem);
+                        string fg, fpnl; int ford;
+                        ParseFigureTag(fn, relStr, projName, true, out fg, out fpnl, out ford);
+                        baseObj["fig_group"] = fg; baseObj["fig_panel"] = fpnl; baseObj["fig_order"] = ford;
                         htmls.Add(baseObj);
                     }
                     else if ((ext == ".pptx" || ext == ".ppt") && effDepth <= 4)
                     {
                         baseObj["title"] = fn;
+                        string fg, fpnl; int ford;
+                        ParseFigureTag(fn, relStr, projName, true, out fg, out fpnl, out ford);
+                        baseObj["fig_group"] = fg; baseObj["fig_panel"] = fpnl; baseObj["fig_order"] = ford;
                         pptxs.Add(baseObj);
                     }
                     else if (ext == ".pdf")
@@ -898,7 +1122,7 @@ namespace ModelOutputHub
                         ReadPdfMediaBoxMm(fp, sz, out wMm, out hMm);
                         string figGroup, figPanel;
                         int figOrder;
-                        ParseFigureTag(fn, relStr, out figGroup, out figPanel, out figOrder);
+                        ParseFigureTag(fn, relStr, projName, false, out figGroup, out figPanel, out figOrder);
                         string dimLabel = (wMm > 0 && hMm > 0) ? string.Format("{0}×{1}mm", (int)Math.Round(wMm), (int)Math.Round(hMm)) : "";
                         bool isA4 = IsFullPageA4(wMm, hMm, stem, inPanel);
 
@@ -915,7 +1139,7 @@ namespace ModelOutputHub
                         {
                             string figGroup, figPanel;
                             int figOrder;
-                            ParseFigureTag(fn, relStr, out figGroup, out figPanel, out figOrder);
+                            ParseFigureTag(fn, relStr, projName, false, out figGroup, out figPanel, out figOrder);
                             baseObj["fig_group"] = figGroup;
                             baseObj["fig_panel"] = figPanel;
                             baseObj["fig_order"] = figOrder;
@@ -925,20 +1149,34 @@ namespace ModelOutputHub
                     else if ((ext == ".docx" || ext == ".doc" || ext == ".md" || ext == ".txt" || ext == ".rtf") && effDepth <= 4)
                     {
                         if (!s_plumbingDocs.Contains(fn) && !fn.EndsWith("_lint.txt", StringComparison.OrdinalIgnoreCase))
+                        {
+                            string fg, fpnl; int ford;
+                            ParseFigureTag(fn, relStr, projName, true, out fg, out fpnl, out ford);
+                            baseObj["fig_group"] = fg; baseObj["fig_panel"] = fpnl; baseObj["fig_order"] = ford;
                             docs.Add(baseObj);
+                        }
                     }
                     else if ((ext == ".xlsx" || ext == ".xls" || ext == ".csv" || ext == ".tsv") && effDepth <= 4)
                     {
                         if (!fn.EndsWith("_positions.csv", StringComparison.OrdinalIgnoreCase) &&
                             !fn.EndsWith("_manifest.tsv", StringComparison.OrdinalIgnoreCase))
+                        {
+                            string fg, fpnl; int ford;
+                            ParseFigureTag(fn, relStr, projName, true, out fg, out fpnl, out ford);
+                            baseObj["fig_group"] = fg; baseObj["fig_panel"] = fpnl; baseObj["fig_order"] = ford;
                             tables.Add(baseObj);
+                        }
                     }
                     else if ((ext == ".zip" || ext == ".7z" || ext == ".rar" || ext == ".tgz" || fn.EndsWith(".tar.gz", StringComparison.OrdinalIgnoreCase)) && effDepth <= 4)
                     {
+                        baseObj["fig_group"] = "综合报告与整本交付"; baseObj["fig_panel"] = ""; baseObj["fig_order"] = 999;
                         archives.Add(baseObj);
                     }
                     else if ((ext == ".r" || ext == ".py" || ext == ".sh" || ext == ".ipynb") && effDepth <= 4)
                     {
+                        string fg, fpnl; int ford;
+                        ParseFigureTag(fn, relStr, projName, true, out fg, out fpnl, out ford);
+                        baseObj["fig_group"] = fg; baseObj["fig_panel"] = fpnl; baseObj["fig_order"] = ford;
                         scripts.Add(baseObj);
                     }
                 }
@@ -953,7 +1191,7 @@ namespace ModelOutputHub
                     bool nextNoise = inNoise || NoiseDirRx.IsMatch(dn);
                     bool nextPanel = inPanel || s_panelDirRx.IsMatch(dn);
                     WalkProjectFiles(
-                        rootProjDir, sub, depth + 1, nextNoise, nextPanel,
+                        rootProjDir, sub, projName, depth + 1, nextNoise, nextPanel,
                         ref totalFiles, ref totalBytes, ref cacheBytes, ref latestMtime, ref latestFile,
                         htmls, pptxs, a4Pdfs, sgPdfs, images, docs, tables, archives, scripts);
                 }
@@ -1040,11 +1278,43 @@ namespace ModelOutputHub
 
         public static void ParseFigureTag(string fn, string rel, out string figGroup, out string figPanel, out int figOrder)
         {
-            string stem = Path.GetFileNameWithoutExtension(fn);
-            string comb = rel + " " + stem;
+            ParseFigureTag(fn, rel, "", false, out figGroup, out figPanel, out figOrder);
+        }
+
+        private static string ExtractPanelFromStem(string stem, string tailHint)
+        {
+            if (!string.IsNullOrEmpty(tailHint) && Regex.IsMatch(tailHint, @"^[A-Za-z]{1,4}$"))
+            {
+                string low = tailHint.ToLowerInvariant();
+                if (low != "v" && low != "s" && low != "dpi" && low != "mm" && low != "pt" && low != "pdf" && low != "png" && low != "rev")
+                    return tailHint.ToUpperInvariant();
+            }
+            Match mp = Regex.Match(stem, @"(?:^|_|-)(?:panel[_\s-]*)?([A-Z]{1,3})(?:_v\d+|_rev\d*|_10X|_clean|_revised|_exact|_standalone)?$");
+            if (mp.Success)
+            {
+                string g = mp.Groups[1].Value;
+                if (g != "A4" && g != "QC" && g != "LR" && g != "GO" && g != "KM" && g != "ROC" && g != "DEG" &&
+                    g != "UMI" && g != "PDF" && g != "PPT" && g != "SOP" && g != "RNA" && g != "DNA" && g != "LNP" && g != "GA" && g != "AI" && g != "ML")
+                    return g;
+            }
+            return "";
+        }
+
+        public static void ParseFigureTag(string fn, string rel, string projName, bool isDocLike, out string figGroup, out string figPanel, out int figOrder)
+        {
+            string stem = Path.GetFileNameWithoutExtension(fn ?? "");
+            string relNorm = (rel ?? "").Replace('\\', '/');
+            int slash = relNorm.LastIndexOf('/');
+            string relDir = slash > 0 ? relNorm.Substring(0, slash) : "";
+            string comb = relNorm + " " + stem;
             figPanel = "";
 
-            if (Regex.IsMatch(comb, @"(?:graphical[_\s-]*abstract|图形摘要|fig[_\s-]*0\b)", RegexOptions.IgnoreCase))
+            if (s_slideImgDirRx.IsMatch(relNorm) && Regex.IsMatch(stem, @"^(?:s|slide|page|p)?0*\d{1,3}(?:_.*)?$", RegexOptions.IgnoreCase))
+            {
+                figGroup = "PPT 幻灯片页"; figOrder = 310; return;
+            }
+
+            if (Regex.IsMatch(comb, @"(?:graphical[_\s-]*abstract|图形摘要|总览机制|fig[_\s-]*0\b|^GA(?:_|$))", RegexOptions.IgnoreCase))
             {
                 figGroup = "GA 图形摘要"; figOrder = 0; return;
             }
@@ -1054,24 +1324,58 @@ namespace ModelOutputHub
             Match mtm = Regex.Match(comb, @"(?:table|tab|表)[_\s-]*(\d+)", RegexOptions.IgnoreCase);
             if (mtm.Success) { int n = int.Parse(mtm.Groups[1].Value); figGroup = "Table " + n; figOrder = 180 + n; return; }
 
-            Match mfs = Regex.Match(comb, @"(?:fig(?:ure)?|图)[_\s-]*s(\d+)", RegexOptions.IgnoreCase);
+            Match mfs = Regex.Match(stem, @"(?:fig(?:ure)?|图)[_\s-]*s(\d+)([A-Za-z])?", RegexOptions.IgnoreCase);
+            if (!mfs.Success && !s_slideImgDirRx.IsMatch(relNorm) && !isDocLike)
+            {
+                Match mfs2 = Regex.Match(stem, @"(?:^|[_\s-])s(\d{1,2})(?:[_\s-]|$)", RegexOptions.IgnoreCase);
+                if (mfs2.Success)
+                {
+                    int sn = int.Parse(mfs2.Groups[1].Value);
+                    if (sn <= 20) { figGroup = "Fig S" + sn; figPanel = ExtractPanelFromStem(stem, ""); figOrder = 100 + sn; return; }
+                }
+            }
+            if (!mfs.Success && !string.IsNullOrEmpty(relDir))
+                mfs = Regex.Match(relDir, @"(?:fig(?:ure)?|图)[_\s-]*s(\d+)", RegexOptions.IgnoreCase);
+            if (!mfs.Success && !string.IsNullOrEmpty(projName) && !s_figRangeRx.IsMatch(projName))
+            {
+                var msAll = Regex.Matches(projName, @"(?:fig(?:ure)?|图)[_\s-]*s(\d+)", RegexOptions.IgnoreCase);
+                var uniq = new HashSet<string>();
+                foreach (Match x in msAll) uniq.Add(x.Groups[1].Value);
+                if (uniq.Count == 1) mfs = msAll[0];
+            }
             if (mfs.Success)
             {
                 int n = int.Parse(mfs.Groups[1].Value);
-                Match mp = Regex.Match(stem, @"_([A-Z])$");
-                if (mp.Success) figPanel = mp.Groups[1].Value;
+                string tail = (mfs.Groups.Count > 2 && mfs.Groups[2].Success) ? mfs.Groups[2].Value : "";
+                figPanel = ExtractPanelFromStem(stem, tail);
                 figGroup = "Fig S" + n; figOrder = 100 + n; return;
             }
 
-            Match mfm = Regex.Match(comb, @"(?:fig(?:ure)?|图)[_\s-]*(\d+)", RegexOptions.IgnoreCase);
+            Match mfm = Regex.Match(stem, @"(?:fig(?:ure)?|图)[_\s-]*(\d+)([A-Za-z]{0,4})", RegexOptions.IgnoreCase);
+            if (!mfm.Success && !string.IsNullOrEmpty(relDir))
+                mfm = Regex.Match(relDir, @"(?:fig(?:ure)?|图)[_\s-]*(\d+)", RegexOptions.IgnoreCase);
+            if (!mfm.Success && !string.IsNullOrEmpty(projName) && !s_figRangeRx.IsMatch(projName))
+            {
+                var mmAll = Regex.Matches(projName, @"(?:fig(?:ure)?|图)[_\s-]*(\d+)", RegexOptions.IgnoreCase);
+                var uniq = new HashSet<string>();
+                foreach (Match x in mmAll) uniq.Add(x.Groups[1].Value);
+                if (uniq.Count == 1) mfm = mmAll[0];
+            }
             if (mfm.Success)
             {
                 int n = int.Parse(mfm.Groups[1].Value);
-                Match mp = Regex.Match(stem, @"(?:fig\d+([A-Z])|_([A-Z])$)", RegexOptions.IgnoreCase);
-                if (mp.Success) figPanel = (mp.Groups[1].Success ? mp.Groups[1].Value : mp.Groups[2].Value).ToUpperInvariant();
+                string tail = (mfm.Groups.Count > 2 && mfm.Groups[2].Success) ? mfm.Groups[2].Value : "";
+                figPanel = ExtractPanelFromStem(stem, tail);
                 figGroup = "Fig " + n; figOrder = n; return;
             }
 
+            Match msl = Regex.Match(stem, @"(?:slide|page)[_\s-]*0*(\d+)", RegexOptions.IgnoreCase);
+            if (msl.Success)
+            {
+                figGroup = "PPT 幻灯片页"; figPanel = "P" + int.Parse(msl.Groups[1].Value); figOrder = 310; return;
+            }
+
+            if (isDocLike) { figGroup = "综合报告与整本交付"; figOrder = 999; return; }
             figGroup = "专题与汇总图"; figOrder = 90;
         }
 
@@ -1120,6 +1424,10 @@ namespace ModelOutputHub
         private readonly string _thumbsDir;
         private string _cachePath;
         private string _metaPath;
+        private string _llmConfigPath;
+        private string _batchCachePath;
+        private readonly object _batchCacheLock = new object();
+        private volatile bool _isUpdating;
         private readonly string _previewOutDir;
         private string _pythonExe;
         private readonly WebView2 _webView;
@@ -1163,7 +1471,7 @@ namespace ModelOutputHub
             Height = 920;
             MinWidth = 1080;
             MinHeight = 680;
-            Background = new SolidColorBrush(System.Windows.Media.Color.FromRgb(0xF1, 0xF3, 0xEE));
+            Background = new SolidColorBrush(System.Windows.Media.Color.FromRgb(0xFF, 0xE6, 0xD8));
 
             if (!string.IsNullOrEmpty(_previewOutDir))
             {
@@ -1225,6 +1533,8 @@ namespace ModelOutputHub
                 _hubAppDir = candidateHub;
                 _cachePath = Path.Combine(_hubAppDir, "scan_cache.json");
                 _metaPath = Path.Combine(_hubAppDir, "user_meta.json");
+                _llmConfigPath = Path.Combine(_hubAppDir, "llm_config.json");
+                _batchCachePath = Path.Combine(_hubAppDir, "batch_diff_cache.json");
             }
             else
             {
@@ -1232,6 +1542,8 @@ namespace ModelOutputHub
                 string safeHash = Math.Abs((_rootDir ?? "").ToLowerInvariant().GetHashCode()).ToString();
                 _cachePath = Path.Combine(_appLocalDataDir, "scan_cache_" + safeHash + ".json");
                 _metaPath = Path.Combine(_appLocalDataDir, "user_meta.json");
+                _llmConfigPath = Path.Combine(_appLocalDataDir, "llm_config.json");
+                _batchCachePath = Path.Combine(_appLocalDataDir, "batch_diff_cache_" + safeHash + ".json");
             }
             _pythonExe = ResolvePythonExecutable(_hubAppDir);
             BuildSynonymGroups();
@@ -1520,7 +1832,7 @@ namespace ModelOutputHub
                     try
                     {
                         string head = File.ReadAllText(_cachePath, Encoding.UTF8);
-                        if (!head.Contains("\"_schema_ver\": 3") && !head.Contains("\"_schema_ver\":3"))
+                        if (!head.Contains("\"_schema_ver\": 4") && !head.Contains("\"_schema_ver\":4"))
                             needFreshScan = true;
                     }
                     catch { needFreshScan = true; }
@@ -2387,6 +2699,34 @@ namespace ModelOutputHub
                         new MemoryStream(body), 200, "OK", "Content-Type: application/json; charset=utf-8\r\nCache-Control: no-store");
                     return;
                 }
+                else if (pathOnly.Equals("/api/app-info", StringComparison.OrdinalIgnoreCase))
+                {
+                    byte[] body = s_utf8NoBom.GetBytes(BuildAppInfoJson());
+                    e.Response = _webView.CoreWebView2.Environment.CreateWebResourceResponse(
+                        new MemoryStream(body), 200, "OK", "Content-Type: application/json; charset=utf-8\r\nCache-Control: no-store");
+                    return;
+                }
+                else if (pathOnly.Equals("/api/update-check", StringComparison.OrdinalIgnoreCase))
+                {
+                    byte[] body = s_utf8NoBom.GetBytes(CheckGithubUpdateJson());
+                    e.Response = _webView.CoreWebView2.Environment.CreateWebResourceResponse(
+                        new MemoryStream(body), 200, "OK", "Content-Type: application/json; charset=utf-8\r\nCache-Control: no-store");
+                    return;
+                }
+                else if (pathOnly.Equals("/api/llm-config", StringComparison.OrdinalIgnoreCase))
+                {
+                    byte[] body = s_utf8NoBom.GetBytes(BuildLlmConfigJson());
+                    e.Response = _webView.CoreWebView2.Environment.CreateWebResourceResponse(
+                        new MemoryStream(body), 200, "OK", "Content-Type: application/json; charset=utf-8\r\nCache-Control: no-store");
+                    return;
+                }
+                else if (pathOnly.Equals("/api/batch-cache", StringComparison.OrdinalIgnoreCase))
+                {
+                    byte[] body = s_utf8NoBom.GetBytes(LoadBatchCacheRawJson());
+                    e.Response = _webView.CoreWebView2.Environment.CreateWebResourceResponse(
+                        new MemoryStream(body), 200, "OK", "Content-Type: application/json; charset=utf-8\r\nCache-Control: no-store");
+                    return;
+                }
                 else if (pathOnly.StartsWith("/fonts/", StringComparison.OrdinalIgnoreCase))
                 {
                     string userFontDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), @"Microsoft\Windows\Fonts");
@@ -2506,7 +2846,28 @@ namespace ModelOutputHub
                         break;
 
                     case "savePrefs":
-                        MergeAndSaveUserMeta(msg, new[] { "ui_paradigm", "ui_scale", "ui_font", "finder_layout", "finder_dedup", "finder_curated" });
+                        MergeAndSaveUserMeta(msg, new[] { "ui_paradigm", "ui_scale", "ui_font", "finder_layout", "finder_dedup", "finder_curated", "ui_gen" });
+                        break;
+
+                    case "saveLlmConfig":
+                        SaveLlmConfig(msg);
+                        break;
+
+                    case "requestMicroSummary":
+                        RequestMicroSummaryAsync(msg);
+                        break;
+
+                    case "applyUpdate":
+                        if (msg.ContainsKey("download_url"))
+                        {
+                            string dlUrl = Convert.ToString(msg["download_url"] ?? "");
+                            string latestVer = msg.ContainsKey("latest") ? Convert.ToString(msg["latest"] ?? "") : "";
+                            ApplyGithubUpdateAsync(dlUrl, latestVer);
+                        }
+                        break;
+
+                    case "exportBatchZip":
+                        ExportBatchZipDialog(msg);
                         break;
 
                     case "runRefresh":
@@ -2516,6 +2877,551 @@ namespace ModelOutputHub
                     case "runTidy":
                         RunScanBackendAsync(true);
                         break;
+                }
+            }
+            catch { }
+        }
+
+        private string BuildAppInfoJson()
+        {
+            string exePath = "";
+            try { exePath = Process.GetCurrentProcess().MainModule.FileName; } catch { }
+            var llm = LoadLlmConfigDict();
+            bool llmEnabled = llm.ContainsKey("enabled") && Convert.ToBoolean(llm["enabled"]);
+            string apiKey = llm.ContainsKey("api_key") ? Convert.ToString(llm["api_key"] ?? "") : "";
+            return _json.Serialize(new Dictionary<string, object>
+            {
+                { "version", Program.AppVersion },
+                { "repo", Program.GithubRepo },
+                { "root_path", _rootDir },
+                { "exe_path", exePath },
+                { "llm_enabled", llmEnabled && !string.IsNullOrWhiteSpace(apiKey) }
+            });
+        }
+
+        private static int CompareSemVer(string a, string b)
+        {
+            Func<string, int[]> parse = s =>
+            {
+                string clean = Regex.Replace(s ?? "0.0.0", @"^[vV]", "").Split('-')[0];
+                var parts = clean.Split('.');
+                var nums = new int[3];
+                for (int i = 0; i < 3 && i < parts.Length; i++)
+                {
+                    int v;
+                    if (int.TryParse(Regex.Replace(parts[i], @"[^\d]", ""), out v)) nums[i] = v;
+                }
+                return nums;
+            };
+            int[] va = parse(a);
+            int[] vb = parse(b);
+            for (int i = 0; i < 3; i++)
+            {
+                if (va[i] != vb[i]) return va[i].CompareTo(vb[i]);
+            }
+            return 0;
+        }
+
+        private string CheckGithubUpdateJson()
+        {
+            var res = new Dictionary<string, object>
+            {
+                { "ok", false },
+                { "offline", false },
+                { "current", Program.AppVersion },
+                { "latest", Program.AppVersion },
+                { "has_update", false },
+                { "repo", Program.GithubRepo }
+            };
+            try
+            {
+                string apiUrl = "https://api.github.com/repos/" + Program.GithubRepo + "/releases/latest";
+                var req = (HttpWebRequest)WebRequest.Create(apiUrl);
+                req.UserAgent = "ModelOutputHub/" + Program.AppVersion;
+                req.Accept = "application/vnd.github+json";
+                req.Timeout = 5000;
+                req.ReadWriteTimeout = 5000;
+                using (var resp = (HttpWebResponse)req.GetResponse())
+                using (var sr = new StreamReader(resp.GetResponseStream(), Encoding.UTF8))
+                {
+                    string raw = sr.ReadToEnd();
+                    var rel = _json.Deserialize<Dictionary<string, object>>(raw);
+                    if (rel != null && rel.ContainsKey("tag_name"))
+                    {
+                        string tag = Convert.ToString(rel["tag_name"] ?? "").Trim();
+                        string latestClean = tag.TrimStart('v', 'V');
+                        string htmlUrl = rel.ContainsKey("html_url") ? Convert.ToString(rel["html_url"] ?? "") : "";
+                        string bodyTxt = rel.ContainsKey("body") ? Convert.ToString(rel["body"] ?? "") : "";
+                        if (bodyTxt.Length > 360) bodyTxt = bodyTxt.Substring(0, 358) + "…";
+
+                        string dlUrl = "";
+                        string assetName = "";
+                        double assetMb = 0;
+                        if (rel.ContainsKey("assets") && rel["assets"] is System.Collections.IEnumerable)
+                        {
+                            string fallbackZipUrl = "";
+                            string fallbackZipName = "";
+                            double fallbackZipMb = 0;
+                            foreach (object aObj in (System.Collections.IEnumerable)rel["assets"])
+                            {
+                                var ad = aObj as Dictionary<string, object>;
+                                if (ad == null) continue;
+                                string an = ad.ContainsKey("name") ? Convert.ToString(ad["name"] ?? "") : "";
+                                string au = ad.ContainsKey("browser_download_url") ? Convert.ToString(ad["browser_download_url"] ?? "") : "";
+                                double szMb = ad.ContainsKey("size") ? Math.Round(Convert.ToDouble(ad["size"]) / 1048576.0, 2) : 0;
+                                if (an.EndsWith(".exe", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    dlUrl = au; assetName = an; assetMb = szMb; break;
+                                }
+                                if (an.IndexOf("SingleFile", StringComparison.OrdinalIgnoreCase) >= 0 && an.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    fallbackZipUrl = au; fallbackZipName = an; fallbackZipMb = szMb;
+                                }
+                                else if (string.IsNullOrEmpty(fallbackZipUrl) && an.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    fallbackZipUrl = au; fallbackZipName = an; fallbackZipMb = szMb;
+                                }
+                            }
+                            if (string.IsNullOrEmpty(dlUrl))
+                            {
+                                dlUrl = fallbackZipUrl; assetName = fallbackZipName; assetMb = fallbackZipMb;
+                            }
+                        }
+
+                        res["ok"] = true;
+                        res["latest"] = latestClean;
+                        res["has_update"] = CompareSemVer(latestClean, Program.AppVersion) > 0;
+                        res["release_url"] = htmlUrl;
+                        res["release_notes"] = bodyTxt;
+                        res["download_url"] = dlUrl;
+                        res["asset_name"] = assetName;
+                        res["asset_size_mb"] = assetMb;
+                    }
+                }
+            }
+            catch
+            {
+                res["offline"] = true;
+            }
+            return _json.Serialize(res);
+        }
+
+        private void SendJsCallback(string fnName, object payloadObj)
+        {
+            try
+            {
+                string jsonStr = _json.Serialize(payloadObj);
+                Dispatcher.BeginInvoke(new Action(async () =>
+                {
+                    try
+                    {
+                        if (_webView != null && _webView.CoreWebView2 != null)
+                            await _webView.CoreWebView2.ExecuteScriptAsync("if(window." + fnName + ")window." + fnName + "(" + jsonStr + ");");
+                    }
+                    catch { }
+                }));
+            }
+            catch { }
+        }
+
+        private void ApplyGithubUpdateAsync(string downloadUrl, string latestVer)
+        {
+            if (_isUpdating) return;
+            if (string.IsNullOrWhiteSpace(downloadUrl) ||
+                (!downloadUrl.StartsWith("https://github.com/" + Program.GithubRepo + "/", StringComparison.OrdinalIgnoreCase) &&
+                 !downloadUrl.StartsWith("https://objects.githubusercontent.com/", StringComparison.OrdinalIgnoreCase)))
+            {
+                SendJsCallback("__onUpdateStatus", new Dictionary<string, object> { { "stage", "error" }, { "message", "无效的官方更新下载地址" } });
+                return;
+            }
+
+            _isUpdating = true;
+            SendJsCallback("__onUpdateStatus", new Dictionary<string, object> { { "stage", "downloading" }, { "message", "正在后台下载 v" + latestVer + " 更新包..." } });
+
+            Task.Run(() =>
+            {
+                string curExe = "";
+                string tmpFile = "";
+                string updateExe = "";
+                string oldExe = "";
+                try
+                {
+                    curExe = Process.GetCurrentProcess().MainModule.FileName;
+                    string exeDir = Path.GetDirectoryName(curExe);
+                    tmpFile = Path.Combine(Path.GetTempPath(), "ModelOutputHub_dl_" + Guid.NewGuid().ToString("N") + (downloadUrl.EndsWith(".zip", StringComparison.OrdinalIgnoreCase) ? ".zip" : ".exe"));
+                    updateExe = curExe + ".update";
+                    oldExe = curExe + ".old";
+
+                    var req = (HttpWebRequest)WebRequest.Create(downloadUrl);
+                    req.UserAgent = "ModelOutputHub/" + Program.AppVersion;
+                    req.Timeout = 30000;
+                    req.ReadWriteTimeout = 60000;
+                    using (var resp = (HttpWebResponse)req.GetResponse())
+                    using (var rs = resp.GetResponseStream())
+                    using (var fs = new FileStream(tmpFile, FileMode.Create, FileAccess.Write))
+                    {
+                        rs.CopyTo(fs);
+                    }
+
+                    SendJsCallback("__onUpdateStatus", new Dictionary<string, object> { { "stage", "verifying" }, { "message", "下载完成，正在校验安装包完整性..." } });
+
+                    if (tmpFile.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
+                    {
+                        bool extracted = false;
+                        using (var za = ZipFile.OpenRead(tmpFile))
+                        {
+                            foreach (var entry in za.Entries)
+                            {
+                                if (entry.Name.EndsWith(".exe", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    if (File.Exists(updateExe)) File.Delete(updateExe);
+                                    entry.ExtractToFile(updateExe, true);
+                                    extracted = true;
+                                    break;
+                                }
+                            }
+                        }
+                        if (!extracted) throw new InvalidOperationException("更新压缩包内未找到可执行文件");
+                    }
+                    else
+                    {
+                        File.Copy(tmpFile, updateExe, true);
+                    }
+
+                    var ufi = new FileInfo(updateExe);
+                    if (!ufi.Exists || ufi.Length < 300 * 1024)
+                        throw new InvalidOperationException("更新文件大小异常，已中止替换");
+                    byte[] magic = new byte[2];
+                    using (var fs = File.OpenRead(updateExe))
+                        fs.Read(magic, 0, 2);
+                    if (magic[0] != 0x4D || magic[1] != 0x5A)
+                        throw new InvalidOperationException("更新文件 PE 头校验未通过（非有效 exe）");
+
+                    if (File.Exists(oldExe))
+                    {
+                        try { File.Delete(oldExe); } catch { }
+                    }
+
+                    // Windows allows renaming a running .exe in place; swap safely with rollback guard
+                    File.Move(curExe, oldExe);
+                    try
+                    {
+                        File.Move(updateExe, curExe);
+                    }
+                    catch
+                    {
+                        try { if (!File.Exists(curExe) && File.Exists(oldExe)) File.Move(oldExe, curExe); } catch { }
+                        throw;
+                    }
+
+                    SendJsCallback("__onUpdateStatus", new Dictionary<string, object> { { "stage", "restarting" }, { "message", "校验通过，正在无缝重启至 v" + latestVer + "..." } });
+                    Thread.Sleep(400);
+
+                    Process.Start(new ProcessStartInfo(curExe, "--updated-from " + Program.AppVersion)
+                    {
+                        WorkingDirectory = exeDir,
+                        UseShellExecute = false
+                    });
+                    Dispatcher.BeginInvoke(new Action(ExitApplicationCompletely));
+                }
+                catch (Exception ex)
+                {
+                    SendJsCallback("__onUpdateStatus", new Dictionary<string, object> { { "stage", "error" }, { "message", "自动更新失败：" + ex.Message } });
+                }
+                finally
+                {
+                    _isUpdating = false;
+                    try { if (!string.IsNullOrEmpty(tmpFile) && File.Exists(tmpFile)) File.Delete(tmpFile); } catch { }
+                    try { if (!string.IsNullOrEmpty(updateExe) && File.Exists(updateExe)) File.Delete(updateExe); } catch { }
+                }
+            });
+        }
+
+        private Dictionary<string, object> LoadLlmConfigDict()
+        {
+            if (!string.IsNullOrEmpty(_llmConfigPath) && File.Exists(_llmConfigPath))
+            {
+                try
+                {
+                    return _json.Deserialize<Dictionary<string, object>>(File.ReadAllText(_llmConfigPath, Encoding.UTF8))
+                           ?? new Dictionary<string, object>();
+                }
+                catch { }
+            }
+            return new Dictionary<string, object>();
+        }
+
+        private string BuildLlmConfigJson()
+        {
+            var cfg = LoadLlmConfigDict();
+            string rawKey = cfg.ContainsKey("api_key") ? Convert.ToString(cfg["api_key"] ?? "") : "";
+            string masked = "";
+            if (rawKey.Length > 8) masked = rawKey.Substring(0, 4) + "••••" + rawKey.Substring(rawKey.Length - 4);
+            else if (rawKey.Length > 0) masked = "••••";
+            return _json.Serialize(new Dictionary<string, object>
+            {
+                { "enabled", cfg.ContainsKey("enabled") && Convert.ToBoolean(cfg["enabled"]) },
+                { "base_url", cfg.ContainsKey("base_url") ? Convert.ToString(cfg["base_url"] ?? "") : "https://api.openai.com/v1" },
+                { "model", cfg.ContainsKey("model") ? Convert.ToString(cfg["model"] ?? "") : "gpt-4o-mini" },
+                { "has_key", !string.IsNullOrWhiteSpace(rawKey) },
+                { "key_masked", masked }
+            });
+        }
+
+        private void SaveLlmConfig(Dictionary<string, object> msg)
+        {
+            try
+            {
+                var cur = LoadLlmConfigDict();
+                if (msg.ContainsKey("enabled")) cur["enabled"] = Convert.ToBoolean(msg["enabled"]);
+                if (msg.ContainsKey("base_url")) cur["base_url"] = Convert.ToString(msg["base_url"] ?? "").Trim().TrimEnd('/');
+                if (msg.ContainsKey("model")) cur["model"] = Convert.ToString(msg["model"] ?? "").Trim();
+                if (msg.ContainsKey("api_key"))
+                {
+                    string nk = Convert.ToString(msg["api_key"] ?? "").Trim();
+                    if (!string.IsNullOrEmpty(nk) && !nk.Contains("••••")) cur["api_key"] = nk;
+                    else if (msg.ContainsKey("clear_key") && Convert.ToBoolean(msg["clear_key"])) cur["api_key"] = "";
+                }
+                Directory.CreateDirectory(Path.GetDirectoryName(_llmConfigPath));
+                File.WriteAllText(_llmConfigPath, _json.Serialize(cur), s_utf8NoBom);
+                SendJsCallback("__onLlmConfigSaved", _json.Deserialize<Dictionary<string, object>>(BuildLlmConfigJson()));
+            }
+            catch { }
+        }
+
+        private Dictionary<string, object> LoadBatchCacheDict()
+        {
+            lock (_batchCacheLock)
+            {
+                if (!string.IsNullOrEmpty(_batchCachePath) && File.Exists(_batchCachePath))
+                {
+                    try
+                    {
+                        return _json.Deserialize<Dictionary<string, object>>(File.ReadAllText(_batchCachePath, Encoding.UTF8))
+                               ?? new Dictionary<string, object>();
+                    }
+                    catch { }
+                }
+                return new Dictionary<string, object>();
+            }
+        }
+
+        private string LoadBatchCacheRawJson()
+        {
+            lock (_batchCacheLock)
+            {
+                if (!string.IsNullOrEmpty(_batchCachePath) && File.Exists(_batchCachePath))
+                {
+                    try { return File.ReadAllText(_batchCachePath, Encoding.UTF8); } catch { }
+                }
+                return "{}";
+            }
+        }
+
+        private void SaveBatchCacheEntry(string hashKey, string summaryText)
+        {
+            lock (_batchCacheLock)
+            {
+                try
+                {
+                    var d = LoadBatchCacheDict();
+                    d[hashKey] = summaryText;
+                    Directory.CreateDirectory(Path.GetDirectoryName(_batchCachePath));
+                    File.WriteAllText(_batchCachePath, _json.Serialize(d), s_utf8NoBom);
+                }
+                catch { }
+            }
+        }
+
+        private static string TruncateCompact(string s, int maxLen)
+        {
+            if (string.IsNullOrEmpty(s)) return "";
+            s = Regex.Replace(s, @"\s+", " ").Trim();
+            return s.Length > maxLen ? s.Substring(0, maxLen) : s;
+        }
+
+        private void RequestMicroSummaryAsync(Dictionary<string, object> msg)
+        {
+            string batchKey = msg.ContainsKey("batchKey") ? Convert.ToString(msg["batchKey"] ?? "") : "";
+            string hashKey = msg.ContainsKey("hash") ? Convert.ToString(msg["hash"] ?? "") : "";
+            if (string.IsNullOrEmpty(hashKey)) return;
+
+            var cached = LoadBatchCacheDict();
+            if (cached.ContainsKey(hashKey))
+            {
+                SendJsCallback("__onMicroSummaryResult", new Dictionary<string, object>
+                {
+                    { "ok", true }, { "batchKey", batchKey }, { "hash", hashKey },
+                    { "summary", Convert.ToString(cached[hashKey] ?? "") }, { "cached", true }
+                });
+                return;
+            }
+
+            var cfg = LoadLlmConfigDict();
+            bool enabled = cfg.ContainsKey("enabled") && Convert.ToBoolean(cfg["enabled"]);
+            string apiKey = cfg.ContainsKey("api_key") ? Convert.ToString(cfg["api_key"] ?? "").Trim() : "";
+            string baseUrl = cfg.ContainsKey("base_url") ? Convert.ToString(cfg["base_url"] ?? "").Trim().TrimEnd('/') : "";
+            string model = cfg.ContainsKey("model") ? Convert.ToString(cfg["model"] ?? "").Trim() : "gpt-4o-mini";
+
+            if (!enabled || string.IsNullOrEmpty(apiKey) || string.IsNullOrEmpty(baseUrl))
+            {
+                SendJsCallback("__onMicroSummaryResult", new Dictionary<string, object>
+                {
+                    { "ok", false }, { "batchKey", batchKey }, { "hash", hashKey },
+                    { "error", "未开启轻量 AI 微摘要接口（可在「维护与设置」中按需配置）" }
+                });
+                return;
+            }
+
+            // Hard cap payload <= ~120 tokens so every call costs < ¥0.0001
+            string topicName = TruncateCompact(msg.ContainsKey("topicName") ? Convert.ToString(msg["topicName"] ?? "") : "", 28);
+            string figGroup = TruncateCompact(msg.ContainsKey("figGroup") ? Convert.ToString(msg["figGroup"] ?? "") : "", 20);
+            string prevDesc = TruncateCompact(msg.ContainsKey("prevDesc") ? Convert.ToString(msg["prevDesc"] ?? "") : "", 140);
+            string currDesc = TruncateCompact(msg.ContainsKey("currDesc") ? Convert.ToString(msg["currDesc"] ?? "") : "", 160);
+
+            Task.Run(() =>
+            {
+                try
+                {
+                    string endpoint = baseUrl.EndsWith("/chat/completions", StringComparison.OrdinalIgnoreCase)
+                        ? baseUrl
+                        : (baseUrl + "/chat/completions");
+
+                    var payload = new Dictionary<string, object>
+                    {
+                        { "model", string.IsNullOrEmpty(model) ? "gpt-4o-mini" : model },
+                        { "temperature", 0.1 },
+                        { "max_tokens", 60 },
+                        { "messages", new object[]
+                            {
+                                new Dictionary<string, object>
+                                {
+                                    { "role", "system" },
+                                    { "content", "你是极简科研文件变更标签助手。禁止推理与长段解释。仅根据前后两轮文件名与标题差分，输出一句不超过26字的中文大白话改动摘要（说明更新/新增了什么关键图或报告及改了什么重点）。不要加引号或前缀。" }
+                                },
+                                new Dictionary<string, object>
+                                {
+                                    { "role", "user" },
+                                    { "content", string.Format("课题:{0} | 图:{1}\n上轮:{2}\n本轮:{3}", topicName, figGroup, string.IsNullOrEmpty(prevDesc) ? "首轮初版" : prevDesc, currDesc) }
+                                }
+                            }
+                        }
+                    };
+
+                    byte[] bodyBytes = s_utf8NoBom.GetBytes(_json.Serialize(payload));
+                    var req = (HttpWebRequest)WebRequest.Create(endpoint);
+                    req.Method = "POST";
+                    req.ContentType = "application/json; charset=utf-8";
+                    req.Headers["Authorization"] = "Bearer " + apiKey;
+                    req.Timeout = 12000;
+                    req.ReadWriteTimeout = 12000;
+                    req.ContentLength = bodyBytes.Length;
+                    using (var rs = req.GetRequestStream())
+                        rs.Write(bodyBytes, 0, bodyBytes.Length);
+
+                    using (var resp = (HttpWebResponse)req.GetResponse())
+                    using (var sr = new StreamReader(resp.GetResponseStream(), Encoding.UTF8))
+                    {
+                        var parsed = _json.Deserialize<Dictionary<string, object>>(sr.ReadToEnd());
+                        string text = "";
+                        if (parsed != null && parsed.ContainsKey("choices") && parsed["choices"] is System.Collections.IEnumerable)
+                        {
+                            foreach (object cObj in (System.Collections.IEnumerable)parsed["choices"])
+                            {
+                                var cd = cObj as Dictionary<string, object>;
+                                if (cd != null && cd.ContainsKey("message") && cd["message"] is Dictionary<string, object>)
+                                {
+                                    var md = (Dictionary<string, object>)cd["message"];
+                                    if (md.ContainsKey("content"))
+                                        text = TruncateCompact(Convert.ToString(md["content"] ?? "").Trim('"', '「', '」', '“', '”'), 44);
+                                    break;
+                                }
+                            }
+                        }
+                        if (string.IsNullOrEmpty(text)) throw new InvalidOperationException("接口返回空内容");
+                        SaveBatchCacheEntry(hashKey, text);
+                        SendJsCallback("__onMicroSummaryResult", new Dictionary<string, object>
+                        {
+                            { "ok", true }, { "batchKey", batchKey }, { "hash", hashKey },
+                            { "summary", text }, { "cached", false }
+                        });
+                    }
+                }
+                catch (Exception ex)
+                {
+                    SendJsCallback("__onMicroSummaryResult", new Dictionary<string, object>
+                    {
+                        { "ok", false }, { "batchKey", batchKey }, { "hash", hashKey },
+                        { "error", "微摘要调用失败：" + ex.Message }
+                    });
+                }
+            });
+        }
+
+        private void ExportBatchZipDialog(Dictionary<string, object> msg)
+        {
+            try
+            {
+                string title = msg.ContainsKey("title") ? Convert.ToString(msg["title"] ?? "定稿包") : "定稿包";
+                string safeTitle = Regex.Replace(title, @"[\\/:*?""<>|\s]+", "_").Trim('_');
+                if (string.IsNullOrEmpty(safeTitle)) safeTitle = "定稿包";
+                var files = new List<string>();
+                if (msg.ContainsKey("paths") && msg["paths"] is System.Collections.IEnumerable)
+                {
+                    foreach (object p in (System.Collections.IEnumerable)msg["paths"])
+                    {
+                        string fp = Convert.ToString(p ?? "");
+                        if (!string.IsNullOrEmpty(fp) && File.Exists(fp)) files.Add(fp);
+                    }
+                }
+                if (files.Count == 0)
+                {
+                    SendJsCallback("__onExportResult", new Dictionary<string, object> { { "ok", false }, { "message", "该批次没有可打包的有效文件" } });
+                    return;
+                }
+
+                using (var sfd = new WinForms.SaveFileDialog())
+                {
+                    sfd.Title = "导出本轮定稿打包 ZIP";
+                    sfd.Filter = "ZIP 归档包 (*.zip)|*.zip";
+                    sfd.FileName = safeTitle + ".zip";
+                    sfd.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
+                    if (sfd.ShowDialog() != WinForms.DialogResult.OK) return;
+                    string destZip = sfd.FileName;
+
+                    Task.Run(() =>
+                    {
+                        try
+                        {
+                            if (File.Exists(destZip)) File.Delete(destZip);
+                            var usedNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                            using (var za = ZipFile.Open(destZip, ZipArchiveMode.Create))
+                            {
+                                foreach (string fp in files)
+                                {
+                                    string fn = Path.GetFileName(fp);
+                                    string entryName = fn;
+                                    int idx = 2;
+                                    while (!usedNames.Add(entryName))
+                                    {
+                                        entryName = Path.GetFileNameWithoutExtension(fn) + "_" + idx + Path.GetExtension(fn);
+                                        idx++;
+                                    }
+                                    za.CreateEntryFromFile(fp, entryName, CompressionLevel.Optimal);
+                                }
+                            }
+                            SendJsCallback("__onExportResult", new Dictionary<string, object>
+                            {
+                                { "ok", true }, { "path", destZip }, { "count", files.Count },
+                                { "message", string.Format("已打包 {0} 份核心定稿至 {1}", files.Count, Path.GetFileName(destZip)) }
+                            });
+                            Process.Start(new ProcessStartInfo("explorer.exe", "/select,\"" + destZip + "\"") { UseShellExecute = true });
+                        }
+                        catch (Exception ex)
+                        {
+                            SendJsCallback("__onExportResult", new Dictionary<string, object> { { "ok", false }, { "message", "打包失败：" + ex.Message } });
+                        }
+                    });
                 }
             }
             catch { }
@@ -2561,13 +3467,13 @@ namespace ModelOutputHub
 
             var shots = new[]
             {
-                new { Name = "v3-takram-chronicle",   Url = "https://hub.local/app?paradigm=takram&view=finder&layout=editorial" },
-                new { Name = "v3-pentagram-chronicle", Url = "https://hub.local/app?paradigm=pentagram&view=finder&layout=editorial" },
-                new { Name = "v3-sugiura-chronicle",  Url = "https://hub.local/app?paradigm=sugiura&view=finder&layout=editorial" },
-                new { Name = "v3-takram-topic",       Url = "https://hub.local/app?paradigm=takram&view=finder&autotopic=1" },
-                new { Name = "v3-takram-figures",     Url = "https://hub.local/app?paradigm=takram&view=figures" },
-                new { Name = "v3-takram-folders",     Url = "https://hub.local/app?paradigm=takram&view=finder&rail=folder" },
-                new { Name = "v3-takram-overview",    Url = "https://hub.local/app?paradigm=takram&view=overview" }
+                new { Name = "v4-1-peach-atlas",       Url = "https://hub.local/app?paradigm=peach&view=atlas&font=default&scale=normal" },
+                new { Name = "v4-2-peach-drill",       Url = "https://hub.local/app?paradigm=peach&view=atlas&autotopic=1&font=default&scale=normal" },
+                new { Name = "v4-3-alabaster-drill",   Url = "https://hub.local/app?paradigm=alabaster&view=atlas&autotopic=1&font=default&scale=normal" },
+                new { Name = "v4-4-obsidian-drill",    Url = "https://hub.local/app?paradigm=obsidian&view=atlas&autotopic=1&font=default&scale=normal" },
+                new { Name = "v4-5-dewdrop-atlas",     Url = "https://hub.local/app?paradigm=dewdrop&view=atlas&font=default&scale=normal" },
+                new { Name = "v4-6-amethyst-compare",  Url = "https://hub.local/app?paradigm=amethyst&view=atlas&autotopic=1&autocompare=1&font=default&scale=normal" },
+                new { Name = "v4-7-peach-folders",     Url = "https://hub.local/app?paradigm=peach&view=folders&font=default&scale=normal" }
             };
 
             foreach (var s in shots)

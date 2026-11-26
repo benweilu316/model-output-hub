@@ -21,7 +21,7 @@ try:
 except ImportError:
     HAS_FITZ = False
 
-SCHEMA_VER = 3
+SCHEMA_VER = 4
 HUB_APP_DIR = pathlib.Path(__file__).resolve().parent
 MODEL_OUT_ROOT = pathlib.Path(os.environ.get("MODEL_OUTPUT_ROOT") or HUB_APP_DIR.parent)
 USER_META_FILE = HUB_APP_DIR / "user_meta.json"
@@ -191,9 +191,19 @@ def get_pdf_physical_info(fp: pathlib.Path, mtime: float, size_b: int, dim_cache
     return w_mm, h_mm, pages
 
 
-def parse_figure_tag(filename: str, rel_path: str = "") -> tuple[str, str, int]:
+_SLIDE_IMG_DIR_PAT = re.compile(r"(?:^|[/\\])(?:slides?[_-]?hd\d*|slides?[_-]?pair|slide[_-]?preview|offslide|deck[_-]?pages)(?:[/\\]|$)", re.I)
+_SINGLE_FIG_RANGE_PAT = re.compile(r"(?:fig(?:ure)?|图)[_\s-]*s?\d+\s*[-~至到_]\s*s?\d+", re.I)
+
+
+def parse_figure_tag(filename: str, rel_path: str = "", proj_name: str = "", is_doc_like: bool = False) -> tuple[str, str, int]:
     stem = pathlib.Path(filename).stem
-    combined = f"{rel_path} {stem}"
+    rel_norm = (rel_path or "").replace("\\", "/")
+    rel_dir = rel_norm.rsplit("/", 1)[0] if "/" in rel_norm else ""
+    combined = f"{rel_norm} {stem}"
+
+    # Guard: PPT slide exports (e.g. slides_hd2000/v1_1125/s27.png) are slide pages, NOT Fig S27
+    if _SLIDE_IMG_DIR_PAT.search(rel_norm) and re.fullmatch(r"(?:s|slide|page|p)?0*\d{1,3}(?:_.*)?", stem, re.I):
+        return ("PPT 幻灯片页", "", 310)
 
     if re.search(r"(?:graphical[_\s-]*abstract|图形摘要|总览机制|fig[_\s-]*0\b|^GA(?:_|$))", combined, re.I):
         return ("GA 图形摘要", "", 0)
@@ -208,49 +218,56 @@ def parse_figure_tag(filename: str, rel_path: str = "") -> tuple[str, str, int]:
         num = int(m_tm.group(1))
         return (f"Table {num}", "", 180 + num)
 
-    m_fs = re.search(r"(?:fig(?:ure)?|图)[_\s-]*s(\d+)([a-z])?", stem, re.I)
-    if not m_fs:
-        m_fs = re.search(r"(?:^|[/\\_\s-])s(\d+)(?:[_\s-]|$)", stem, re.I)
-        if m_fs:
-            num = int(m_fs.group(1))
-            return (f"Fig S{num}", "", 100 + num)
-    if not m_fs:
-        m_fs = re.search(r"(?:fig(?:ure)?|图)[_\s-]*s(\d+)([a-z])?", rel_path, re.I)
+    def _extract_panel_from_stem(st: str, tail_hint: str = "") -> str:
+        if tail_hint and re.fullmatch(r"[A-Za-z]{1,4}", tail_hint) and tail_hint.lower() not in ("v", "s", "dpi", "mm", "pt", "pdf", "png", "rev"):
+            return tail_hint.upper()
+        m_p = re.search(r"(?:^|_|-)(?:panel[_\s-]*)?([A-Z]{1,3})(?:_v\d+|_rev\d*|_10X|_clean|_revised|_exact|_standalone)?$", st)
+        if m_p and m_p.group(1) not in ("A4", "QC", "LR", "GO", "KM", "ROC", "DEG", "UMI", "PDF", "PPT", "SOP", "RNA", "DNA", "LNP", "GA", "AI", "ML"):
+            return m_p.group(1)
+        return ""
+
+    # 1) Supplementary Fig in stem -> parent rel_dir -> single-Fig proj_name
+    m_fs = re.search(r"(?:fig(?:ure)?|图)[_\s-]*s(\d+)([A-Za-z])?", stem, re.I)
+    if not m_fs and not _SLIDE_IMG_DIR_PAT.search(rel_norm):
+        m_fs2 = re.search(r"(?:^|[_\s-])s(\d{1,2})(?:[_\s-]|$)", stem, re.I)
+        if m_fs2 and int(m_fs2.group(1)) <= 20 and not is_doc_like:
+            num = int(m_fs2.group(1))
+            return (f"Fig S{num}", _extract_panel_from_stem(stem), 100 + num)
+    if not m_fs and rel_dir:
+        m_fs = re.search(r"(?:fig(?:ure)?|图)[_\s-]*s(\d+)", rel_dir, re.I)
+    if not m_fs and proj_name and not _SINGLE_FIG_RANGE_PAT.search(proj_name):
+        all_s = re.findall(r"(?:fig(?:ure)?|图)[_\s-]*s(\d+)", proj_name, re.I)
+        if len(set(all_s)) == 1:
+            m_fs = re.search(r"(?:fig(?:ure)?|图)[_\s-]*s(\d+)", proj_name, re.I)
 
     if m_fs:
         num = int(m_fs.group(1))
         sub = (m_fs.group(2) or "").upper() if m_fs.lastindex and m_fs.lastindex >= 2 else ""
-        panel = ""
-        m_p = re.search(r"(?:_[A-Z]{1,4}|panel[_\s-]*[A-Z])$", stem)
-        if m_p:
-            panel = m_p.group(0).lstrip("_").replace("panel", "").strip("_- ")
-        elif sub and len(sub) == 1 and sub not in ("A", "B"):
-            panel = sub
-        label = f"Fig S{num}{sub.lower()}" if sub in ("A", "B") and re.search(r"s\d+[ab]\b", stem, re.I) else f"Fig S{num}"
-        if sub and label == f"Fig S{num}" and not panel:
-            panel = sub
-        return (label, panel, 100 + num)
+        panel = _extract_panel_from_stem(stem, sub)
+        return (f"Fig S{num}", panel, 100 + num)
 
+    # 2) Main Fig in stem -> parent rel_dir -> single-Fig proj_name
     m_fm = re.search(r"(?:fig(?:ure)?|图)[_\s-]*(\d+)([A-Za-z]{0,4})", stem, re.I)
-    if not m_fm:
-        m_fm = re.search(r"(?:fig(?:ure)?|图)[_\s-]*(\d+)", rel_path, re.I)
+    if not m_fm and rel_dir:
+        m_fm = re.search(r"(?:fig(?:ure)?|图)[_\s-]*(\d+)", rel_dir, re.I)
+    if not m_fm and proj_name and not _SINGLE_FIG_RANGE_PAT.search(proj_name):
+        all_m = re.findall(r"(?:fig(?:ure)?|图)[_\s-]*(\d+)", proj_name, re.I)
+        if len(set(all_m)) == 1:
+            m_fm = re.search(r"(?:fig(?:ure)?|图)[_\s-]*(\d+)", proj_name, re.I)
+
     if m_fm:
         num = int(m_fm.group(1))
         tail = m_fm.group(2) if m_fm.lastindex and m_fm.lastindex >= 2 else ""
-        panel = ""
-        if tail and re.fullmatch(r"[A-Za-z]{1,4}", tail) and tail.lower() not in ("v", "s", "dpi", "mm", "pt"):
-            panel = tail.upper()
-        else:
-            m_p2 = re.search(r"_(?:panel[_\s-]*)?([A-Z]{1,4})(?:_v\d+|_10X|_clean|_revised|_exact)?$", stem)
-            if m_p2 and m_p2.group(1) not in ("A4", "QC", "LR", "GO", "KM", "ROC", "DEG", "UMI", "PDF", "PPT"):
-                panel = m_p2.group(1)
+        panel = _extract_panel_from_stem(stem, tail)
         return (f"Fig {num}", panel, num)
 
-    m_sl = re.search(r"(?:slide|page|^p)0*(\d+)", stem, re.I)
+    m_sl = re.search(r"(?:slide|page)[_\s-]*0*(\d+)", stem, re.I)
     if m_sl:
         num = int(m_sl.group(1))
-        return (f"Slide {num}", "", 300 + num)
+        return ("PPT 幻灯片页", f"P{num}", 310)
 
+    if is_doc_like:
+        return ("综合报告与整本交付", "", 999)
     return ("专题与汇总图", "", 90)
 
 
@@ -426,6 +443,32 @@ def _extract_html_title(fp: pathlib.Path) -> str:
     return fp.stem
 
 
+def _extract_project_change_hint(pdir: pathlib.Path, htmls: list[dict], proj_name: str) -> str:
+    """Extracts a concise (<=46 chars) human-readable revision hint without dumping raw prompts."""
+    if htmls:
+        t = (htmls[0].get("title") or "").strip()
+        if t and t != htmls[0].get("name") and len(t) >= 6:
+            t_clean = re.sub(r"\s+", " ", t)
+            if len(t_clean) > 46:
+                t_clean = t_clean[:44] + "…"
+            return t_clean
+    for fname in ("polish-log.md", "CHANGELOG.md", "README.md", "_INDEX.md"):
+        fp = pdir / fname
+        if fp.is_file():
+            try:
+                head = fp.read_text(encoding="utf-8", errors="ignore")[:2400]
+                for ln in head.splitlines():
+                    s = ln.strip().lstrip("#>-*0123456789. ").strip()
+                    if 6 <= len(s) <= 58 and not re.search(r"(?:http|C:\\|/data|用户原话|verbatim|sha1)", s, re.I):
+                        return s[:46]
+            except Exception:
+                pass
+    parts = [pt for pt in re.split(r"[_\-\s]+", proj_name) if pt and not re.fullmatch(r"20\d{6}|\d{4}", pt)]
+    if len(parts) >= 2:
+        return " / ".join(parts[-2:])[:44]
+    return proj_name[:44]
+
+
 def _infer_platform_info(platform_dir: str) -> tuple[str, str]:
     if platform_dir in PLATFORM_MAP:
         return PLATFORM_MAP[platform_dir]
@@ -528,14 +571,22 @@ def scan_single_project_dir(pdir: pathlib.Path, platform_dir: str, parent_group:
             }
             if ext in (".html", ".htm") and depth <= 4:
                 item_base["title"] = _extract_html_title(fp)
+                fg, fpnl, ford = parse_figure_tag(fn, rel_str, pdir.name, is_doc_like=True)
+                item_base["fig_group"] = fg
+                item_base["fig_panel"] = fpnl
+                item_base["fig_order"] = ford
                 htmls.append(item_base)
             elif ext in (".pptx", ".ppt") and depth <= 4:
+                fg, fpnl, ford = parse_figure_tag(fn, rel_str, pdir.name, is_doc_like=True)
+                item_base["fig_group"] = fg
+                item_base["fig_panel"] = fpnl
+                item_base["fig_order"] = ford
                 pptxs.append(item_base)
             elif ext == ".pdf":
                 if INTERMEDIATE_SLICE_PAT.search(stem):
                     continue
                 w_mm, h_mm, pages = get_pdf_physical_info(fp, mt, sz, dim_cache)
-                fig_group, fig_panel, fig_order = parse_figure_tag(fn, rel_str)
+                fig_group, fig_panel, fig_order = parse_figure_tag(fn, rel_str, pdir.name, is_doc_like=False)
                 dim_label = f"{int(round(w_mm))}×{int(round(h_mm))}mm" if w_mm > 0 and h_mm > 0 else ""
                 if pages > 1 and dim_label:
                     dim_label += f" ({pages}p)"
@@ -555,20 +606,35 @@ def scan_single_project_dir(pdir: pathlib.Path, platform_dir: str, parent_group:
                     raw_single_pdfs.append(item_base)
             elif ext in (".png", ".jpg", ".jpeg", ".svg", ".webp") and depth <= 4 and not in_panel_dir:
                 if not NOISE_IMG_NAME_PAT.search(stem):
-                    fig_group, fig_panel, fig_order = parse_figure_tag(fn, rel_str)
+                    fig_group, fig_panel, fig_order = parse_figure_tag(fn, rel_str, pdir.name, is_doc_like=False)
                     item_base["fig_group"] = fig_group
                     item_base["fig_panel"] = fig_panel
                     item_base["fig_order"] = fig_order
                     images.append(item_base)
             elif ext in (".docx", ".doc", ".md", ".txt", ".rtf") and depth <= 4:
                 if fn_low not in PLUMBING_DOC_NAMES and not fn_low.endswith(("_lint.txt", ".log.txt")):
+                    fg, fpnl, ford = parse_figure_tag(fn, rel_str, pdir.name, is_doc_like=True)
+                    item_base["fig_group"] = fg
+                    item_base["fig_panel"] = fpnl
+                    item_base["fig_order"] = ford
                     docs.append(item_base)
             elif ext in (".xlsx", ".xls", ".csv", ".tsv") and depth <= 4:
                 if not PLUMBING_TABLE_PAT.search(fn_low):
+                    fg, fpnl, ford = parse_figure_tag(fn, rel_str, pdir.name, is_doc_like=True)
+                    item_base["fig_group"] = fg
+                    item_base["fig_panel"] = fpnl
+                    item_base["fig_order"] = ford
                     tables.append(item_base)
             elif (ext in (".zip", ".7z", ".rar", ".tgz") or fn_low.endswith(".tar.gz")) and depth <= 4:
+                item_base["fig_group"] = "综合报告与整本交付"
+                item_base["fig_panel"] = ""
+                item_base["fig_order"] = 999
                 archives.append(item_base)
             elif ext in (".r", ".py", ".sh", ".ipynb") and depth <= 4:
+                fg, fpnl, ford = parse_figure_tag(fn, rel_str, pdir.name, is_doc_like=True)
+                item_base["fig_group"] = fg
+                item_base["fig_panel"] = fpnl
+                item_base["fig_order"] = ford
                 scripts.append(item_base)
 
     def dedup_pdfs(arr: list[dict], limit: int) -> list[dict]:
@@ -644,6 +710,7 @@ def scan_single_project_dir(pdir: pathlib.Path, platform_dir: str, parent_group:
         "lock_gen": lock_hit.get("gen", ""),
         "starred": starred,
         "note": note,
+        "change_hint": _extract_project_change_hint(pdir, htmls, pdir.name),
         "htmls": htmls[:30],
         "pptxs": pptxs[:20],
         "a4_pdfs": a4_pdfs,

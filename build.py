@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-build.py — Zero-VisualStudio Portable Builder for 模型输出管家 (Model Output Hub v3.0)
+build.py — Zero-VisualStudio Portable Builder for 模型输出管家 (Model Output Hub v4.0)
 ======================================================================================
 Compiles standalone single-file `模型输出管家.exe` using the built-in Windows .NET Framework x64
 compiler (`csc.exe`) and embeds official Microsoft.Web.WebView2 SDK DLLs + UI + fitz worker.
@@ -50,7 +50,7 @@ def ensure_webview2_libs(local_fallback_dir: pathlib.Path = None) -> None:
         return
 
     print("[Download] Fetching official Microsoft.Web.WebView2 package from NuGet...")
-    req = urllib.request.Request(NUGET_WV2_URL, headers={"User-Agent": "ModelOutputHub-Builder/3.0"})
+    req = urllib.request.Request(NUGET_WV2_URL, headers={"User-Agent": "ModelOutputHub-Builder/4.0"})
     raw = urllib.request.urlopen(req, timeout=30).read()
     with zipfile.ZipFile(io.BytesIO(raw)) as zf:
         mapping = {
@@ -114,13 +114,13 @@ def build_portable_package(local_lib_fallback: pathlib.Path = None) -> tuple[pat
     if r_self.returncode != 0:
         raise RuntimeError(f"SelfTest failed: {r_self.stderr}")
 
-    full_zip = REPO_ROOT / "dist" / "ModelOutputHub-v3.0.0-win-x64.zip"
+    full_zip = REPO_ROOT / "dist" / "ModelOutputHub-v4.0.0-win-x64.zip"
     with zipfile.ZipFile(full_zip, "w", zipfile.ZIP_DEFLATED) as zf:
         for fp in sorted(DIST_APP.rglob("*")):
             if fp.is_file():
                 zf.write(fp, fp.relative_to(DIST_APP))
 
-    single_zip = REPO_ROOT / "dist" / "ModelOutputHub-v3.0.0-SingleFile-win-x64.zip"
+    single_zip = REPO_ROOT / "dist" / "ModelOutputHub-v4.0.0-SingleFile-win-x64.zip"
     with zipfile.ZipFile(single_zip, "w", zipfile.ZIP_DEFLATED) as zf:
         zf.write(exe_out, "模型输出管家.exe")
         if (REPO_ROOT / "README.md").is_file():
