@@ -1,20 +1,26 @@
 // -*- coding: utf-8 -*-
-// ModelOutputHubApp.cs — Model Output Hub (v1.2 Single-File Zero-Dependency Edition)
-// 1. All WebView2 managed & native DLLs embedded inside single .exe (100% immune to Windows MOTW Zone.Identifier & ZIP-preview launch!)
-// 2. Built-in pure C# NativeScanner (works out-of-the-box with ZERO Python installation required; seamlessly delegates to Python when private_profile.json is present)
-// 3. Folder picker dialog + System Tray Resident + Single-Instance Wakeup + Global Crash Guard
+// ModelOutputHubApp.cs — Model Output Hub (v2.0 Instant File Finder + Live QuickLook + Visual Thumbnails)
+// 1. True Single-File Zero-Dependency .exe (100% immune to Windows MOTW Zone.Identifier & ZIP-preview launch)
+// 2. Everything-grade Live Disk Search (/api/live-search) + Real Folder Browser (/api/folder-list)
+// 3. Instant Built-in QuickLook Preview (/rawfile, /api/preview-info) + Fast Cached Thumbnails (/api/thumb via fitz pipe or Win32 Shell)
+// 4. Built-in Pure C# NativeScanner (9 deliverable categories) + Auto-Refresh on Window Activate + System Tray Resident
 
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Drawing;
+using System.Drawing.Drawing2D;
+using System.Drawing.Imaging;
 using System.Globalization;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Net;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -60,7 +66,7 @@ namespace ModelOutputHub
 
             try
             {
-                try { SetCurrentProcessExplicitAppUserModelID("ModelOutputHub.Studio.Desktop.v1_2"); } catch { }
+                try { SetCurrentProcessExplicitAppUserModelID("ModelOutputHub.Studio.Desktop.v2_0"); } catch { }
 
                 s_appLocalDataDir = Path.Combine(
                     Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
@@ -68,7 +74,6 @@ namespace ModelOutputHub
                 string nativeDir = Path.Combine(s_appLocalDataDir, @"runtime\win-x64");
                 Directory.CreateDirectory(nativeDir);
 
-                // Extract embedded native WebView2Loader.dll into LocalAppData (guaranteed writable & free of Zone.Identifier MOTW!)
                 ExtractEmbeddedResourceToFile("ModelOutputHub.Wv2Loader", Path.Combine(nativeDir, "WebView2Loader.dll"));
                 SetDllDirectory(nativeDir);
 
@@ -97,9 +102,7 @@ namespace ModelOutputHub
                 {
                     if (s == null) return;
                     if (File.Exists(targetPath) && new FileInfo(targetPath).Length == s.Length)
-                    {
                         return;
-                    }
                     using (var ms = new MemoryStream())
                     {
                         s.CopyTo(ms);
@@ -134,7 +137,6 @@ namespace ModelOutputHub
                             using (var ms = new MemoryStream())
                             {
                                 rs.CopyTo(ms);
-                                // Byte-array Assembly.Load bypasses Windows Zone.Identifier (MOTW) sandbox completely!
                                 Assembly asm = Assembly.Load(ms.ToArray());
                                 s_loadedAssemblies[shortName] = asm;
                                 return asm;
@@ -143,7 +145,6 @@ namespace ModelOutputHub
                     }
                 }
 
-                // Fallback to disk bytes if present
                 string candidate = Path.Combine(s_fallbackLibDir, shortName + ".dll");
                 if (File.Exists(candidate))
                 {
@@ -154,6 +155,109 @@ namespace ModelOutputHub
             }
             catch { }
             return null;
+        }
+    }
+
+    internal static class ShellThumbnailHelper
+    {
+        [ComImport]
+        [Guid("bcc18b79-ba16-442f-80c4-8a59c30c463b")]
+        [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+        private interface IShellItemImageFactory
+        {
+            [PreserveSig]
+            int GetImage([In, MarshalAs(UnmanagedType.Struct)] SIZE size, [In] int flags, [Out] out IntPtr phbm);
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct SIZE
+        {
+            public int cx;
+            public int cy;
+            public SIZE(int x, int y) { cx = x; cy = y; }
+        }
+
+        [DllImport("shell32.dll", CharSet = CharSet.Unicode, PreserveSig = true)]
+        private static extern int SHCreateItemFromParsingName(
+            [In, MarshalAs(UnmanagedType.LPWStr)] string pszPath,
+            IntPtr pbc,
+            [In, MarshalAs(UnmanagedType.LPStruct)] Guid riid,
+            [Out, MarshalAs(UnmanagedType.Interface)] out IShellItemImageFactory ppv);
+
+        [DllImport("gdi32.dll")]
+        private static extern bool DeleteObject(IntPtr hObject);
+
+        public static bool TrySaveShellThumbnailPng(string filePath, string outPngPath, int maxPx = 420)
+        {
+            IntPtr hBitmap = IntPtr.Zero;
+            try
+            {
+                Guid iid = new Guid("bcc18b79-ba16-442f-80c4-8a59c30c463b");
+                IShellItemImageFactory factory;
+                int hr = SHCreateItemFromParsingName(filePath, IntPtr.Zero, iid, out factory);
+                if (hr != 0 || factory == null) return false;
+
+                // SIIGBF_BIGGERSIZEOK (0x01) | SIIGBF_THUMBNAILONLY (0x08)
+                hr = factory.GetImage(new SIZE(maxPx, maxPx), 0x01 | 0x08, out hBitmap);
+                if (hr != 0 || hBitmap == IntPtr.Zero)
+                {
+                    // Fallback allowing icon/preview render (0x00)
+                    hr = factory.GetImage(new SIZE(maxPx, maxPx), 0x00, out hBitmap);
+                }
+                if (hr != 0 || hBitmap == IntPtr.Zero) return false;
+
+                using (Bitmap bmp = Image.FromHbitmap(hBitmap))
+                {
+                    Directory.CreateDirectory(Path.GetDirectoryName(outPngPath));
+                    string tmp = outPngPath + ".tmp";
+                    bmp.Save(tmp, ImageFormat.Png);
+                    if (File.Exists(outPngPath)) File.Delete(outPngPath);
+                    File.Move(tmp, outPngPath);
+                    return true;
+                }
+            }
+            catch
+            {
+                return false;
+            }
+            finally
+            {
+                if (hBitmap != IntPtr.Zero) DeleteObject(hBitmap);
+            }
+        }
+
+        public static bool TrySaveGdiImageThumbnailPng(string imgPath, string outPngPath, int maxWidth = 420)
+        {
+            try
+            {
+                using (var fs = new FileStream(imgPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                using (Image src = Image.FromStream(fs, false, false))
+                {
+                    int w = src.Width;
+                    int h = src.Height;
+                    if (w <= 0 || h <= 0) return false;
+                    int nw = w > maxWidth ? maxWidth : w;
+                    int nh = Math.Max(1, (int)Math.Round((double)h * nw / w));
+                    using (var dst = new Bitmap(nw, nh))
+                    using (Graphics g = Graphics.FromImage(dst))
+                    {
+                        g.Clear(System.Drawing.Color.White);
+                        g.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                        g.SmoothingMode = SmoothingMode.HighQuality;
+                        g.DrawImage(src, 0, 0, nw, nh);
+                        Directory.CreateDirectory(Path.GetDirectoryName(outPngPath));
+                        string tmp = outPngPath + ".tmp";
+                        dst.Save(tmp, ImageFormat.Png);
+                        if (File.Exists(outPngPath)) File.Delete(outPngPath);
+                        File.Move(tmp, outPngPath);
+                        return true;
+                    }
+                }
+            }
+            catch
+            {
+                return false;
+            }
         }
     }
 
@@ -175,38 +279,19 @@ namespace ModelOutputHub
             string previewDir = null;
             for (int i = 0; i < args.Length - 1; i++)
             {
-                if (args[i] == "--render-preview")
-                {
+                if (args[i] == "--capture-previews")
                     previewDir = args[i + 1];
-                    break;
-                }
             }
 
-            // Check WebView2 Runtime availability gracefully before opening window
-            string wvVer = null;
-            try { wvVer = CoreWebView2Environment.GetAvailableBrowserVersionString(); } catch { }
-            if (string.IsNullOrEmpty(wvVer))
-            {
-                var dr = WinForms.MessageBox.Show(
-                    "检测到当前电脑尚未安装 Microsoft Edge WebView2 运行时组件。\n\n是否立即打开微软官方页面一键安装？（安装仅需 10 秒）",
-                    "模型输出管家 — 缺少系统运行组件",
-                    WinForms.MessageBoxButtons.YesNo,
-                    WinForms.MessageBoxIcon.Information);
-                if (dr == WinForms.DialogResult.Yes)
-                {
-                    try { Process.Start(new ProcessStartInfo("https://go.microsoft.com/fwlink/p/?LinkId=2124703") { UseShellExecute = true }); } catch { }
-                }
-                return 2;
-            }
-
-            Mutex instanceMutex = null;
+            Mutex singleMutex = null;
             EventWaitHandle wakeEvent = null;
 
             if (string.IsNullOrEmpty(previewDir))
             {
                 bool createdNew;
-                instanceMutex = new Mutex(true, MutexName, out createdNew);
+                singleMutex = new Mutex(true, MutexName, out createdNew);
                 wakeEvent = new EventWaitHandle(false, EventResetMode.AutoReset, WakeEventName);
+
                 if (!createdNew)
                 {
                     try { wakeEvent.Set(); } catch { }
@@ -216,20 +301,30 @@ namespace ModelOutputHub
 
             try
             {
-                var app = new Application
-                {
-                    ShutdownMode = ShutdownMode.OnExplicitShutdown
-                };
-                var win = new StudioWindow(rootDir, appLocalDataDir, previewDir, wakeEvent);
-                app.MainWindow = win;
-                app.Run(win);
-                return win.ExitCode;
+                string ver = CoreWebView2Environment.GetAvailableBrowserVersionString();
+                if (string.IsNullOrEmpty(ver))
+                    throw new InvalidOperationException("未检测到 Microsoft Edge WebView2 Runtime。");
             }
-            finally
+            catch (Exception ex)
             {
-                if (wakeEvent != null) { try { wakeEvent.Dispose(); } catch { } }
-                if (instanceMutex != null) { try { instanceMutex.ReleaseMutex(); instanceMutex.Dispose(); } catch { } }
+                WinForms.MessageBox.Show(
+                    "您的电脑缺少 Microsoft Edge WebView2 运行时组件，无法渲染界面：\n" + ex.Message +
+                    "\n\n请安装系统自带 Edge 更新或从微软官网下载 Evergreen WebView2 Runtime。",
+                    "模型输出管家 — 环境提示",
+                    WinForms.MessageBoxButtons.OK,
+                    WinForms.MessageBoxIcon.Warning);
+                return 2;
             }
+
+            var app = new Application();
+            var win = new StudioWindow(rootDir, appLocalDataDir, previewDir, wakeEvent);
+            app.Run(win);
+
+            if (singleMutex != null)
+            {
+                try { singleMutex.ReleaseMutex(); singleMutex.Dispose(); } catch { }
+            }
+            return win.ExitCode;
         }
 
         private static string ResolveInitialRootDir(string[] args, string exeDir, string appLocalDataDir)
@@ -237,68 +332,43 @@ namespace ModelOutputHub
             for (int i = 0; i < args.Length - 1; i++)
             {
                 if (args[i] == "--root" && Directory.Exists(args[i + 1]))
-                {
                     return Path.GetFullPath(args[i + 1]);
-                }
             }
 
-            string envRoot = Environment.GetEnvironmentVariable("MODEL_OUTPUT_ROOT");
-            if (!string.IsNullOrEmpty(envRoot) && Directory.Exists(envRoot))
-            {
-                return Path.GetFullPath(envRoot);
-            }
-
-            // If exe sits directly inside a configured Model Output directory (has _hub_app or *输出 subdirs), use exeDir!
-            if (Directory.Exists(Path.Combine(exeDir, "_hub_app")) || HasPlatformSubdirs(exeDir))
-            {
+            if (LooksLikeOutputHubRoot(exeDir))
                 return exeDir;
-            }
 
-            // Otherwise check if user previously picked a root folder via FolderBrowserDialog
-            string settingsPath = Path.Combine(appLocalDataDir, "app_settings.json");
-            if (File.Exists(settingsPath))
+            string settingsFile = Path.Combine(appLocalDataDir, "app_settings.json");
+            if (File.Exists(settingsFile))
             {
                 try
                 {
                     var js = new JavaScriptSerializer();
-                    var cfg = js.Deserialize<Dictionary<string, object>>(File.ReadAllText(settingsPath, Encoding.UTF8));
+                    var cfg = js.Deserialize<Dictionary<string, object>>(File.ReadAllText(settingsFile, Encoding.UTF8));
                     if (cfg != null && cfg.ContainsKey("watched_root"))
                     {
                         string saved = Convert.ToString(cfg["watched_root"]);
                         if (!string.IsNullOrEmpty(saved) && Directory.Exists(saved))
-                        {
                             return saved;
-                        }
                     }
                 }
                 catch { }
             }
 
-            // If launched from a temporary ZIP preview folder (%TEMP%) or Downloads, default to Desktop\模型输出 if it exists, else exeDir
-            string tempDir = Path.GetTempPath().TrimEnd('\\', '/');
-            if (exeDir.StartsWith(tempDir, StringComparison.OrdinalIgnoreCase))
-            {
-                string deskCandidate = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory), "模型输出");
-                if (Directory.Exists(deskCandidate)) return deskCandidate;
-                return Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
-            }
-
             return exeDir;
         }
 
-        private static bool HasPlatformSubdirs(string dir)
+        private static bool LooksLikeOutputHubRoot(string dir)
         {
+            if (Directory.Exists(Path.Combine(dir, "_hub_app"))) return true;
             try
             {
                 foreach (string sub in Directory.GetDirectories(dir))
                 {
-                    string n = Path.GetFileName(sub);
-                    if (n.EndsWith("输出", StringComparison.OrdinalIgnoreCase) ||
-                        n.EndsWith("_output", StringComparison.OrdinalIgnoreCase) ||
-                        n.EndsWith("-output", StringComparison.OrdinalIgnoreCase))
-                    {
+                    string name = Path.GetFileName(sub);
+                    if (name.EndsWith("输出", StringComparison.OrdinalIgnoreCase) ||
+                        name.EndsWith("_output", StringComparison.OrdinalIgnoreCase))
                         return true;
-                    }
                 }
             }
             catch { }
@@ -328,13 +398,9 @@ namespace ModelOutputHub
         }
     }
 
-    /// <summary>
-    /// Built-in Zero-Python High-Speed Pure C# Scanner.
-    /// Guarantees full functionality on any clean Windows PC without Python installed!
-    /// </summary>
     internal static class NativeScanner
     {
-        private static readonly Regex s_noiseDirRx = new Regex(
+        public static readonly Regex NoiseDirRx = new Regex(
             @"^(?:_backups?|backups?|_snapshots?|snapshots?|\.archive.*|_archive.*|_draft_fail|__pycache__|\.git|node_modules|render.*|inspect.*|panel_pngs.*|offslide_imgs|lint_pages|checker_pngs|_slides_.*|_workroom|_probe.*|qa.*|logs|.*备份.*)$",
             RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
@@ -345,6 +411,16 @@ namespace ModelOutputHub
         private static readonly Regex s_sliceRx = new Regex(
             @"(?:_notag|_noletter|_raw_tmp|_NA)$",
             RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
+        private static readonly Regex s_noiseImgRx = new Regex(
+            @"(?:^page_?\d+|^slide_?\d+|^p\d+_s\d+|_thumb\b|^diff_|^mask_|^render_|_raw_tmp)",
+            RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
+        private static readonly HashSet<string> s_plumbingDocs = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "state.md", "ledger.md", "donotretry.md", "manifest.txt", "prompt.txt",
+            "cmakelists.txt", "requirements.txt", "license.txt", "package-lock.json"
+        };
 
         private static readonly Regex s_titleRx = new Regex(
             @"<title>(.*?)</title>",
@@ -384,17 +460,13 @@ namespace ModelOutputHub
             if (userMeta != null && userMeta.ContainsKey("starred") && userMeta["starred"] is System.Collections.IEnumerable)
             {
                 foreach (object o in (System.Collections.IEnumerable)userMeta["starred"])
-                {
                     if (o != null) starredSet.Add(Convert.ToString(o));
-                }
             }
             var notesMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
             if (userMeta != null && userMeta.ContainsKey("notes") && userMeta["notes"] is Dictionary<string, object>)
             {
                 foreach (var kv in (Dictionary<string, object>)userMeta["notes"])
-                {
                     notesMap[kv.Key] = Convert.ToString(kv.Value ?? "");
-                }
             }
 
             var projects = new List<Dictionary<string, object>>();
@@ -410,9 +482,7 @@ namespace ModelOutputHub
                     if (dn.EndsWith("输出", StringComparison.OrdinalIgnoreCase) ||
                         dn.EndsWith("_output", StringComparison.OrdinalIgnoreCase) ||
                         dn.EndsWith("-output", StringComparison.OrdinalIgnoreCase))
-                    {
                         platDirs.Add(d);
-                    }
                 }
 
                 if (platDirs.Count > 0)
@@ -436,6 +506,9 @@ namespace ModelOutputHub
                 {
                     try
                     {
+                        var rootLoose = ScanRootLooseProject(rootDir, starredSet, notesMap, nowUnix);
+                        if (rootLoose != null) projects.Add(rootLoose);
+
                         foreach (string child in Directory.GetDirectories(rootDir))
                         {
                             string cn = Path.GetFileName(child);
@@ -476,10 +549,13 @@ namespace ModelOutputHub
                     });
                 }
 
-                int htmlCnt = tProjs.Sum(x => ((Dictionary<string, int>)x["counts"])["html"]);
-                int pptCnt = tProjs.Sum(x => ((Dictionary<string, int>)x["counts"])["pptx"]);
-                int a4Cnt = tProjs.Sum(x => ((Dictionary<string, int>)x["counts"])["a4_pdf"]);
-                int sgCnt = tProjs.Sum(x => ((Dictionary<string, int>)x["counts"])["single_pdf"]);
+                Func<string, int> sumKey = k => tProjs.Sum(x => {
+                    var c = (Dictionary<string, int>)x["counts"];
+                    return c.ContainsKey(k) ? c[k] : 0;
+                });
+
+                int a4Cnt = sumKey("a4_pdf");
+                int sgCnt = sumKey("single_pdf");
 
                 topicTree.Add(new Dictionary<string, object>
                 {
@@ -491,21 +567,29 @@ namespace ModelOutputHub
                     { "project_count", tProjs.Count },
                     { "locked_count", tProjs.Count(x => Convert.ToBoolean(x["locked"])) },
                     { "starred_count", tProjs.Count(x => Convert.ToBoolean(x["starred"])) },
-                    { "html_count", htmlCnt },
-                    { "pptx_count", pptCnt },
+                    { "html_count", sumKey("html") },
+                    { "pptx_count", sumKey("pptx") },
                     { "a4_pdf_count", a4Cnt },
                     { "single_pdf_count", sgCnt },
                     { "pdf_count", a4Cnt + sgCnt },
+                    { "image_count", sumKey("image") },
+                    { "doc_count", sumKey("doc") },
+                    { "table_count", sumKey("table") },
+                    { "archive_count", sumKey("archive") },
+                    { "script_count", sumKey("script") },
                     { "size_mb", Math.Round(tProjs.Sum(x => Convert.ToDouble(x["size_mb"])), 1) },
                     { "cache_mb", Math.Round(tProjs.Sum(x => Convert.ToDouble(x["cache_mb"])), 1) },
                     { "branches", brList }
                 });
             }
 
-            int sumHtml = projects.Sum(x => ((Dictionary<string, int>)x["counts"])["html"]);
-            int sumPpt = projects.Sum(x => ((Dictionary<string, int>)x["counts"])["pptx"]);
-            int sumA4 = projects.Sum(x => ((Dictionary<string, int>)x["counts"])["a4_pdf"]);
-            int sumSg = projects.Sum(x => ((Dictionary<string, int>)x["counts"])["single_pdf"]);
+            Func<string, int> totalKey = k => projects.Sum(x => {
+                var c = (Dictionary<string, int>)x["counts"];
+                return c.ContainsKey(k) ? c[k] : 0;
+            });
+
+            int sumA4 = totalKey("a4_pdf");
+            int sumSg = totalKey("single_pdf");
 
             var result = new Dictionary<string, object>
             {
@@ -517,11 +601,16 @@ namespace ModelOutputHub
                         { "total_projects", projects.Count },
                         { "locked_projects", projects.Count(x => Convert.ToBoolean(x["locked"])) },
                         { "starred_projects", projects.Count(x => Convert.ToBoolean(x["starred"])) },
-                        { "total_html", sumHtml },
-                        { "total_pptx", sumPpt },
+                        { "total_html", totalKey("html") },
+                        { "total_pptx", totalKey("pptx") },
                         { "total_a4_pdf", sumA4 },
                         { "total_single_pdf", sumSg },
                         { "total_pdf", sumA4 + sumSg },
+                        { "total_image", totalKey("image") },
+                        { "total_doc", totalKey("doc") },
+                        { "total_table", totalKey("table") },
+                        { "total_archive", totalKey("archive") },
+                        { "total_script", totalKey("script") },
                         { "total_size_gb", Math.Round(projects.Sum(x => Convert.ToDouble(x["size_mb"])) / 1024.0, 2) },
                         { "total_cache_gb", Math.Round(projects.Sum(x => Convert.ToDouble(x["cache_mb"])) / 1024.0, 2) },
                         { "dup_size_mb", 0.0 }
@@ -568,13 +657,27 @@ namespace ModelOutputHub
             var pptxs = new List<Dictionary<string, object>>();
             var a4Pdfs = new List<Dictionary<string, object>>();
             var sgPdfs = new List<Dictionary<string, object>>();
+            var images = new List<Dictionary<string, object>>();
+            var docs = new List<Dictionary<string, object>>();
+            var tables = new List<Dictionary<string, object>>();
+            var archives = new List<Dictionary<string, object>>();
+            var scripts = new List<Dictionary<string, object>>();
 
-            WalkProjectFiles(pdir, pdir, 0, false, false, ref totalFiles, ref totalBytes, ref cacheBytes, ref latestMtime, ref latestFile, htmls, pptxs, a4Pdfs, sgPdfs);
+            WalkProjectFiles(
+                pdir, pdir, 0, false, false,
+                ref totalFiles, ref totalBytes, ref cacheBytes, ref latestMtime, ref latestFile,
+                htmls, pptxs, a4Pdfs, sgPdfs, images, docs, tables, archives, scripts);
 
-            htmls.Sort((a, b) => Convert.ToDouble(b["mtime"]).CompareTo(Convert.ToDouble(a["mtime"])));
-            pptxs.Sort((a, b) => Convert.ToDouble(b["mtime"]).CompareTo(Convert.ToDouble(a["mtime"])));
-            a4Pdfs.Sort((a, b) => Convert.ToDouble(b["mtime"]).CompareTo(Convert.ToDouble(a["mtime"])));
-            sgPdfs.Sort((a, b) => Convert.ToDouble(b["mtime"]).CompareTo(Convert.ToDouble(a["mtime"])));
+            Comparison<Dictionary<string, object>> byMtimeDesc = (a, b) => Convert.ToDouble(b["mtime"]).CompareTo(Convert.ToDouble(a["mtime"]));
+            htmls.Sort(byMtimeDesc);
+            pptxs.Sort(byMtimeDesc);
+            a4Pdfs.Sort(byMtimeDesc);
+            sgPdfs.Sort(byMtimeDesc);
+            images.Sort(byMtimeDesc);
+            docs.Sort(byMtimeDesc);
+            tables.Sort(byMtimeDesc);
+            archives.Sort(byMtimeDesc);
+            scripts.Sort(byMtimeDesc);
 
             if (latestMtime <= 0)
             {
@@ -600,7 +703,11 @@ namespace ModelOutputHub
                 { "a4_pdf", a4Pdfs.Count },
                 { "single_pdf", sgPdfs.Count },
                 { "pdf", a4Pdfs.Count + sgPdfs.Count },
-                { "doc", 0 }
+                { "image", images.Count },
+                { "doc", docs.Count },
+                { "table", tables.Count },
+                { "archive", archives.Count },
+                { "script", scripts.Count }
             };
 
             return new Dictionary<string, object>
@@ -625,13 +732,92 @@ namespace ModelOutputHub
                 { "lock_reasons", lockReasons },
                 { "starred", starredSet.Contains(relKey) },
                 { "note", noteVal ?? "" },
-                { "htmls", htmls.Take(10).ToList() },
-                { "pptxs", pptxs.Take(8).ToList() },
-                { "a4_pdfs", a4Pdfs.Take(40).ToList() },
-                { "single_pdfs", sgPdfs.Take(60).ToList() },
-                { "pdfs", a4Pdfs.Concat(sgPdfs).Take(20).ToList() },
-                { "docs", new object[0] },
-                { "counts", counts }
+                { "htmls", htmls.Take(30).ToList() },
+                { "pptxs", pptxs.Take(20).ToList() },
+                { "a4_pdfs", a4Pdfs.Take(80).ToList() },
+                { "single_pdfs", sgPdfs.Take(120).ToList() },
+                { "pdfs", a4Pdfs.Concat(sgPdfs).Take(30).ToList() },
+                { "images", images.Take(40).ToList() },
+                { "docs", docs.Take(40).ToList() },
+                { "tables", tables.Take(25).ToList() },
+                { "archives", archives.Take(20).ToList() },
+                { "scripts", scripts.Take(25).ToList() },
+                { "counts", counts },
+                { "_schema_ver", 3 }
+            };
+        }
+
+
+        private static Dictionary<string, object> ScanRootLooseProject(
+            string rootDir, HashSet<string> starredSet, Dictionary<string, string> notesMap, double nowUnix)
+        {
+            int totalFiles = 0;
+            long totalBytes = 0;
+            long cacheBytes = 0;
+            double latestMtime = 0;
+            string latestFile = "";
+
+            var htmls = new List<Dictionary<string, object>>();
+            var pptxs = new List<Dictionary<string, object>>();
+            var a4Pdfs = new List<Dictionary<string, object>>();
+            var sgPdfs = new List<Dictionary<string, object>>();
+            var images = new List<Dictionary<string, object>>();
+            var docs = new List<Dictionary<string, object>>();
+            var tables = new List<Dictionary<string, object>>();
+            var archives = new List<Dictionary<string, object>>();
+            var scripts = new List<Dictionary<string, object>>();
+
+            WalkProjectFiles(
+                rootDir, rootDir, 99, false, false,
+                ref totalFiles, ref totalBytes, ref cacheBytes, ref latestMtime, ref latestFile,
+                htmls, pptxs, a4Pdfs, sgPdfs, images, docs, tables, archives, scripts, true);
+
+            int delivTotal = htmls.Count + pptxs.Count + a4Pdfs.Count + sgPdfs.Count + images.Count + docs.Count + tables.Count + archives.Count + scripts.Count;
+            if (delivTotal == 0) return null;
+
+            DateTime dtLocal = latestMtime > 0 ? FromUnixTimeLocal(latestMtime) : DateTime.Now;
+            var counts = new Dictionary<string, int>
+            {
+                { "html", htmls.Count }, { "pptx", pptxs.Count }, { "a4_pdf", a4Pdfs.Count },
+                { "single_pdf", sgPdfs.Count }, { "pdf", a4Pdfs.Count + sgPdfs.Count },
+                { "image", images.Count }, { "doc", docs.Count }, { "table", tables.Count },
+                { "archive", archives.Count }, { "script", scripts.Count }
+            };
+
+            return new Dictionary<string, object>
+            {
+                { "key", "_root_files_" },
+                { "name", "当前目录直存文件" },
+                { "parent_group", "" },
+                { "path", rootDir },
+                { "platform_dir", "本地目录" },
+                { "platform", "本地" },
+                { "platform_color", "#1E513F" },
+                { "topic_id", "08_misc_projects" },
+                { "sub_branch", "00_根目录直存文件" },
+                { "total_files", totalFiles },
+                { "size_mb", Math.Round(totalBytes / 1048576.0, 2) },
+                { "cache_mb", 0.0 },
+                { "mtime", latestMtime },
+                { "date", dtLocal.ToString("yyyy-MM-dd") },
+                { "datetime", dtLocal.ToString("yyyy-MM-dd HH:mm") },
+                { "latest_file", latestFile },
+                { "locked", false },
+                { "lock_reasons", new string[0] },
+                { "starred", starredSet.Contains("_root_files_") },
+                { "note", notesMap.ContainsKey("_root_files_") ? notesMap["_root_files_"] : "" },
+                { "htmls", htmls.Take(30).ToList() },
+                { "pptxs", pptxs.Take(20).ToList() },
+                { "a4_pdfs", a4Pdfs.Take(80).ToList() },
+                { "single_pdfs", sgPdfs.Take(120).ToList() },
+                { "pdfs", a4Pdfs.Concat(sgPdfs).Take(30).ToList() },
+                { "images", images.Take(40).ToList() },
+                { "docs", docs.Take(40).ToList() },
+                { "tables", tables.Take(25).ToList() },
+                { "archives", archives.Take(20).ToList() },
+                { "scripts", scripts.Take(25).ToList() },
+                { "counts", counts },
+                { "_schema_ver", 3 }
             };
         }
 
@@ -639,9 +825,13 @@ namespace ModelOutputHub
             string rootProjDir, string curDir, int depth, bool inNoise, bool inPanel,
             ref int totalFiles, ref long totalBytes, ref long cacheBytes, ref double latestMtime, ref string latestFile,
             List<Dictionary<string, object>> htmls, List<Dictionary<string, object>> pptxs,
-            List<Dictionary<string, object>> a4Pdfs, List<Dictionary<string, object>> sgPdfs)
+            List<Dictionary<string, object>> a4Pdfs, List<Dictionary<string, object>> sgPdfs,
+            List<Dictionary<string, object>> images, List<Dictionary<string, object>> docs,
+            List<Dictionary<string, object>> tables, List<Dictionary<string, object>> archives,
+            List<Dictionary<string, object>> scripts, bool shallowRootOnly = false)
         {
-            if (depth > 5) return;
+            if (!shallowRootOnly && depth > 5) return;
+            int effDepth = shallowRootOnly ? 0 : depth;
             try
             {
                 foreach (string fp in Directory.GetFiles(curDir))
@@ -656,7 +846,7 @@ namespace ModelOutputHub
                     totalBytes += sz;
 
                     string ext = (fi.Extension ?? "").ToLowerInvariant();
-                    if (inNoise || ext == ".b64" || ext == ".tgz" || ext == ".bak" || ext == ".pyc" || ext == ".log")
+                    if (inNoise || ext == ".b64" || ext == ".bak" || ext == ".pyc" || ext == ".log")
                         cacheBytes += sz;
 
                     string relStr = fp.Substring(rootProjDir.Length).TrimStart('\\', '/').Replace('\\', '/');
@@ -666,36 +856,30 @@ namespace ModelOutputHub
                         latestFile = relStr;
                     }
 
-                    if (inNoise || depth > 4 || sz == 0) continue;
+                    if (inNoise || effDepth > 5 || sz == 0) continue;
+                    if (shallowRootOnly && (fn.Equals("模型输出管家.exe", StringComparison.OrdinalIgnoreCase) || fn.Equals("ModelOutputHub.exe", StringComparison.OrdinalIgnoreCase) || fn.StartsWith("使用说明", StringComparison.OrdinalIgnoreCase))) continue;
 
                     string stem = Path.GetFileNameWithoutExtension(fn);
                     string dtStr = fi.LastWriteTime.ToString("yyyy-MM-dd HH:mm");
+                    var baseObj = new Dictionary<string, object>
+                    {
+                        { "name", fn },
+                        { "path", fp },
+                        { "rel", relStr },
+                        { "size_mb", Math.Round(sz / 1048576.0, 2) },
+                        { "mtime", mt },
+                        { "date", dtStr }
+                    };
 
-                    if ((ext == ".html" || ext == ".htm") && depth <= 3)
+                    if ((ext == ".html" || ext == ".htm") && effDepth <= 4)
                     {
-                        htmls.Add(new Dictionary<string, object>
-                        {
-                            { "name", fn },
-                            { "title", ExtractHtmlTitle(fp, stem) },
-                            { "path", fp },
-                            { "rel", relStr },
-                            { "size_mb", Math.Round(sz / 1048576.0, 2) },
-                            { "mtime", mt },
-                            { "date", dtStr }
-                        });
+                        baseObj["title"] = ExtractHtmlTitle(fp, stem);
+                        htmls.Add(baseObj);
                     }
-                    else if (ext == ".pptx" && depth <= 3)
+                    else if ((ext == ".pptx" || ext == ".ppt") && effDepth <= 4)
                     {
-                        pptxs.Add(new Dictionary<string, object>
-                        {
-                            { "name", fn },
-                            { "title", fn },
-                            { "path", fp },
-                            { "rel", relStr },
-                            { "size_mb", Math.Round(sz / 1048576.0, 2) },
-                            { "mtime", mt },
-                            { "date", dtStr }
-                        });
+                        baseObj["title"] = fn;
+                        pptxs.Add(baseObj);
                     }
                     else if (ext == ".pdf")
                     {
@@ -708,34 +892,60 @@ namespace ModelOutputHub
                         string dimLabel = (wMm > 0 && hMm > 0) ? string.Format("{0}×{1}mm", (int)Math.Round(wMm), (int)Math.Round(hMm)) : "";
                         bool isA4 = IsFullPageA4(wMm, hMm, stem, inPanel);
 
-                        var item = new Dictionary<string, object>
+                        baseObj["dim_mm"] = dimLabel;
+                        baseObj["fig_group"] = figGroup;
+                        baseObj["fig_panel"] = figPanel;
+                        baseObj["fig_order"] = figOrder;
+                        baseObj["kind"] = isA4 ? "a4" : "single";
+                        if (isA4) a4Pdfs.Add(baseObj); else sgPdfs.Add(baseObj);
+                    }
+                    else if ((ext == ".png" || ext == ".jpg" || ext == ".jpeg" || ext == ".svg" || ext == ".webp") && effDepth <= 4 && !inPanel)
+                    {
+                        if (!s_noiseImgRx.IsMatch(stem))
                         {
-                            { "name", fn },
-                            { "path", fp },
-                            { "rel", relStr },
-                            { "size_mb", Math.Round(sz / 1048576.0, 2) },
-                            { "mtime", mt },
-                            { "date", dtStr },
-                            { "dim_mm", dimLabel },
-                            { "fig_group", figGroup },
-                            { "fig_panel", figPanel },
-                            { "fig_order", figOrder },
-                            { "kind", isA4 ? "a4" : "single" }
-                        };
-                        if (isA4) a4Pdfs.Add(item); else sgPdfs.Add(item);
+                            string figGroup, figPanel;
+                            int figOrder;
+                            ParseFigureTag(fn, relStr, out figGroup, out figPanel, out figOrder);
+                            baseObj["fig_group"] = figGroup;
+                            baseObj["fig_panel"] = figPanel;
+                            baseObj["fig_order"] = figOrder;
+                            images.Add(baseObj);
+                        }
+                    }
+                    else if ((ext == ".docx" || ext == ".doc" || ext == ".md" || ext == ".txt" || ext == ".rtf") && effDepth <= 4)
+                    {
+                        if (!s_plumbingDocs.Contains(fn) && !fn.EndsWith("_lint.txt", StringComparison.OrdinalIgnoreCase))
+                            docs.Add(baseObj);
+                    }
+                    else if ((ext == ".xlsx" || ext == ".xls" || ext == ".csv" || ext == ".tsv") && effDepth <= 4)
+                    {
+                        if (!fn.EndsWith("_positions.csv", StringComparison.OrdinalIgnoreCase) &&
+                            !fn.EndsWith("_manifest.tsv", StringComparison.OrdinalIgnoreCase))
+                            tables.Add(baseObj);
+                    }
+                    else if ((ext == ".zip" || ext == ".7z" || ext == ".rar" || ext == ".tgz" || fn.EndsWith(".tar.gz", StringComparison.OrdinalIgnoreCase)) && effDepth <= 4)
+                    {
+                        archives.Add(baseObj);
+                    }
+                    else if ((ext == ".r" || ext == ".py" || ext == ".sh" || ext == ".ipynb") && effDepth <= 4)
+                    {
+                        scripts.Add(baseObj);
                     }
                 }
 
-                foreach (string sub in Directory.GetDirectories(curDir))
+                if (!shallowRootOnly) foreach (string sub in Directory.GetDirectories(curDir))
                 {
                     FileAttributes attr;
                     try { attr = File.GetAttributes(sub); } catch { continue; }
                     if ((attr & FileAttributes.ReparsePoint) != 0) continue;
 
                     string dn = Path.GetFileName(sub);
-                    bool nextNoise = inNoise || s_noiseDirRx.IsMatch(dn);
+                    bool nextNoise = inNoise || NoiseDirRx.IsMatch(dn);
                     bool nextPanel = inPanel || s_panelDirRx.IsMatch(dn);
-                    WalkProjectFiles(rootProjDir, sub, depth + 1, nextNoise, nextPanel, ref totalFiles, ref totalBytes, ref cacheBytes, ref latestMtime, ref latestFile, htmls, pptxs, a4Pdfs, sgPdfs);
+                    WalkProjectFiles(
+                        rootProjDir, sub, depth + 1, nextNoise, nextPanel,
+                        ref totalFiles, ref totalBytes, ref cacheBytes, ref latestMtime, ref latestFile,
+                        htmls, pptxs, a4Pdfs, sgPdfs, images, docs, tables, archives, scripts);
                 }
             }
             catch { }
@@ -748,15 +958,13 @@ namespace ModelOutputHub
                 byte[] buf = new byte[6144];
                 int n;
                 using (var fs = new FileStream(fp, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-                {
                     n = fs.Read(buf, 0, buf.Length);
-                }
                 string head = Encoding.UTF8.GetString(buf, 0, n);
                 Match m = s_titleRx.Match(head);
                 if (m.Success)
                 {
                     string t = Regex.Replace(m.Groups[1].Value, @"\s+", " ").Trim();
-                    if (!string.IsNullOrEmpty(t)) return t.Length > 90 ? t.Substring(0, 90) : t;
+                    if (!string.IsNullOrEmpty(t)) return t.Length > 95 ? t.Substring(0, 95) : t;
                 }
             }
             catch { }
@@ -820,7 +1028,7 @@ namespace ModelOutputHub
             return Regex.IsMatch(stem, @"(?:_a4\b|a4拼图|整页|汇总|all_figs)", RegexOptions.IgnoreCase);
         }
 
-        private static void ParseFigureTag(string fn, string rel, out string figGroup, out string figPanel, out int figOrder)
+        public static void ParseFigureTag(string fn, string rel, out string figGroup, out string figPanel, out int figOrder)
         {
             string stem = Path.GetFileNameWithoutExtension(fn);
             string comb = rel + " " + stem;
@@ -857,7 +1065,7 @@ namespace ModelOutputHub
             figGroup = "专题与汇总图"; figOrder = 90;
         }
 
-        private static string InferPlatformLabel(string pdir)
+        public static string InferPlatformLabel(string pdir)
         {
             string low = pdir.ToLowerInvariant();
             if (low.Contains("claude")) return "Claude";
@@ -871,14 +1079,320 @@ namespace ModelOutputHub
             return Regex.Replace(pdir, @"(?:输出|[-_]?output)$", "", RegexOptions.IgnoreCase);
         }
 
-        private static double ToUnixTime(DateTime utc)
+        public static double ToUnixTime(DateTime utc)
         {
             return (utc - new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)).TotalSeconds;
         }
 
-        private static DateTime FromUnixTimeLocal(double sec)
+        public static DateTime FromUnixTimeLocal(double sec)
         {
             return new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc).AddSeconds(sec).ToLocalTime();
+        }
+    }
+
+
+    internal static class LlmGateway
+    {
+        private static readonly Encoding s_utf8 = new UTF8Encoding(false);
+        private static readonly JavaScriptSerializer s_js = new JavaScriptSerializer { MaxJsonLength = int.MaxValue };
+
+        static LlmGateway()
+        {
+            try { ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls12 | (SecurityProtocolType)12288; }
+            catch { try { ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls12; } catch { } }
+        }
+
+        private static string GetConfigPath(string appLocalDataDir)
+        {
+            return Path.Combine(appLocalDataDir, "ai_config.json");
+        }
+
+        public static Dictionary<string, string> LoadConfigRaw(string appLocalDataDir)
+        {
+            var res = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                { "provider", "deepseek" },
+                { "base_url", "https://api.deepseek.com/v1" },
+                { "model", "deepseek-chat" },
+                { "api_key", "" }
+            };
+            string fp = GetConfigPath(appLocalDataDir);
+            if (!File.Exists(fp)) return res;
+
+            try
+            {
+                var d = s_js.Deserialize<Dictionary<string, object>>(File.ReadAllText(fp, Encoding.UTF8));
+                if (d == null) return res;
+                if (d.ContainsKey("provider")) res["provider"] = Convert.ToString(d["provider"] ?? "deepseek");
+                if (d.ContainsKey("base_url")) res["base_url"] = Convert.ToString(d["base_url"] ?? "");
+                if (d.ContainsKey("model")) res["model"] = Convert.ToString(d["model"] ?? "");
+                if (d.ContainsKey("api_key_dpapi"))
+                {
+                    string encB64 = Convert.ToString(d["api_key_dpapi"] ?? "");
+                    if (!string.IsNullOrEmpty(encB64))
+                    {
+                        byte[] raw = ProtectedData.Unprotect(Convert.FromBase64String(encB64), null, DataProtectionScope.CurrentUser);
+                        res["api_key"] = Encoding.UTF8.GetString(raw);
+                    }
+                }
+            }
+            catch { }
+            return res;
+        }
+
+        public static string GetPublicConfigJson(string appLocalDataDir)
+        {
+            var cfg = LoadConfigRaw(appLocalDataDir);
+            string k = cfg["api_key"] ?? "";
+            bool isOllama = cfg["provider"].Equals("ollama", StringComparison.OrdinalIgnoreCase) ||
+                            cfg["base_url"].IndexOf("127.0.0.1:11434", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                            cfg["base_url"].IndexOf("localhost:11434", StringComparison.OrdinalIgnoreCase) >= 0;
+            bool configured = (!string.IsNullOrEmpty(k) || isOllama) && !string.IsNullOrEmpty(cfg["base_url"]) && !string.IsNullOrEmpty(cfg["model"]);
+            string masked = "";
+            if (k.Length > 8)
+                masked = k.Substring(0, 4) + "••••••••" + k.Substring(k.Length - 4);
+            else if (k.Length > 0)
+                masked = "••••••••";
+
+            return s_js.Serialize(new Dictionary<string, object>
+            {
+                { "configured", configured },
+                { "provider", cfg["provider"] },
+                { "base_url", cfg["base_url"] },
+                { "model", cfg["model"] },
+                { "has_key", k.Length > 0 },
+                { "masked_key", masked }
+            });
+        }
+
+        public static void SaveConfig(string appLocalDataDir, string provider, string baseUrl, string model, string newApiKey, bool clearKey)
+        {
+            var cur = LoadConfigRaw(appLocalDataDir);
+            string finalKey = cur["api_key"] ?? "";
+            if (clearKey)
+                finalKey = "";
+            else if (!string.IsNullOrEmpty(newApiKey) && !newApiKey.Contains("••••"))
+                finalKey = newApiKey.Trim();
+
+            string encB64 = "";
+            if (!string.IsNullOrEmpty(finalKey))
+            {
+                byte[] enc = ProtectedData.Protect(Encoding.UTF8.GetBytes(finalKey), null, DataProtectionScope.CurrentUser);
+                encB64 = Convert.ToBase64String(enc);
+            }
+
+            var saveObj = new Dictionary<string, object>
+            {
+                { "provider", (provider ?? "custom").Trim() },
+                { "base_url", (baseUrl ?? "").Trim() },
+                { "model", (model ?? "").Trim() },
+                { "api_key_dpapi", encB64 }
+            };
+            Directory.CreateDirectory(appLocalDataDir);
+            File.WriteAllText(GetConfigPath(appLocalDataDir), s_js.Serialize(saveObj), s_utf8);
+        }
+
+        public static string CallLlmChat(string provider, string baseUrl, string apiKey, string model, string systemPrompt, string userPrompt, int maxTokens, out string errorMsg)
+        {
+            errorMsg = null;
+            baseUrl = (baseUrl ?? "").Trim().TrimEnd('/');
+            model = (model ?? "").Trim();
+            apiKey = (apiKey ?? "").Trim();
+
+            if (string.IsNullOrEmpty(baseUrl) || string.IsNullOrEmpty(model))
+            {
+                errorMsg = "请先填写完整的 API Base URL 与模型名称（Model）。";
+                return null;
+            }
+
+            bool isAnthropic = (provider ?? "").Equals("anthropic", StringComparison.OrdinalIgnoreCase) ||
+                               baseUrl.IndexOf("api.anthropic.com", StringComparison.OrdinalIgnoreCase) >= 0;
+
+            string endpoint;
+            string payloadJson;
+
+            if (isAnthropic)
+            {
+                if (baseUrl.EndsWith("/messages", StringComparison.OrdinalIgnoreCase))
+                    endpoint = baseUrl;
+                else if (baseUrl.EndsWith("/v1", StringComparison.OrdinalIgnoreCase))
+                    endpoint = baseUrl + "/messages";
+                else
+                    endpoint = baseUrl + "/v1/messages";
+
+                payloadJson = s_js.Serialize(new Dictionary<string, object>
+                {
+                    { "model", model },
+                    { "max_tokens", maxTokens },
+                    { "system", systemPrompt ?? "" },
+                    { "messages", new object[] { new Dictionary<string, object> { { "role", "user" }, { "content", userPrompt } } } }
+                });
+            }
+            else
+            {
+                if (baseUrl.EndsWith("/chat/completions", StringComparison.OrdinalIgnoreCase))
+                    endpoint = baseUrl;
+                else
+                    endpoint = baseUrl + "/chat/completions";
+
+                var msgs = new List<object>();
+                if (!string.IsNullOrEmpty(systemPrompt))
+                    msgs.Add(new Dictionary<string, object> { { "role", "system" }, { "content", systemPrompt } });
+                msgs.Add(new Dictionary<string, object> { { "role", "user" }, { "content", userPrompt } });
+
+                payloadJson = s_js.Serialize(new Dictionary<string, object>
+                {
+                    { "model", model },
+                    { "temperature", 0.2 },
+                    { "max_tokens", maxTokens },
+                    { "messages", msgs }
+                });
+            }
+
+            string rawResp = SendPostWithProxyFallback(endpoint, payloadJson, apiKey, isAnthropic, out errorMsg);
+            if (rawResp == null) return null;
+
+            try
+            {
+                var doc = s_js.Deserialize<Dictionary<string, object>>(rawResp);
+                if (doc == null) { errorMsg = "无法解析接口返回 JSON"; return null; }
+
+                if (isAnthropic && doc.ContainsKey("content") && doc["content"] is System.Collections.IEnumerable)
+                {
+                    var sb = new StringBuilder();
+                    foreach (object block in (System.Collections.IEnumerable)doc["content"])
+                    {
+                        var bd = block as Dictionary<string, object>;
+                        if (bd != null && bd.ContainsKey("text")) sb.Append(Convert.ToString(bd["text"]));
+                    }
+                    return sb.ToString().Trim();
+                }
+
+                if (doc.ContainsKey("choices") && doc["choices"] is System.Collections.IEnumerable)
+                {
+                    foreach (object ch in (System.Collections.IEnumerable)doc["choices"])
+                    {
+                        var cd = ch as Dictionary<string, object>;
+                        if (cd != null && cd.ContainsKey("message") && cd["message"] is Dictionary<string, object>)
+                        {
+                            var md = (Dictionary<string, object>)cd["message"];
+                            if (md.ContainsKey("content"))
+                                return Convert.ToString(md["content"] ?? "").Trim();
+                        }
+                    }
+                }
+                errorMsg = "接口返回格式不含 message.content：" + (rawResp.Length > 200 ? rawResp.Substring(0, 200) : rawResp);
+                return null;
+            }
+            catch (Exception ex)
+            {
+                errorMsg = "解析模型响应出错：" + ex.Message;
+                return null;
+            }
+        }
+
+        private static string SendPostWithProxyFallback(string url, string bodyJson, string apiKey, bool isAnthropic, out string errorMsg)
+        {
+            errorMsg = null;
+            byte[] bodyBytes = s_utf8.GetBytes(bodyJson);
+
+            for (int attempt = 0; attempt < 2; attempt++)
+            {
+                try
+                {
+                    var req = (HttpWebRequest)WebRequest.Create(url);
+                    req.Method = "POST";
+                    req.ContentType = "application/json; charset=utf-8";
+                    req.Accept = "application/json";
+                    req.UserAgent = "ModelOutputHub/2.0";
+                    req.Timeout = 40000;
+                    req.ReadWriteTimeout = 40000;
+                    if (attempt == 1) req.Proxy = null;
+
+                    if (isAnthropic)
+                    {
+                        if (!string.IsNullOrEmpty(apiKey)) req.Headers["x-api-key"] = apiKey;
+                        req.Headers["anthropic-version"] = "2023-06-01";
+                    }
+                    else
+                    {
+                        if (!string.IsNullOrEmpty(apiKey)) req.Headers["Authorization"] = "Bearer " + apiKey;
+                    }
+
+                    using (Stream rs = req.GetRequestStream())
+                        rs.Write(bodyBytes, 0, bodyBytes.Length);
+
+                    using (var resp = (HttpWebResponse)req.GetResponse())
+                    using (var sr = new StreamReader(resp.GetResponseStream(), Encoding.UTF8))
+                        return sr.ReadToEnd();
+                }
+                catch (WebException wex)
+                {
+                    if (wex.Response != null)
+                    {
+                        try
+                        {
+                            var hresp = (HttpWebResponse)wex.Response;
+                            using (var sr = new StreamReader(hresp.GetResponseStream(), Encoding.UTF8))
+                            {
+                                string errBody = sr.ReadToEnd();
+                                if (errBody.Length > 260) errBody = errBody.Substring(0, 260) + "...";
+                                errorMsg = string.Format("HTTP {0}: {1}", (int)hresp.StatusCode, errBody);
+                                return null;
+                            }
+                        }
+                        catch { }
+                    }
+                    if (attempt == 0) continue; // Retry once bypassing dead system proxy!
+                    errorMsg = "网络连接失败（离线或地址不可达）：" + wex.Message;
+                    return null;
+                }
+                catch (Exception ex)
+                {
+                    errorMsg = "请求异常：" + ex.Message;
+                    return null;
+                }
+            }
+            return null;
+        }
+
+        public static string ExtractCleanFileExcerpt(string fp, int maxChars = 9000)
+        {
+            if (string.IsNullOrEmpty(fp) || !File.Exists(fp)) return "";
+            try
+            {
+                var fi = new FileInfo(fp);
+                string ext = (fi.Extension ?? "").ToLowerInvariant();
+                if (ext == ".html" || ext == ".htm")
+                {
+                    int readBytes = (int)Math.Min(3 * 1024 * 1024, fi.Length);
+                    byte[] buf = new byte[readBytes];
+                    using (var fs = new FileStream(fp, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                        fs.Read(buf, 0, readBytes);
+                    string html = Encoding.UTF8.GetString(buf);
+                    html = Regex.Replace(html, @"<script[\s\S]*?</script>", " ", RegexOptions.IgnoreCase);
+                    html = Regex.Replace(html, @"<style[\s\S]*?</style>", " ", RegexOptions.IgnoreCase);
+                    html = Regex.Replace(html, @"<svg[\s\S]*?</svg>", " ", RegexOptions.IgnoreCase);
+                    html = Regex.Replace(html, @"data:image/[^""'\)\s]+", "", RegexOptions.IgnoreCase);
+                    html = Regex.Replace(html, @"<[^>]+>", " ");
+                    html = System.Net.WebUtility.HtmlDecode(html);
+                    html = Regex.Replace(html, @"\s+", " ").Trim();
+                    return html.Length > maxChars ? html.Substring(0, maxChars) + "..." : html;
+                }
+                if (ext == ".txt" || ext == ".md" || ext == ".r" || ext == ".py" || ext == ".sh" || ext == ".csv" || ext == ".tsv" || ext == ".json")
+                {
+                    int readBytes = (int)Math.Min(65536, fi.Length);
+                    byte[] buf = new byte[readBytes];
+                    using (var fs = new FileStream(fp, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                        fs.Read(buf, 0, readBytes);
+                    string s;
+                    try { s = new UTF8Encoding(false, true).GetString(buf); }
+                    catch { try { s = Encoding.GetEncoding(936).GetString(buf); } catch { s = Encoding.UTF8.GetString(buf); } }
+                    return s.Length > maxChars ? s.Substring(0, maxChars) + "..." : s;
+                }
+                return string.Format("[二进制文件：{0}，大小：{1:F2} MB，最后修改：{2:yyyy-MM-dd HH:mm}]", fi.Name, fi.Length / 1048576.0, fi.LastWriteTime);
+            }
+            catch { return ""; }
         }
     }
 
@@ -899,6 +1413,7 @@ namespace ModelOutputHub
         private string _rootDir;
         private string _hubAppDir;
         private readonly string _appLocalDataDir;
+        private readonly string _thumbsDir;
         private string _cachePath;
         private string _metaPath;
         private readonly string _previewOutDir;
@@ -911,26 +1426,35 @@ namespace ModelOutputHub
         private bool _allowExit;
         private bool _shownTrayBalloonOnce;
         private volatile bool _disposed;
+        private volatile bool _isScanning;
+        private DateTime _lastScanUtc = DateTime.MinValue;
+
+        // Warm zero-orphan Python fitz thumbnail worker
+        private readonly object _thumbLock = new object();
+        private Process _thumbWorkerProc;
+        private List<string[]> _synonymGroups = new List<string[]>();
 
         public int ExitCode { get; private set; }
 
         public StudioWindow(string rootDir, string appLocalDataDir, string previewOutDir, EventWaitHandle wakeEvent)
         {
             _appLocalDataDir = appLocalDataDir;
+            _thumbsDir = Path.Combine(appLocalDataDir, "thumbs");
+            Directory.CreateDirectory(_thumbsDir);
             _previewOutDir = previewOutDir;
             BindRootDirectory(rootDir, false);
 
             Title = "模型输出管家";
-            Width = 1520;
-            Height = 900;
+            Width = 1560;
+            Height = 920;
             MinWidth = 1080;
             MinHeight = 680;
-            Background = new SolidColorBrush(Color.FromRgb(0xF1, 0xF3, 0xEE));
+            Background = new SolidColorBrush(System.Windows.Media.Color.FromRgb(0xF1, 0xF3, 0xEE));
 
             if (!string.IsNullOrEmpty(_previewOutDir))
             {
-                Width = 1560;
-                Height = 920;
+                Width = 1580;
+                Height = 940;
                 WindowStartupLocation = WindowStartupLocation.Manual;
                 Left = -12000;
                 Top = -12000;
@@ -942,9 +1466,8 @@ namespace ModelOutputHub
                 WindowStartupLocation = WindowStartupLocation.CenterScreen;
                 InitSystemTrayIcon();
                 if (wakeEvent != null)
-                {
                     StartSingleInstanceWakeListener(wakeEvent);
-                }
+                Activated += OnWindowActivatedAutoRefresh;
             }
 
             WindowStyle = WindowStyle.None;
@@ -970,6 +1493,15 @@ namespace ModelOutputHub
             Loaded += OnWindowLoaded;
         }
 
+        private void OnWindowActivatedAutoRefresh(object sender, EventArgs e)
+        {
+            if (_isScanning || !string.IsNullOrEmpty(_previewOutDir)) return;
+            if ((DateTime.UtcNow - _lastScanUtc).TotalSeconds > 25)
+            {
+                RunScanBackendAsync(false, "");
+            }
+        }
+
         private void BindRootDirectory(string newRootDir, bool saveAsDefault)
         {
             _rootDir = newRootDir;
@@ -982,13 +1514,13 @@ namespace ModelOutputHub
             }
             else
             {
-                // Standalone single-EXE mode: keep user's target directory 100% clean, store cache in %LOCALAPPDATA%\ModelOutputHub!
                 _hubAppDir = _appLocalDataDir;
                 string safeHash = Math.Abs((_rootDir ?? "").ToLowerInvariant().GetHashCode()).ToString();
                 _cachePath = Path.Combine(_appLocalDataDir, "scan_cache_" + safeHash + ".json");
                 _metaPath = Path.Combine(_appLocalDataDir, "user_meta.json");
             }
             _pythonExe = ResolvePythonExecutable(_hubAppDir);
+            BuildSynonymGroups();
 
             if (saveAsDefault)
             {
@@ -999,6 +1531,53 @@ namespace ModelOutputHub
                 }
                 catch { }
             }
+        }
+
+        private void BuildSynonymGroups()
+        {
+            var groups = new List<string[]>
+            {
+                new[] { "图注", "备注", "legend", "legends", "notes" },
+                new[] { "稿件", "正文", "论文", "文章", "manuscript", "paper" },
+                new[] { "压缩包", "打包", "便携包", ".zip", ".7z", ".rar", ".tgz" },
+                new[] { "表格", "数据表", "统计表", ".xlsx", ".xls", ".csv", ".tsv", "table" },
+                new[] { "图片", "卡通", "机制图", "流程图", "cartoon", "biorender", "workflow", ".png", ".svg" },
+                new[] { "报告", "网页", "审阅", "report", ".html" },
+                new[] { "演示", "汇报", "幻灯片", "ppt", ".pptx", "slide" },
+                new[] { "组图", "拼图", "整页", "a4", "fig" },
+                new[] { "代码", "脚本", ".py", ".r", ".sh", "script" },
+                new[] { "文档", "说明", ".docx", ".md", ".txt", "readme" }
+            };
+
+            // Dynamically load user's local topic keyword groups if private_profile.json / custom_topics.json exists!
+            foreach (string fn in new[] { "private_profile.json", "custom_topics.json" })
+            {
+                string fp = Path.Combine(_hubAppDir, fn);
+                if (!File.Exists(fp)) continue;
+                try
+                {
+                    var cfg = _json.Deserialize<Dictionary<string, object>>(File.ReadAllText(fp, Encoding.UTF8));
+                    if (cfg != null && cfg.ContainsKey("rules") && cfg["rules"] is System.Collections.IEnumerable)
+                    {
+                        foreach (object rObj in (System.Collections.IEnumerable)cfg["rules"])
+                        {
+                            var rDict = rObj as Dictionary<string, object>;
+                            if (rDict != null && rDict.ContainsKey("any") && rDict["any"] is System.Collections.IEnumerable)
+                            {
+                                var kws = new List<string>();
+                                foreach (object kw in (System.Collections.IEnumerable)rDict["any"])
+                                {
+                                    string s = Convert.ToString(kw ?? "").Trim().ToLowerInvariant();
+                                    if (s.Length >= 2) kws.Add(s);
+                                }
+                                if (kws.Count >= 2) groups.Add(kws.ToArray());
+                            }
+                        }
+                    }
+                }
+                catch { }
+            }
+            _synonymGroups = groups;
         }
 
         public static string ResolvePythonExecutable(string hubAppDir)
@@ -1017,9 +1596,7 @@ namespace ModelOutputHub
             if (Directory.Exists(pyRoot))
             {
                 foreach (string d in Directory.GetDirectories(pyRoot, "Python3*").OrderByDescending(x => x))
-                {
                     candidates.Add(Path.Combine(d, "python.exe"));
-                }
             }
 
             foreach (string c in candidates)
@@ -1035,7 +1612,7 @@ namespace ModelOutputHub
             {
                 _trayIcon = new WinForms.NotifyIcon
                 {
-                    Text = "模型输出管家 — 点击显示主界面"
+                    Text = "模型输出管家 — 点击直达找文件工作台"
                 };
 
                 try
@@ -1053,28 +1630,18 @@ namespace ModelOutputHub
                     Font = new System.Drawing.Font("Microsoft YaHei UI", 9.5f)
                 };
 
-                var itemOpen = new WinForms.ToolStripMenuItem("显示主窗口")
-                {
-                    Font = new System.Drawing.Font("Microsoft YaHei UI", 9.5f, System.Drawing.FontStyle.Bold)
-                };
+                var itemOpen = new WinForms.ToolStripMenuItem("打开主窗口（秒搜找文件）");
+                itemOpen.Font = new System.Drawing.Font("Microsoft YaHei UI", 9.5f, System.Drawing.FontStyle.Bold);
                 itemOpen.Click += (s, e) => Dispatcher.BeginInvoke(new Action(RestoreFromTray));
 
-                var itemSearch = new WinForms.ToolStripMenuItem("全局秒搜课题 (Ctrl+K)");
-                itemSearch.Click += (s, e) => Dispatcher.BeginInvoke(new Action(async () =>
+                var itemPick = new WinForms.ToolStripMenuItem("切换输出总目录...");
+                itemPick.Click += (s, e) => Dispatcher.BeginInvoke(new Action(() =>
                 {
                     RestoreFromTray();
-                    try
-                    {
-                        if (_webView.CoreWebView2 != null)
-                            await _webView.CoreWebView2.ExecuteScriptAsync("if(window.openCmdPalette)openCmdPalette();");
-                    }
-                    catch { }
+                    PickAndSwitchRootDir();
                 }));
 
-                var itemPick = new WinForms.ToolStripMenuItem("切换纳管目录...");
-                itemPick.Click += (s, e) => Dispatcher.BeginInvoke(new Action(PickAndSwitchRootDir));
-
-                var itemRoot = new WinForms.ToolStripMenuItem("打开当前输出目录");
+                var itemRoot = new WinForms.ToolStripMenuItem("打开当前输出文件夹");
                 itemRoot.Click += (s, e) =>
                 {
                     if (Directory.Exists(_rootDir))
@@ -1082,13 +1649,12 @@ namespace ModelOutputHub
                 };
 
                 var itemRefresh = new WinForms.ToolStripMenuItem("立即重新扫描");
-                itemRefresh.Click += (s, e) => RunScanBackendAsync(false);
+                itemRefresh.Click += (s, e) => Dispatcher.BeginInvoke(new Action(() => RunScanBackendAsync(false)));
 
                 var itemExit = new WinForms.ToolStripMenuItem("彻底退出模型输出管家");
                 itemExit.Click += (s, e) => Dispatcher.BeginInvoke(new Action(ExitApplicationCompletely));
 
                 menu.Items.Add(itemOpen);
-                menu.Items.Add(itemSearch);
                 menu.Items.Add(itemPick);
                 menu.Items.Add(itemRoot);
                 menu.Items.Add(itemRefresh);
@@ -1101,7 +1667,6 @@ namespace ModelOutputHub
                     if (e.Button == WinForms.MouseButtons.Left)
                         Dispatcher.BeginInvoke(new Action(RestoreFromTray));
                 };
-                _trayIcon.DoubleClick += (s, e) => Dispatcher.BeginInvoke(new Action(RestoreFromTray));
                 _trayIcon.Visible = true;
             }
             catch { }
@@ -1115,11 +1680,8 @@ namespace ModelOutputHub
                 {
                     try
                     {
-                        if (wakeEvent.WaitOne(1000))
-                        {
-                            if (_disposed) break;
+                        if (wakeEvent.WaitOne(500))
                             Dispatcher.BeginInvoke(new Action(RestoreFromTray));
-                        }
                     }
                     catch { break; }
                 }
@@ -1142,7 +1704,7 @@ namespace ModelOutputHub
                     _trayIcon.ShowBalloonTip(
                         2200,
                         "模型输出管家已最小化到托盘",
-                        "单击右下角托盘图标即可随时唤起；右键托盘图标可彻底退出。",
+                        "单击右下角托盘图标即可随时唤起秒搜文件；右键可彻底退出。",
                         WinForms.ToolTipIcon.None);
                 }
                 catch { }
@@ -1158,14 +1720,41 @@ namespace ModelOutputHub
                 Activate();
                 IntPtr hwnd = new WindowInteropHelper(this).Handle;
                 if (hwnd != IntPtr.Zero) SetForegroundWindow(hwnd);
+                if (_webView != null && _webView.CoreWebView2 != null)
+                {
+                    _webView.CoreWebView2.ExecuteScriptAsync("if(window.__focusMainSearch)window.__focusMainSearch();");
+                }
             }
             catch { }
+        }
+
+        private void StopThumbWorker()
+        {
+            lock (_thumbLock)
+            {
+                if (_thumbWorkerProc != null)
+                {
+                    try
+                    {
+                        if (!_thumbWorkerProc.HasExited)
+                        {
+                            _thumbWorkerProc.StandardInput.Close();
+                            if (!_thumbWorkerProc.WaitForExit(300))
+                                _thumbWorkerProc.Kill();
+                        }
+                        _thumbWorkerProc.Dispose();
+                    }
+                    catch { }
+                    _thumbWorkerProc = null;
+                }
+            }
         }
 
         public void ExitApplicationCompletely()
         {
             _allowExit = true;
             _disposed = true;
+            StopThumbWorker();
             if (_trayIcon != null)
             {
                 try { _trayIcon.Visible = false; _trayIcon.Dispose(); _trayIcon = null; } catch { }
@@ -1183,15 +1772,14 @@ namespace ModelOutputHub
                 return;
             }
             _disposed = true;
+            StopThumbWorker();
             if (_trayIcon != null)
             {
                 try { _trayIcon.Visible = false; _trayIcon.Dispose(); } catch { }
             }
             base.OnClosing(e);
             if (Application.Current != null && !string.IsNullOrEmpty(_previewOutDir))
-            {
                 Application.Current.Shutdown(ExitCode);
-            }
         }
 
         private void OnSourceInitialized(object sender, EventArgs e)
@@ -1209,15 +1797,24 @@ namespace ModelOutputHub
         {
             try
             {
-                // Always store WebView2 user profile in LocalApplicationData so read-only / Downloads / Program Files folders never fail!
                 string profileDir = Path.Combine(_appLocalDataDir, string.IsNullOrEmpty(_previewOutDir) ? "wv2_profile" : "wv2_preview_profile");
                 Directory.CreateDirectory(profileDir);
 
-                // Ensure initial scan exists immediately via pure C# NativeScanner if cache doesn't exist yet!
-                if (!File.Exists(_cachePath))
+                bool needFreshScan = !File.Exists(_cachePath);
+                if (!needFreshScan)
                 {
-                    PerformScanSync(false);
+                    try
+                    {
+                        string head = File.ReadAllText(_cachePath, Encoding.UTF8);
+                        if (!head.Contains("\"_schema_ver\": 3") && !head.Contains("\"_schema_ver\":3"))
+                            needFreshScan = true;
+                    }
+                    catch { needFreshScan = true; }
                 }
+                if (needFreshScan)
+                    PerformScanSync(false);
+                else
+                    _lastScanUtc = DateTime.UtcNow;
 
                 var env = await CoreWebView2Environment.CreateAsync(null, profileDir);
                 await _webView.EnsureCoreWebView2Async(env);
@@ -1225,7 +1822,7 @@ namespace ModelOutputHub
                 var settings = _webView.CoreWebView2.Settings;
                 settings.AreDefaultContextMenusEnabled = false;
                 settings.IsStatusBarEnabled = false;
-                settings.IsZoomControlEnabled = false;
+                settings.IsZoomControlEnabled = true;
                 settings.AreBrowserAcceleratorKeysEnabled = false;
 
                 _webView.CoreWebView2.AddWebResourceRequestedFilter("https://hub.local/*", CoreWebView2WebResourceContext.All);
@@ -1241,6 +1838,9 @@ namespace ModelOutputHub
                 }
 
                 _webView.CoreWebView2.Navigate("https://hub.local/app");
+                // Also kick off a silent incremental background refresh on cold boot so newest files are guaranteed fresh!
+                if (!needFreshScan)
+                    RunScanBackendAsync(false, "");
             }
             catch (Exception ex)
             {
@@ -1289,25 +1889,35 @@ namespace ModelOutputHub
 
         private void PerformScanSync(bool runTidyFirst)
         {
+            _isScanning = true;
             try
             {
                 string pyScript = Path.Combine(_hubAppDir, runTidyFirst ? "tidy_outputs.py" : "topic_rules.py");
                 if (!string.IsNullOrEmpty(_pythonExe) && File.Exists(_pythonExe) && File.Exists(pyScript))
                 {
                     RunProcessSilent(_pythonExe, "\"" + pyScript + "\"", _rootDir);
-                    if (File.Exists(_cachePath)) return;
+                    if (File.Exists(_cachePath))
+                    {
+                        _lastScanUtc = DateTime.UtcNow;
+                        return;
+                    }
                 }
 
-                // Pure C# built-in fallback (zero Python dependency!)
                 string json = NativeScanner.ScanDirectoryToJson(_rootDir, LoadUserMetaDict());
                 Directory.CreateDirectory(Path.GetDirectoryName(_cachePath));
                 File.WriteAllText(_cachePath, json, s_utf8NoBom);
+                _lastScanUtc = DateTime.UtcNow;
             }
             catch { }
+            finally
+            {
+                _isScanning = false;
+            }
         }
 
         private void RunScanBackendAsync(bool runTidyFirst, string customToast = null)
         {
+            if (_isScanning) return;
             Task.Run(() =>
             {
                 PerformScanSync(runTidyFirst);
@@ -1315,8 +1925,11 @@ namespace ModelOutputHub
                 {
                     try
                     {
-                        string toast = customToast ?? (runTidyFirst ? "已完成无损归整并更新课题快捷方式" : "目录扫描已更新");
-                        string js = "fetch('https://hub.local/api/state').then(r=>r.json()).then(d=>{ d.toast='" + toast + "'; window.__onHostDataUpdated(d); });";
+                        string toast = customToast == null
+                            ? (runTidyFirst ? "已完成无损归整并更新课题快捷方式" : "目录扫描已更新")
+                            : customToast;
+                        string jsToast = toast.Replace("\\", "\\\\").Replace("'", "\\'");
+                        string js = "fetch('https://hub.local/api/state').then(r=>r.json()).then(d=>{ d.toast='" + jsToast + "'; window.__onHostDataUpdated(d); });";
                         if (_webView.CoreWebView2 != null)
                             await _webView.CoreWebView2.ExecuteScriptAsync(js);
                     }
@@ -1325,12 +1938,471 @@ namespace ModelOutputHub
             });
         }
 
+        private static Dictionary<string, string> ParseQueryParams(string query)
+        {
+            var dict = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            if (string.IsNullOrEmpty(query)) return dict;
+            string q = query.TrimStart('?');
+            foreach (string part in q.Split('&'))
+            {
+                if (string.IsNullOrEmpty(part)) continue;
+                int eq = part.IndexOf('=');
+                if (eq > 0)
+                {
+                    string k = Uri.UnescapeDataString(part.Substring(0, eq).Replace('+', ' '));
+                    string v = Uri.UnescapeDataString(part.Substring(eq + 1).Replace('+', ' '));
+                    dict[k] = v;
+                }
+            }
+            return dict;
+        }
+
+        private bool TryRenderPdfViaFitzWorker(string pdfPath, string outPngPath)
+        {
+            string workerPy = Path.Combine(_hubAppDir, "thumb_worker.py");
+            if (string.IsNullOrEmpty(_pythonExe) || !File.Exists(_pythonExe) || !File.Exists(workerPy))
+                return false;
+
+            lock (_thumbLock)
+            {
+                try
+                {
+                    if (_thumbWorkerProc == null || _thumbWorkerProc.HasExited)
+                    {
+                        var psi = new ProcessStartInfo(_pythonExe, "-u \"" + workerPy + "\"")
+                        {
+                            CreateNoWindow = true,
+                            UseShellExecute = false,
+                            RedirectStandardInput = true,
+                            RedirectStandardOutput = true,
+                            RedirectStandardError = true,
+                            StandardOutputEncoding = Encoding.UTF8
+                        };
+                        _thumbWorkerProc = Process.Start(psi);
+                    }
+                    if (_thumbWorkerProc == null) return false;
+
+                    byte[] lineBytes = s_utf8NoBom.GetBytes(pdfPath + "\t" + outPngPath + "\n");
+                    _thumbWorkerProc.StandardInput.BaseStream.Write(lineBytes, 0, lineBytes.Length);
+                    _thumbWorkerProc.StandardInput.BaseStream.Flush();
+
+                    string resp = _thumbWorkerProc.StandardOutput.ReadLine();
+                    return resp != null && resp.StartsWith("OK") && File.Exists(outPngPath);
+                }
+                catch
+                {
+                    try { if (_thumbWorkerProc != null) _thumbWorkerProc.Kill(); } catch { }
+                    _thumbWorkerProc = null;
+                    return false;
+                }
+            }
+        }
+
+        private string GetOrCreateThumbnailPng(string filePath)
+        {
+            if (string.IsNullOrEmpty(filePath) || !File.Exists(filePath)) return null;
+            FileInfo fi;
+            try { fi = new FileInfo(filePath); } catch { return null; }
+
+            string sig = filePath.ToLowerInvariant() + "|" + fi.Length + "|" + fi.LastWriteTimeUtc.Ticks;
+            string hashHex;
+            using (var sha = SHA1.Create())
+            {
+                byte[] hb = sha.ComputeHash(Encoding.UTF8.GetBytes(sig));
+                var sb = new StringBuilder(40);
+                for (int i = 0; i < 16; i++) sb.Append(hb[i].ToString("x2"));
+                hashHex = sb.ToString();
+            }
+
+            string outPng = Path.Combine(_thumbsDir, hashHex + ".png");
+            if (File.Exists(outPng) && new FileInfo(outPng).Length > 64)
+                return outPng;
+
+            string ext = (fi.Extension ?? "").ToLowerInvariant();
+            if (ext == ".png" || ext == ".jpg" || ext == ".jpeg" || ext == ".bmp")
+            {
+                if (fi.Length <= 380 * 1024 && ext == ".png")
+                    return filePath;
+                if (ShellThumbnailHelper.TrySaveGdiImageThumbnailPng(filePath, outPng, 420))
+                    return outPng;
+                return filePath;
+            }
+
+            if (ext == ".pdf")
+            {
+                if (TryRenderPdfViaFitzWorker(filePath, outPng))
+                    return outPng;
+                if (ShellThumbnailHelper.TrySaveShellThumbnailPng(filePath, outPng, 420))
+                    return outPng;
+                return null;
+            }
+
+            if (ext == ".pptx" || ext == ".ppt" || ext == ".docx" || ext == ".xlsx")
+            {
+                if (ShellThumbnailHelper.TrySaveShellThumbnailPng(filePath, outPng, 420))
+                    return outPng;
+            }
+            return null;
+        }
+
+        private static string ReadTextPreviewSmart(string fp, int maxBytes, out bool truncated)
+        {
+            truncated = false;
+            byte[] buf;
+            using (var fs = new FileStream(fp, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+            {
+                long len = fs.Length;
+                int toRead = (int)Math.Min(maxBytes, len);
+                truncated = len > maxBytes;
+                buf = new byte[toRead];
+                int n = fs.Read(buf, 0, toRead);
+                if (n < toRead) Array.Resize(ref buf, n);
+            }
+            if (buf.Length >= 3 && buf[0] == 0xEF && buf[1] == 0xBB && buf[2] == 0xBF)
+                return Encoding.UTF8.GetString(buf, 3, buf.Length - 3);
+
+            try
+            {
+                var strictUtf8 = new UTF8Encoding(false, true);
+                return strictUtf8.GetString(buf);
+            }
+            catch
+            {
+                try { return Encoding.GetEncoding(936).GetString(buf); }
+                catch { return Encoding.UTF8.GetString(buf); }
+            }
+        }
+
+        private string BuildPreviewInfoJson(string fp)
+        {
+            if (string.IsNullOrEmpty(fp) || !File.Exists(fp))
+                return "{\"ok\":false,\"error\":\"文件不存在\"}";
+
+            var fi = new FileInfo(fp);
+            string ext = (fi.Extension ?? "").ToLowerInvariant();
+            var res = new Dictionary<string, object>
+            {
+                { "ok", true },
+                { "name", fi.Name },
+                { "path", fp },
+                { "dir", fi.DirectoryName ?? "" },
+                { "ext", ext },
+                { "size_mb", Math.Round(fi.Length / 1048576.0, 3) },
+                { "size_kb", Math.Round(fi.Length / 1024.0, 1) },
+                { "date", fi.LastWriteTime.ToString("yyyy-MM-dd HH:mm:ss") }
+            };
+
+            // Sibling deliverable files in the same folder (huge UX helper!)
+            var siblings = new List<Dictionary<string, object>>();
+            try
+            {
+                if (!string.IsNullOrEmpty(fi.DirectoryName) && Directory.Exists(fi.DirectoryName))
+                {
+                    foreach (var sfi in new DirectoryInfo(fi.DirectoryName).GetFiles()
+                        .Where(x => !x.Name.StartsWith("~$") && !x.FullName.Equals(fp, StringComparison.OrdinalIgnoreCase))
+                        .OrderByDescending(x => x.LastWriteTimeUtc)
+                        .Take(12))
+                    {
+                        siblings.Add(new Dictionary<string, object>
+                        {
+                            { "name", sfi.Name },
+                            { "path", sfi.FullName },
+                            { "ext", (sfi.Extension ?? "").ToLowerInvariant() },
+                            { "size_mb", Math.Round(sfi.Length / 1048576.0, 2) },
+                            { "date", sfi.LastWriteTime.ToString("MM-dd HH:mm") }
+                        });
+                    }
+                }
+            }
+            catch { }
+            res["siblings"] = siblings;
+
+            if (ext == ".csv" || ext == ".tsv")
+            {
+                bool trunc;
+                string txt = ReadTextPreviewSmart(fp, 49152, out trunc);
+                char sep = ext == ".tsv" ? '\t' : ',';
+                var rows = new List<string[]>();
+                using (var sr = new StringReader(txt))
+                {
+                    string line;
+                    while ((line = sr.ReadLine()) != null && rows.Count < 35)
+                    {
+                        if (string.IsNullOrWhiteSpace(line)) continue;
+                        string[] cols = line.Split(sep);
+                        if (cols.Length > 14) cols = cols.Take(14).ToArray();
+                        rows.Add(cols);
+                    }
+                }
+                res["mode"] = "table";
+                res["rows"] = rows;
+                res["truncated"] = trunc;
+            }
+            else if (ext == ".txt" || ext == ".md" || ext == ".r" || ext == ".py" || ext == ".sh" ||
+                     ext == ".json" || ext == ".yaml" || ext == ".yml" || ext == ".log" || ext == ".sql")
+            {
+                bool trunc;
+                string txt = ReadTextPreviewSmart(fp, 49152, out trunc);
+                res["mode"] = "text";
+                res["content"] = txt;
+                res["truncated"] = trunc;
+            }
+            else if (ext == ".zip")
+            {
+                res["mode"] = "zip";
+                var entries = new List<Dictionary<string, object>>();
+                int totalEntries = 0;
+                try
+                {
+                    using (var fs = new FileStream(fp, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                    using (var za = new ZipArchive(fs, ZipArchiveMode.Read))
+                    {
+                        totalEntries = za.Entries.Count;
+                        foreach (var e in za.Entries.Take(80))
+                        {
+                            if (string.IsNullOrEmpty(e.Name) && e.FullName.EndsWith("/")) continue;
+                            entries.Add(new Dictionary<string, object>
+                            {
+                                { "name", e.FullName },
+                                { "kb", Math.Round(e.Length / 1024.0, 1) }
+                            });
+                        }
+                    }
+                }
+                catch { }
+                res["zip_total"] = totalEntries;
+                res["zip_entries"] = entries;
+            }
+            else
+            {
+                string th = GetOrCreateThumbnailPng(fp);
+                res["has_thumb"] = !string.IsNullOrEmpty(th);
+                res["mode"] = "binary";
+            }
+
+            return _json.Serialize(res);
+        }
+
+        private List<string[]> ExpandQueryTokens(string rawQuery)
+        {
+            var tokenAlts = new List<string[]>();
+            if (string.IsNullOrWhiteSpace(rawQuery)) return tokenAlts;
+
+            foreach (string rawTok in Regex.Split(rawQuery.Trim().ToLowerInvariant(), @"\s+"))
+            {
+                if (string.IsNullOrEmpty(rawTok)) continue;
+                var alts = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { rawTok };
+                foreach (var grp in _synonymGroups)
+                {
+                    if (grp.Any(w => w.Equals(rawTok, StringComparison.OrdinalIgnoreCase) || (rawTok.Length >= 2 && w.Contains(rawTok))))
+                    {
+                        foreach (string w in grp) alts.Add(w);
+                    }
+                }
+                tokenAlts.Add(alts.ToArray());
+            }
+            return tokenAlts;
+        }
+
+        private string RunLiveDiskSearchJson(string rawQuery)
+        {
+            var sw = Stopwatch.StartNew();
+            var tokenAlts = ExpandQueryTokens(rawQuery);
+            if (tokenAlts.Count == 0 || !Directory.Exists(_rootDir))
+                return "{\"items\":[],\"ms\":0}";
+
+            var hits = new List<Dictionary<string, object>>();
+            var stack = new Stack<string>();
+            stack.Push(_rootDir);
+
+            int scanned = 0;
+            while (stack.Count > 0 && scanned < 95000)
+            {
+                string cur = stack.Pop();
+                try
+                {
+                    foreach (string fp in Directory.GetFiles(cur))
+                    {
+                        scanned++;
+                        string fn = Path.GetFileName(fp);
+                        if (fn.StartsWith("~$") || fn.EndsWith(".pyc", StringComparison.OrdinalIgnoreCase)) continue;
+
+                        string rel = fp.StartsWith(_rootDir, StringComparison.OrdinalIgnoreCase)
+                            ? fp.Substring(_rootDir.Length).TrimStart('\\', '/').Replace('\\', '/')
+                            : fn;
+                        string hay = rel.ToLowerInvariant();
+
+                        bool allMatch = true;
+                        for (int i = 0; i < tokenAlts.Count; i++)
+                        {
+                            string[] alts = tokenAlts[i];
+                            bool anyAlt = false;
+                            for (int j = 0; j < alts.Length; j++)
+                            {
+                                if (hay.Contains(alts[j])) { anyAlt = true; break; }
+                            }
+                            if (!anyAlt) { allMatch = false; break; }
+                        }
+                        if (!allMatch) continue;
+
+                        FileInfo fi;
+                        try { fi = new FileInfo(fp); } catch { continue; }
+                        if (fi.Length == 0) continue;
+
+                        string ext = (fi.Extension ?? "").ToLowerInvariant();
+                        double mt = NativeScanner.ToUnixTime(fi.LastWriteTimeUtc);
+                        string fnLow = fn.ToLowerInvariant();
+                        int score = 0;
+                        foreach (var alts in tokenAlts)
+                        {
+                            if (alts.Any(a => fnLow.Contains(a))) score += 20;
+                        }
+                        if (ext == ".html" || ext == ".pptx" || ext == ".pdf" || ext == ".zip" || ext == ".docx" || ext == ".xlsx" || ext == ".md" || ext == ".txt" || ext == ".png")
+                            score += 10;
+
+                        string[] parts = rel.Split('/');
+                        string platDir = parts.Length > 1 ? parts[0] : "本地目录";
+                        string projFolder = parts.Length > 2 ? parts[1] : Path.GetFileName(Path.GetDirectoryName(fp) ?? "");
+
+                        hits.Add(new Dictionary<string, object>
+                        {
+                            { "name", fn },
+                            { "path", fp },
+                            { "rel", rel },
+                            { "dir", fi.DirectoryName ?? "" },
+                            { "proj_name", projFolder },
+                            { "platform", NativeScanner.InferPlatformLabel(platDir) },
+                            { "ext", ext },
+                            { "size_mb", Math.Round(fi.Length / 1048576.0, 2) },
+                            { "mtime", mt },
+                            { "date", fi.LastWriteTime.ToString("yyyy-MM-dd HH:mm") },
+                            { "_score", score }
+                        });
+                    }
+
+                    foreach (string sub in Directory.GetDirectories(cur))
+                    {
+                        string dn = Path.GetFileName(sub);
+                        if (dn.Equals(".git", StringComparison.OrdinalIgnoreCase) ||
+                            dn.Equals("__pycache__", StringComparison.OrdinalIgnoreCase) ||
+                            dn.Equals("node_modules", StringComparison.OrdinalIgnoreCase) ||
+                            dn.Equals("wv2_profile", StringComparison.OrdinalIgnoreCase) ||
+                            dn.Equals("00_按课题总览", StringComparison.OrdinalIgnoreCase))
+                            continue;
+                        FileAttributes attr;
+                        try { attr = File.GetAttributes(sub); } catch { continue; }
+                        if ((attr & FileAttributes.ReparsePoint) != 0) continue;
+                        stack.Push(sub);
+                    }
+                }
+                catch { }
+            }
+
+            var topHits = hits
+                .OrderByDescending(x => Convert.ToInt32(x["_score"]))
+                .ThenByDescending(x => Convert.ToDouble(x["mtime"]))
+                .Take(120)
+                .ToList();
+
+            return _json.Serialize(new Dictionary<string, object>
+            {
+                { "items", topHits },
+                { "total_hits", hits.Count },
+                { "scanned", scanned },
+                { "ms", (int)sw.ElapsedMilliseconds }
+            });
+        }
+
+        private string BuildFolderListJson(string targetDir)
+        {
+            string dir = string.IsNullOrEmpty(targetDir) || !Directory.Exists(targetDir) ? _rootDir : Path.GetFullPath(targetDir);
+            if (!Directory.Exists(dir))
+                return "{\"ok\":false,\"dirs\":[],\"files\":[]}";
+
+            var dirs = new List<Dictionary<string, object>>();
+            var files = new List<Dictionary<string, object>>();
+
+            try
+            {
+                foreach (var di in new DirectoryInfo(dir).GetDirectories().OrderByDescending(d => d.LastWriteTimeUtc))
+                {
+                    if (di.Name.Equals("wv2_profile", StringComparison.OrdinalIgnoreCase) || di.Name.StartsWith(".")) continue;
+                    dirs.Add(new Dictionary<string, object>
+                    {
+                        { "name", di.Name },
+                        { "path", di.FullName },
+                        { "mtime", NativeScanner.ToUnixTime(di.LastWriteTimeUtc) },
+                        { "date", di.LastWriteTime.ToString("yyyy-MM-dd HH:mm") }
+                    });
+                }
+
+                foreach (var fi in new DirectoryInfo(dir).GetFiles().Where(f => !f.Name.StartsWith("~$")).OrderByDescending(f => f.LastWriteTimeUtc))
+                {
+                    string ext = (fi.Extension ?? "").ToLowerInvariant();
+                    string figGroup, figPanel;
+                    int figOrder;
+                    NativeScanner.ParseFigureTag(fi.Name, "", out figGroup, out figPanel, out figOrder);
+                    files.Add(new Dictionary<string, object>
+                    {
+                        { "name", fi.Name },
+                        { "path", fi.FullName },
+                        { "rel", fi.Name },
+                        { "ext", ext },
+                        { "size_mb", Math.Round(fi.Length / 1048576.0, 2) },
+                        { "mtime", NativeScanner.ToUnixTime(fi.LastWriteTimeUtc) },
+                        { "date", fi.LastWriteTime.ToString("yyyy-MM-dd HH:mm") },
+                        { "fig_group", figGroup },
+                        { "fig_panel", figPanel }
+                    });
+                }
+            }
+            catch { }
+
+            string parentDir = "";
+            try
+            {
+                var p = Directory.GetParent(dir);
+                if (p != null && dir.Length > _rootDir.Length)
+                    parentDir = p.FullName;
+            }
+            catch { }
+
+            return _json.Serialize(new Dictionary<string, object>
+            {
+                { "ok", true },
+                { "path", dir },
+                { "parent", parentDir },
+                { "is_root", dir.TrimEnd('\\', '/').Equals(_rootDir.TrimEnd('\\', '/'), StringComparison.OrdinalIgnoreCase) },
+                { "dirs", dirs },
+                { "files", files }
+            });
+        }
+
+        private static string GuessMimeType(string ext)
+        {
+            switch ((ext ?? "").ToLowerInvariant())
+            {
+                case ".pdf": return "application/pdf";
+                case ".png": return "image/png";
+                case ".jpg":
+                case ".jpeg": return "image/jpeg";
+                case ".webp": return "image/webp";
+                case ".gif": return "image/gif";
+                case ".svg": return "image/svg+xml";
+                case ".html":
+                case ".htm": return "text/html; charset=utf-8";
+                default: return "text/plain; charset=utf-8";
+            }
+        }
+
         private void OnWebResourceRequested(object sender, CoreWebView2WebResourceRequestedEventArgs e)
         {
             try
             {
                 Uri uri = new Uri(e.Request.Uri);
-                if (uri.AbsolutePath.Equals("/app", StringComparison.OrdinalIgnoreCase) || uri.AbsolutePath == "/")
+                string pathOnly = uri.AbsolutePath;
+
+                if (pathOnly.Equals("/app", StringComparison.OrdinalIgnoreCase) || pathOnly == "/")
                 {
                     Stream resStream = Assembly.GetExecutingAssembly().GetManifestResourceStream("ModelOutputHub.StudioUI");
                     if (resStream != null)
@@ -1344,7 +2416,7 @@ namespace ModelOutputHub
                         return;
                     }
                 }
-                else if (uri.AbsolutePath.Equals("/api/state", StringComparison.OrdinalIgnoreCase))
+                else if (pathOnly.Equals("/api/state", StringComparison.OrdinalIgnoreCase))
                 {
                     byte[] cacheBytes = File.Exists(_cachePath)
                         ? File.ReadAllBytes(_cachePath)
@@ -1368,16 +2440,79 @@ namespace ModelOutputHub
                         ms, 200, "OK", "Content-Type: application/json; charset=utf-8\r\nCache-Control: no-store");
                     return;
                 }
-                else if (uri.AbsolutePath.StartsWith("/fonts/", StringComparison.OrdinalIgnoreCase))
+                else if (pathOnly.Equals("/rawfile", StringComparison.OrdinalIgnoreCase))
+                {
+                    var qp = ParseQueryParams(uri.Query);
+                    string fp;
+                    if (qp.TryGetValue("path", out fp) && File.Exists(fp))
+                    {
+                        string ext = Path.GetExtension(fp);
+                        var fs = new FileStream(fp, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                        e.Response = _webView.CoreWebView2.Environment.CreateWebResourceResponse(
+                            fs, 200, "OK", "Content-Type: " + GuessMimeType(ext) + "\r\nAccess-Control-Allow-Origin: *\r\nCache-Control: no-cache");
+                        return;
+                    }
+                    e.Response = _webView.CoreWebView2.Environment.CreateWebResourceResponse(new MemoryStream(), 404, "Not Found", "Content-Type: text/plain");
+                    return;
+                }
+                else if (pathOnly.Equals("/api/thumb", StringComparison.OrdinalIgnoreCase))
+                {
+                    var qp = ParseQueryParams(uri.Query);
+                    string fp;
+                    if (qp.TryGetValue("path", out fp))
+                    {
+                        string thumbPng = GetOrCreateThumbnailPng(fp);
+                        if (!string.IsNullOrEmpty(thumbPng) && File.Exists(thumbPng))
+                        {
+                            var ms = new MemoryStream(File.ReadAllBytes(thumbPng));
+                            e.Response = _webView.CoreWebView2.Environment.CreateWebResourceResponse(
+                                ms, 200, "OK", "Content-Type: image/png\r\nCache-Control: max-age=3600");
+                            return;
+                        }
+                    }
+                    e.Response = _webView.CoreWebView2.Environment.CreateWebResourceResponse(new MemoryStream(), 404, "No Thumb", "Content-Type: text/plain");
+                    return;
+                }
+                else if (pathOnly.Equals("/api/preview-info", StringComparison.OrdinalIgnoreCase))
+                {
+                    var qp = ParseQueryParams(uri.Query);
+                    string fp;
+                    qp.TryGetValue("path", out fp);
+                    byte[] body = s_utf8NoBom.GetBytes(BuildPreviewInfoJson(fp));
+                    e.Response = _webView.CoreWebView2.Environment.CreateWebResourceResponse(
+                        new MemoryStream(body), 200, "OK", "Content-Type: application/json; charset=utf-8\r\nCache-Control: no-store");
+                    return;
+                }
+                else if (pathOnly.Equals("/api/live-search", StringComparison.OrdinalIgnoreCase))
+                {
+                    var qp = ParseQueryParams(uri.Query);
+                    string qVal;
+                    qp.TryGetValue("q", out qVal);
+                    byte[] body = s_utf8NoBom.GetBytes(RunLiveDiskSearchJson(qVal));
+                    e.Response = _webView.CoreWebView2.Environment.CreateWebResourceResponse(
+                        new MemoryStream(body), 200, "OK", "Content-Type: application/json; charset=utf-8\r\nCache-Control: no-store");
+                    return;
+                }
+                else if (pathOnly.Equals("/api/folder-list", StringComparison.OrdinalIgnoreCase))
+                {
+                    var qp = ParseQueryParams(uri.Query);
+                    string dVal;
+                    qp.TryGetValue("path", out dVal);
+                    byte[] body = s_utf8NoBom.GetBytes(BuildFolderListJson(dVal));
+                    e.Response = _webView.CoreWebView2.Environment.CreateWebResourceResponse(
+                        new MemoryStream(body), 200, "OK", "Content-Type: application/json; charset=utf-8\r\nCache-Control: no-store");
+                    return;
+                }
+                else if (pathOnly.StartsWith("/fonts/", StringComparison.OrdinalIgnoreCase))
                 {
                     string userFontDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), @"Microsoft\Windows\Fonts");
                     string sysFontDir = Environment.GetFolderPath(Environment.SpecialFolder.Fonts);
                     string targetFont = null;
-                    if (uri.AbsolutePath.EndsWith("wenkai-bold.ttf", StringComparison.OrdinalIgnoreCase))
+                    if (pathOnly.EndsWith("wenkai-bold.ttf", StringComparison.OrdinalIgnoreCase))
                         targetFont = Path.Combine(userFontDir, "LXGWWenKaiMonoBold-Base.ttf");
-                    else if (uri.AbsolutePath.EndsWith("wenkai-xbold.ttf", StringComparison.OrdinalIgnoreCase))
+                    else if (pathOnly.EndsWith("wenkai-xbold.ttf", StringComparison.OrdinalIgnoreCase))
                         targetFont = Path.Combine(userFontDir, "LXGWWenKaiMonoXBold.ttf");
-                    else if (uri.AbsolutePath.EndsWith("wenkai-reg.ttf", StringComparison.OrdinalIgnoreCase))
+                    else if (pathOnly.EndsWith("wenkai-reg.ttf", StringComparison.OrdinalIgnoreCase))
                     {
                         targetFont = Path.Combine(sysFontDir, "LXGWWenKai-Regular.ttf");
                         if (!File.Exists(targetFont)) targetFont = Path.Combine(userFontDir, "LXGWWenKai-Regular.ttf");
@@ -1390,6 +2525,16 @@ namespace ModelOutputHub
                             fms, 200, "OK", "Content-Type: font/ttf\r\nAccess-Control-Allow-Origin: *\r\nCache-Control: max-age=86400");
                         return;
                     }
+                    e.Response = _webView.CoreWebView2.Environment.CreateWebResourceResponse(
+                        new MemoryStream(), 404, "Not Found", "Content-Type: text/plain");
+                    return;
+                }
+                else if (pathOnly.Equals("/api/ai-config", StringComparison.OrdinalIgnoreCase))
+                {
+                    byte[] body = s_utf8NoBom.GetBytes(LlmGateway.GetPublicConfigJson(_appLocalDataDir));
+                    e.Response = _webView.CoreWebView2.Environment.CreateWebResourceResponse(
+                        new MemoryStream(body), 200, "OK", "Content-Type: application/json; charset=utf-8\r\nCache-Control: no-store");
+                    return;
                 }
             }
             catch { }
@@ -1480,11 +2625,11 @@ namespace ModelOutputHub
                         break;
 
                     case "saveMeta":
-                        MergeAndSaveUserMeta(msg, new[] { "starred", "notes", "topic_overrides" });
+                        MergeAndSaveUserMeta(msg, new[] { "starred", "starred_files", "notes", "topic_overrides" });
                         break;
 
                     case "savePrefs":
-                        MergeAndSaveUserMeta(msg, new[] { "ui_paradigm", "ui_scale", "ui_font" });
+                        MergeAndSaveUserMeta(msg, new[] { "ui_paradigm", "ui_scale", "ui_font", "finder_layout", "finder_dedup" });
                         break;
 
                     case "runRefresh":
@@ -1494,9 +2639,135 @@ namespace ModelOutputHub
                     case "runTidy":
                         RunScanBackendAsync(true);
                         break;
+
+                    case "saveAiConfig":
+                        LlmGateway.SaveConfig(
+                            _appLocalDataDir,
+                            msg.ContainsKey("provider") ? Convert.ToString(msg["provider"]) : "custom",
+                            msg.ContainsKey("base_url") ? Convert.ToString(msg["base_url"]) : "",
+                            msg.ContainsKey("model") ? Convert.ToString(msg["model"]) : "",
+                            msg.ContainsKey("api_key") ? Convert.ToString(msg["api_key"]) : "",
+                            msg.ContainsKey("clear_key") && Convert.ToBoolean(msg["clear_key"]));
+                        SendJsonCallbackToJs("__onAiConfigSaved", LlmGateway.GetPublicConfigJson(_appLocalDataDir));
+                        break;
+
+                    case "testAiConnection":
+                        HandleTestAiConnectionAsync(msg);
+                        break;
+
+                    case "askAiAssistant":
+                        HandleAskAiAssistantAsync(msg);
+                        break;
                 }
             }
             catch { }
+        }
+
+
+        private void SendJsonCallbackToJs(string fnName, string rawJsonArg)
+        {
+            Dispatcher.BeginInvoke(new Action(async () =>
+            {
+                try
+                {
+                    if (_webView != null && _webView.CoreWebView2 != null)
+                        await _webView.CoreWebView2.ExecuteScriptAsync("if(window." + fnName + ")window." + fnName + "(" + rawJsonArg + ");");
+                }
+                catch { }
+            }));
+        }
+
+        private void HandleTestAiConnectionAsync(Dictionary<string, object> msg)
+        {
+            Task.Run(() =>
+            {
+                var sw = Stopwatch.StartNew();
+                var saved = LlmGateway.LoadConfigRaw(_appLocalDataDir);
+                string prov = msg.ContainsKey("provider") ? Convert.ToString(msg["provider"]) : saved["provider"];
+                string burl = msg.ContainsKey("base_url") ? Convert.ToString(msg["base_url"]) : saved["base_url"];
+                string mod  = msg.ContainsKey("model") ? Convert.ToString(msg["model"]) : saved["model"];
+                string keyIn = msg.ContainsKey("api_key") ? Convert.ToString(msg["api_key"]) : "";
+                string useKey = (!string.IsNullOrEmpty(keyIn) && !keyIn.Contains("••••")) ? keyIn.Trim() : saved["api_key"];
+
+                string err;
+                string reply = LlmGateway.CallLlmChat(prov, burl, useKey, mod, "Reply concisely.", "请只回复 OK 两个字母。", 24, out err);
+                sw.Stop();
+                string payload = _json.Serialize(new Dictionary<string, object>
+                {
+                    { "ok", reply != null },
+                    { "ms", (int)sw.ElapsedMilliseconds },
+                    { "reply", reply ?? "" },
+                    { "error", err ?? "" }
+                });
+                SendJsonCallbackToJs("__onAiTestResult", payload);
+            });
+        }
+
+        private void HandleAskAiAssistantAsync(Dictionary<string, object> msg)
+        {
+            Task.Run(() =>
+            {
+                var sw = Stopwatch.StartNew();
+                var cfg = LlmGateway.LoadConfigRaw(_appLocalDataDir);
+                string mode = msg.ContainsKey("mode") ? Convert.ToString(msg["mode"]) : "find";
+                string userPrompt = msg.ContainsKey("prompt") ? Convert.ToString(msg["prompt"]) : "";
+                string curFile = msg.ContainsKey("current_file") ? Convert.ToString(msg["current_file"]) : "";
+                string candsText = msg.ContainsKey("candidates_text") ? Convert.ToString(msg["candidates_text"]) : "";
+
+                string sysPrompt =
+                    "你是内置在桌面软件「模型输出管家」中的本地文件查找与科研文档助手。请始终用清晰精炼的中文回答。\n" +
+                    "当用户让你找文件、或者你的回答涉及候选清单中的具体文件时，除了用中文简要说明每个推荐文件是什么，还必须在回答最后单独另起一行写出命中的候选编号，格式严格为：\n" +
+                    "MATCHED_IDS: F0, F2, F5\n" +
+                    "（如果没有涉及特定候选编号则不要写这一行；严禁编造候选清单以外的路径。）";
+
+                var fullUser = new StringBuilder();
+                if (!string.IsNullOrEmpty(curFile) && (mode == "summarize" || userPrompt.Contains("当前") || userPrompt.Contains("这份") || userPrompt.Contains("这个文件")))
+                {
+                    string excerpt = LlmGateway.ExtractCleanFileExcerpt(curFile, 9000);
+                    if (!string.IsNullOrEmpty(excerpt))
+                    {
+                        fullUser.AppendLine("【当前右侧正在预览的文件】：" + curFile);
+                        fullUser.AppendLine("【文件正文摘录】：");
+                        fullUser.AppendLine(excerpt);
+                        fullUser.AppendLine();
+                    }
+                }
+                if (!string.IsNullOrEmpty(candsText))
+                {
+                    fullUser.AppendLine("【本地候选文件索引（编号 | 类型 | 课题 | 目录 | 文件名/标题 | 更新时间）】：");
+                    fullUser.AppendLine(candsText);
+                    fullUser.AppendLine();
+                }
+                fullUser.AppendLine("【用户需求】：" + userPrompt);
+
+                string err;
+                string answer = LlmGateway.CallLlmChat(cfg["provider"], cfg["base_url"], cfg["api_key"], cfg["model"], sysPrompt, fullUser.ToString(), 1100, out err);
+                sw.Stop();
+
+                var matchedIds = new List<string>();
+                string cleanAnswer = answer ?? "";
+                if (!string.IsNullOrEmpty(cleanAnswer))
+                {
+                    Match m = Regex.Match(cleanAnswer, @"MATCHED_IDS\s*:\s*([^\r\n]+)", RegexOptions.IgnoreCase);
+                    if (m.Success)
+                    {
+                        foreach (Match idm in Regex.Matches(m.Groups[1].Value, @"F\d+", RegexOptions.IgnoreCase))
+                            matchedIds.Add(idm.Value.ToUpperInvariant());
+                        cleanAnswer = cleanAnswer.Remove(m.Index, m.Length).Trim();
+                    }
+                }
+
+                string payload = _json.Serialize(new Dictionary<string, object>
+                {
+                    { "ok", answer != null },
+                    { "ms", (int)sw.ElapsedMilliseconds },
+                    { "model", cfg["model"] },
+                    { "answer", cleanAnswer },
+                    { "matched_ids", matchedIds },
+                    { "error", err ?? "" }
+                });
+                SendJsonCallbackToJs("__onAiReply", payload);
+            });
         }
 
         private void MergeAndSaveUserMeta(Dictionary<string, object> incoming, string[] keys)
@@ -1524,9 +2795,7 @@ namespace ModelOutputHub
                 RedirectStandardError = true
             };
             if (!string.IsNullOrEmpty(rootDir))
-            {
                 psi.EnvironmentVariables["MODEL_OUTPUT_ROOT"] = rootDir;
-            }
             using (var p = Process.Start(psi))
             {
                 if (p != null) p.WaitForExit(45000);
@@ -1538,7 +2807,8 @@ namespace ModelOutputHub
             Directory.CreateDirectory(outDir);
             var shots = new[]
             {
-                new { Name = "standalone-verify", Url = "https://hub.local/app?paradigm=takram&view=overview", ExtraJs = "" }
+                new { Name = "v2-finder-home", Url = "https://hub.local/app?paradigm=takram&view=finder" },
+                new { Name = "v2-finder-thumbs", Url = "https://hub.local/app?paradigm=takram&view=finder&ftype=a4&layout=grid" }
             };
 
             foreach (var s in shots)
@@ -1560,7 +2830,7 @@ namespace ModelOutputHub
                     if (rdy == "true") break;
                     await Task.Delay(100);
                 }
-                await Task.Delay(350);
+                await Task.Delay(450);
 
                 string pngPath = Path.Combine(outDir, s.Name + ".png");
                 using (var fs = new FileStream(pngPath, FileMode.Create, FileAccess.Write))
