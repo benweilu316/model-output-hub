@@ -47,12 +47,13 @@
 
 ## 快速开始（开箱即用）
 
-### 方式一：直接下载绿色免安装包（推荐）
-1. 前往右侧 **[Releases](../../releases)** 下载最新 `ModelOutputHub-v1.0.0-win-x64.zip`。
-2. 将压缩包内的 `模型输出管家.exe` 和 `_hub_app` 文件夹解压到你的 **大模型输出根目录**（例如 `D:\AI_Outputs\` 或 `Desktop\模型输出\`，该目录下可存放 `claude输出\`、`gemini输出\`、`codex输出\` 等子目录，也可直接存放普通项目文件夹）。
-3. 双击 **`模型输出管家.exe`** 即可秒开使用！
+### 方式一：直接下载单文件独立版 `.exe`（零依赖推荐！）
+1. 前往右侧 **[Releases](../../releases)** 直接下载最新的 **`ModelOutputHub-v1.2.0-SingleFile.zip`**（或直下独立 `ModelOutputHub.exe` / `模型输出管家.exe`，仅 `1.0 MB`，所有运行组件已 100% 内嵌为单文件，**无需安装 Python、无需携带外部 DLL**）。
+2. 双击打开软件：
+   - **随处打开**：直接点击界面顶栏的 **「选择目录」** 按钮，选中你平时存放大模型输出（Claude / Gemini / Cursor / Codex 等）的总文件夹，0.05 秒即刻生成星盘、聚焦脑图与 A4 组图库；
+   - **或放入目录运行**：直接把这一个 `.exe` 放进你的输出总目录里双击打开即可自动识别！
 
-> **运行环境要求**：Windows 10 / 11 (x64)（系统自带 WebView2 Runtime 与 .NET Framework 4.8）；首次扫描与增量整理需本机装有 Python 3.8+（如需生成 `.lnk` 快捷方式树可安装 `pip install pywin32`）。
+> **运行环境要求**：64 位 Windows 10 / 11（系统自带 .NET Framework 4.8 与 Edge WebView2，**开箱零第三方依赖**；高阶可选：若同目录附带 `_hub_app` 与 Python 3 + `pymupdf`/`pywin32`，将额外启用压缩流 PDF 尺寸深扫与 `.lnk` 快捷方式树生成）。
 
 ### 方式二：从源码一键编译（无需安装 Visual Studio！）
 本项目直接调用 Windows 系统内置的 `.NET Framework x64 csc.exe` 编译，**零 Visual Studio 依赖**，3 秒即可打包出独立 `.exe`（UI 资源直接编译内嵌进二进制）：
