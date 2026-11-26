@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 """
-topic_rules.py — Universal AI Output Scanner, Physical A4 vs Single-Panel PDF Classifier,
-Figure-Number Parser (`Fig 1..N / Fig S1..N / Table / GA`), and Live Session Guard.
+topic_rules.py — Universal AI Output Scanner (v2.0 Full-Deliverable Edition)
+Indexes all 9 deliverable categories (HTML, PPTX, A4 PDF, Single PDF, Images/PNG/SVG,
+Docs/Legends/Manuscripts, Data Tables, ZIP Archives, Scripts) with accurate NTFS subfolder
+change detection, physical A4 mm classification, Fig-tag parsing, and Live Session Guard.
 """
 import datetime as _dt
 import glob
@@ -19,6 +21,7 @@ try:
 except ImportError:
     HAS_FITZ = False
 
+SCHEMA_VER = 3
 HUB_APP_DIR = pathlib.Path(__file__).resolve().parent
 MODEL_OUT_ROOT = pathlib.Path(os.environ.get("MODEL_OUTPUT_ROOT") or HUB_APP_DIR.parent)
 USER_META_FILE = HUB_APP_DIR / "user_meta.json"
@@ -107,7 +110,6 @@ TOPIC_BY_ID = {t["id"]: t for t in TOPICS}
 PLATFORM_DIRS = DEFAULT_PLATFORM_DIRS
 PLATFORM_MAP = {k: (label, color) for k, label, color in PLATFORM_DIRS}
 
-# Strictly noise/backup directories to skip for deliverables (note: `panels` is NO LONGER discarded here so single-panel PDFs are captured cleanly!)
 HARD_NOISE_DIR_PAT = re.compile(
     r"^(?:_backups?|backups?|_snapshots?|snapshots?|\.archive.*|_archive.*|_draft_fail|"
     r"__pycache__|\.git|node_modules|render.*|inspect.*|panel_pngs.*|"
@@ -120,6 +122,15 @@ BACKUP_SIZE_DIR_PAT = re.compile(
 )
 PANEL_SUBDIR_PAT = re.compile(r"^(?:panels?|pdf_panels?|single_panels?|单面板.*|.*单图.*)$", re.I)
 INTERMEDIATE_SLICE_PAT = re.compile(r"(?:_notag|_noletter|_raw_tmp|_NA)$", re.I)
+NOISE_IMG_NAME_PAT = re.compile(
+    r"(?:^page_?\d+|^slide_?\d+|^p\d+_s\d+|_thumb\b|^diff_|^mask_|^render_|_raw_tmp)",
+    re.I,
+)
+PLUMBING_DOC_NAMES = {
+    "state.md", "ledger.md", "donotretry.md", "manifest.txt", "prompt.txt",
+    "cmakelists.txt", "requirements.txt", "license.txt", "package-lock.json",
+}
+PLUMBING_TABLE_PAT = re.compile(r"(?:_positions\.csv|_manifest\.tsv|_lint\.tsv)$", re.I)
 
 
 def load_pdf_dim_cache() -> dict:
@@ -139,22 +150,24 @@ def save_pdf_dim_cache(cache: dict) -> None:
         pass
 
 
-def get_pdf_physical_info(fp: pathlib.Path, st_mtime: float, st_size: int, dim_cache: dict) -> tuple[float, float, int]:
-    """Return (width_mm, height_mm, page_count) with fast persistent caching."""
-    key = f"{fp}|{int(st_mtime)}|{st_size}"
+_MEDIABOX_RE = re.compile(rb"/MediaBox\s*\[\s*([-\d.]+)\s+([-\d.]+)\s+([-\d.]+)\s+([-\d.]+)\s*\]")
+
+
+def get_pdf_physical_info(fp: pathlib.Path, mtime: float, size_b: int, dim_cache: dict) -> tuple[float, float, int]:
+    key = str(fp)
     hit = dim_cache.get(key)
-    if hit:
-        return hit[0], hit[1], hit[2]
+    if hit and abs(hit.get("m", 0) - mtime) < 0.05 and hit.get("s") == size_b:
+        return hit.get("w", 0.0), hit.get("h", 0.0), hit.get("p", 1)
 
     w_mm, h_mm, pages = 0.0, 0.0, 1
     if HAS_FITZ:
         try:
-            doc = _fitz.open(fp)
+            doc = _fitz.open(str(fp))
             pages = len(doc)
             if pages > 0:
-                rc = doc[0].rect
-                w_mm = round(rc.width * 25.4 / 72.0, 1)
-                h_mm = round(rc.height * 25.4 / 72.0, 1)
+                r = doc[0].rect
+                w_mm = round(r.width * 25.4 / 72.0, 1)
+                h_mm = round(r.height * 25.4 / 72.0, 1)
             doc.close()
         except Exception:
             pass
@@ -162,129 +175,99 @@ def get_pdf_physical_info(fp: pathlib.Path, st_mtime: float, st_size: int, dim_c
     if w_mm <= 0:
         try:
             with open(fp, "rb") as f:
-                b = f.read(8192)
-                if st_size > 8192:
-                    f.seek(max(0, st_size - 8192))
-                    b += f.read(8192)
-            boxes = re.findall(rb"/MediaBox\s*\[\s*([-\d.]+)\s+([-\d.]+)\s+([-\d.]+)\s+([-\d.]+)\s*\]", b)
-            if boxes:
-                x0, y0, x1, y1 = [float(v) for v in boxes[0]]
+                chunk = f.read(16384)
+                if size_b > 16384:
+                    f.seek(max(0, size_b - 16384))
+                    chunk += b" " + f.read(16384)
+            m = _MEDIABOX_RE.search(chunk)
+            if m:
+                x0, y0, x1, y1 = (float(m.group(i)) for i in range(1, 5))
                 w_mm = round(abs(x1 - x0) * 25.4 / 72.0, 1)
                 h_mm = round(abs(y1 - y0) * 25.4 / 72.0, 1)
         except Exception:
             pass
 
-    dim_cache[key] = [w_mm, h_mm, pages]
+    dim_cache[key] = {"m": round(mtime, 2), "s": size_b, "w": w_mm, "h": h_mm, "p": pages}
     return w_mm, h_mm, pages
 
 
-def parse_figure_tag(filename: str, rel_path: str) -> tuple[str, str, int]:
-    """
-    Extract canonical `(fig_group, fig_panel, fig_order)` from filename or parent path.
-    Order:
-      GA / Graphical Abstract -> 0
-      Fig 1 .. Fig 19         -> 1 .. 19
-      专题与汇总图              -> 90
-      Fig S1 .. Fig S20       -> 101 .. 120
-      Table 1 .. Table 9      -> 181 .. 189
-      Table S1 .. Table S15   -> 201 .. 215
-    """
+def parse_figure_tag(filename: str, rel_path: str = "") -> tuple[str, str, int]:
     stem = pathlib.Path(filename).stem
     combined = f"{rel_path} {stem}"
 
-    # 1) Graphical Abstract / Fig 0
-    if re.search(r"(?:graphical[_\s-]*abstract|图形摘要|(?<![a-z0-9])ga(?![a-z0-9])|fig[_\s-]*0\b)", combined, re.I):
-        return "GA 图形摘要", "", 0
+    if re.search(r"(?:graphical[_\s-]*abstract|图形摘要|总览机制|fig[_\s-]*0\b|^GA(?:_|$))", combined, re.I):
+        return ("GA 图形摘要", "", 0)
 
-    # 2) Supplementary Table S1..S15
     m_ts = re.search(r"(?:table|tab|表)[_\s-]*s(\d+)", combined, re.I)
     if m_ts:
-        n = int(m_ts.group(1))
-        return f"Table S{n}", "", 200 + n
+        num = int(m_ts.group(1))
+        return (f"Table S{num}", "", 200 + num)
 
-    # 3) Main Table 1..9
     m_tm = re.search(r"(?:table|tab|表)[_\s-]*(\d+)", combined, re.I)
     if m_tm:
-        n = int(m_tm.group(1))
-        return f"Table {n}", "", 180 + n
+        num = int(m_tm.group(1))
+        return (f"Table {num}", "", 180 + num)
 
-    # 4) Supplementary Figure: Fig S1..S20 / 图S1..S20 / Extended Data Fig
-    m_fs = re.search(
-        r"(?:fig(?:ure)?|图|extended[_\s-]*data[_\s-]*fig(?:ure)?)[_\s-]*s(\d+)(?:[_\s.-]*(?:panel[_\s-]*)?([a-z]{1,2})(?![a-z]))?",
-        stem, re.I
-    )
+    m_fs = re.search(r"(?:fig(?:ure)?|图)[_\s-]*s(\d+)([a-z])?", stem, re.I)
     if not m_fs:
-        m_fs = re.search(r"(?:fig(?:ure)?|图)[_\s-]*s(\d+)", rel_path, re.I)
+        m_fs = re.search(r"(?:^|[/\\_\s-])s(\d+)(?:[_\s-]|$)", stem, re.I)
         if m_fs:
-            n = int(m_fs.group(1))
-            mp = re.search(r"(?:panel[_\s-]*|_ )?([A-Z])(?:\b|_)", stem)
-            p_let = mp.group(1).upper() if mp else ""
-            return f"Fig S{n}", p_let, 100 + n
-    if m_fs:
-        n = int(m_fs.group(1))
-        raw_p = (m_fs.group(2) or "").upper() if m_fs.lastindex and m_fs.lastindex >= 2 else ""
-        # Avoid mistaking words like 'stg' or 'all' as panel letters
-        if len(raw_p) == 2 and raw_p not in ("AD", "AB", "BC", "CD", "EF", "FG", "GH", "HI", "IJ", "JK", "KL", "MN"):
-            raw_p = ""
-        # Check trailing _A .. _R panel suffix if raw_p empty
-        if not raw_p:
-            mt_end = re.search(r"(?:_panel_|_)([A-Z])$", stem)
-            if mt_end:
-                raw_p = mt_end.group(1)
-        return f"Fig S{n}", raw_p, 100 + n
+            num = int(m_fs.group(1))
+            return (f"Fig S{num}", "", 100 + num)
+    if not m_fs:
+        m_fs = re.search(r"(?:fig(?:ure)?|图)[_\s-]*s(\d+)([a-z])?", rel_path, re.I)
 
-    # 5) Main Figure: Fig 1..19 / 图1..19
-    m_fm = re.search(
-        r"(?:fig(?:ure)?|图)[_\s-]*(\d+)(?:[_\s.-]*(?:panel[_\s-]*)?([a-z]{1,3})(?![a-z]))?",
-        stem, re.I
-    )
+    if m_fs:
+        num = int(m_fs.group(1))
+        sub = (m_fs.group(2) or "").upper() if m_fs.lastindex and m_fs.lastindex >= 2 else ""
+        panel = ""
+        m_p = re.search(r"(?:_[A-Z]{1,4}|panel[_\s-]*[A-Z])$", stem)
+        if m_p:
+            panel = m_p.group(0).lstrip("_").replace("panel", "").strip("_- ")
+        elif sub and len(sub) == 1 and sub not in ("A", "B"):
+            panel = sub
+        label = f"Fig S{num}{sub.lower()}" if sub in ("A", "B") and re.search(r"s\d+[ab]\b", stem, re.I) else f"Fig S{num}"
+        if sub and label == f"Fig S{num}" and not panel:
+            panel = sub
+        return (label, panel, 100 + num)
+
+    m_fm = re.search(r"(?:fig(?:ure)?|图)[_\s-]*(\d+)([A-Za-z]{0,4})", stem, re.I)
     if not m_fm:
         m_fm = re.search(r"(?:fig(?:ure)?|图)[_\s-]*(\d+)", rel_path, re.I)
-        if m_fm:
-            n = int(m_fm.group(1))
-            mt_end = re.search(r"(?:panel[_\s-]*|_)([A-Z])$", stem, re.I)
-            return f"Fig {n}", (mt_end.group(1).upper() if mt_end else ""), n
     if m_fm:
-        n = int(m_fm.group(1))
-        raw_p = (m_fm.group(2) or "").upper() if m_fm.lastindex and m_fm.lastindex >= 2 else ""
-        if len(raw_p) >= 2 and raw_p not in ("AD", "AB", "BC", "CD", "EF", "FG", "FGH", "GH", "HI", "IJ", "IJK", "JK", "KL", "MN"):
-            raw_p = ""
-        if not raw_p:
-            mt_end = re.search(r"(?:_panel_|_)([A-Z])$", stem)
-            if mt_end:
-                raw_p = mt_end.group(1)
-        return f"Fig {n}", raw_p, n
+        num = int(m_fm.group(1))
+        tail = m_fm.group(2) if m_fm.lastindex and m_fm.lastindex >= 2 else ""
+        panel = ""
+        if tail and re.fullmatch(r"[A-Za-z]{1,4}", tail) and tail.lower() not in ("v", "s", "dpi", "mm", "pt"):
+            panel = tail.upper()
+        else:
+            m_p2 = re.search(r"_(?:panel[_\s-]*)?([A-Z]{1,4})(?:_v\d+|_10X|_clean|_revised|_exact)?$", stem)
+            if m_p2 and m_p2.group(1) not in ("A4", "QC", "LR", "GO", "KM", "ROC", "DEG", "UMI", "PDF", "PPT"):
+                panel = m_p2.group(1)
+        return (f"Fig {num}", panel, num)
 
-    # 6) Standalone panel_A.pdf inside a project
-    m_pan = re.search(r"(?:^|_)panel[_\s-]*([A-Z])$", stem, re.I)
-    if m_pan:
-        return "独立子面板", m_pan.group(1).upper(), 95
+    m_sl = re.search(r"(?:slide|page|^p)0*(\d+)", stem, re.I)
+    if m_sl:
+        num = int(m_sl.group(1))
+        return (f"Slide {num}", "", 300 + num)
 
-    return "专题与汇总图", "", 90
+    return ("专题与汇总图", "", 90)
 
 
 def is_full_page_a4_pdf(w_mm: float, h_mm: float, pages: int, stem: str, in_panel_dir: bool) -> bool:
-    """
-    Determine whether a PDF is a true multi-panel assembled A4 / Full-Slide figure
-    vs a single-panel / cropped sub-figure.
-    """
     if in_panel_dir and re.search(r"_[A-Z]$|panel_[A-Z]", stem):
         return False
+    if pages >= 2 and min(w_mm, h_mm) >= 140:
+        return True
     if w_mm > 0 and h_mm > 0:
         short_side = min(w_mm, h_mm)
         long_side = max(w_mm, h_mm)
-        # Standard A4 (210x297), Letter (216x279), PPT Slide Full-Page (190.5x275.1), Full Table (186x231+)
         if short_side >= 165.0 and long_side >= 225.0:
             return True
-        if pages >= 2 and long_side >= 180.0 and short_side >= 120.0:
-            return True
         return False
-    # Fallback when PDF parser unavailable
     if in_panel_dir:
         return False
-    if re.search(r"(?:_a4\b|a4拼图|整页|汇总|all_figs)", stem, re.I):
-        return True
-    return False
+    return bool(re.search(r"(?:_a4\b|a4拼图|整页|all_figs|汇总)", stem, re.I))
 
 
 def load_user_meta() -> dict:
@@ -293,7 +276,7 @@ def load_user_meta() -> dict:
             return json.loads(USER_META_FILE.read_text(encoding="utf-8-sig"))
         except Exception:
             pass
-    return {"starred": [], "notes": {}, "topic_overrides": {}}
+    return {"starred": [], "starred_files": [], "topic_overrides": {}, "notes": {}}
 
 
 def save_user_meta(meta: dict) -> None:
@@ -301,174 +284,143 @@ def save_user_meta(meta: dict) -> None:
     USER_META_FILE.write_text(json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
-def classify_project(name: str, parent_group: str = "", rel_key: str = "", user_overrides: dict = None) -> tuple[str, str]:
+def classify_project(dir_name: str, parent_group: str = "", rel_key: str = "", user_overrides: dict | None = None) -> tuple[str, str]:
     if user_overrides and rel_key in user_overrides:
         ov = user_overrides[rel_key]
         if isinstance(ov, dict) and ov.get("topic_id") in TOPIC_BY_ID:
-            return ov["topic_id"], ov.get("sub_branch") or "手动归类分支"
-        elif isinstance(ov, str) and ov in TOPIC_BY_ID:
-            return ov, "手动归类分支"
+            return ov["topic_id"], ov.get("sub_branch", "00_手动指定分组")
+        if isinstance(ov, str) and ov in TOPIC_BY_ID:
+            return ov, "00_手动指定分组"
 
-    s = f"{parent_group} {name}".lower()
+    hay = f"{parent_group} {dir_name}".lower()
     for rule in PROFILE.get("rules", []):
-        any_kws = [k.lower() for k in rule.get("any", [])]
-        not_kws = [k.lower() for k in rule.get("not_any", [])]
-        if any_kws and not any(k in s for k in any_kws):
-            continue
-        if not_kws and any(k in s for k in not_kws):
-            continue
-        tid = rule["topic_id"]
-        for br in rule.get("branches", []):
-            if "default" in br:
-                return tid, br["default"]
-            b_kws = [k.lower() for k in br.get("any", [])]
-            if b_kws and any(k in s for k in b_kws):
-                return tid, br["name"]
-        return tid, "01_默认演进主线"
+        kws = rule.get("any", [])
+        if any(kw.lower() in hay for kw in kws):
+            tid = rule["topic_id"]
+            for br in rule.get("branches", []):
+                if "default" in br:
+                    return tid, br["default"]
+                if any(bkw.lower() in hay for bkw in br.get("any", [])):
+                    return tid, br["name"]
+            return tid, "01_主线迭代归档"
 
-    fb_tid = PROFILE.get("fallback_topic_id") or TOPICS[-1]["id"]
-    fb_br = PROFILE.get("fallback_branch") or "01_独立项目归档"
-    return fb_tid, fb_br
+    return (
+        PROFILE.get("fallback_topic_id", "08_misc_projects"),
+        PROFILE.get("fallback_branch", "01_独立任务与探索归档"),
+    )
 
 
 def extract_version_sort_key(name: str, mtime: float) -> tuple:
-    m_ver = re.search(r"(?:_v|rev|gen)(\d+)(?:[._](\d+))?", name, re.I)
-    ver_num = int(m_ver.group(1)) * 100 + int(m_ver.group(2) or 0) if m_ver else 0
-    return (mtime, ver_num, name.lower())
+    m_v = re.findall(r"(?:^|[_\-\s])v(\d+)(?:\.(\d+))?", name, re.I)
+    v_num = (int(m_v[-1][0]), int(m_v[-1][1] or 0)) if m_v else (0, 0)
+    return (round(mtime, 1), v_num[0], v_num[1])
 
 
 def get_active_locks(heartbeat_sec: int = 7200) -> dict:
-    now = time.time()
-    locked = {}
+    locked_paths: dict[str, dict] = {}
+    herdr_agents: list[dict] = []
 
-    def add_lock(p_str: str, reason: str, agent: str = "", gen: str = ""):
+    def add_lock(path_str: str, reason: str, agent_name: str = "", gen: str = ""):
         try:
-            np = os.path.normcase(os.path.abspath(p_str))
+            p = pathlib.Path(path_str)
+            if not p.exists():
+                return
+            norm = os.path.normcase(os.path.abspath(str(p)))
+            entry = locked_paths.setdefault(norm, {"path": str(p), "reasons": [], "agent": "", "gen": ""})
+            if reason not in entry["reasons"]:
+                entry["reasons"].append(reason)
+            if agent_name and not entry["agent"]:
+                entry["agent"] = agent_name
+            if gen and not entry["gen"]:
+                entry["gen"] = gen
         except Exception:
-            return
-        rec = locked.setdefault(np, {"reasons": [], "agent": "", "gen": ""})
-        if reason not in rec["reasons"]:
-            rec["reasons"].append(reason)
-        if agent and not rec["agent"]:
-            rec["agent"] = agent
-        if gen and not rec["gen"]:
-            rec["gen"] = gen
+            pass
 
-    sends_map = {}
-    sends_path_str = PROFILE.get("sends_log") or os.environ.get("HERDR_SENDS_LOG") or ""
-    if sends_path_str:
-        sends_log = pathlib.Path(sends_path_str)
-        if sends_log.is_file():
+    herdr_exe = os.path.join(os.environ.get("APPDATA", ""), "alma", "bin", "herdr.exe")
+    if not os.path.isfile(herdr_exe):
+        herdr_exe = shutil.which("herdr") or ""
+    if herdr_exe:
+        try:
+            r = subprocess.run([herdr_exe, "agent", "list"], capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=4)
+            if r.returncode == 0 and r.stdout.strip().startswith("["):
+                arr = json.loads(r.stdout)
+                for a in arr:
+                    st = a.get("status") or a.get("agent_status") or a.get("state") or ""
+                    nm = a.get("name") or a.get("title") or a.get("id") or ""
+                    pane = a.get("pane_id") or a.get("pane") or ""
+                    herdr_agents.append({"name": nm, "status": st, "pane": pane})
+        except Exception:
+            pass
+
+    ho_cfg = PROFILE.get("handoff_root") or os.environ.get("HANDOFFS_DIR") or ""
+    handoffs_root = pathlib.Path(ho_cfg) if ho_cfg else None
+    pane_bind_file = (handoffs_root / "pane_bindings.json") if handoffs_root else None
+    if pane_bind_file and pane_bind_file.is_file():
+        try:
+            pb = json.loads(pane_bind_file.read_text(encoding="utf-8-sig"))
+            working_panes = {a["pane"]: a for a in herdr_agents if a["status"] in ("working", "blocked")}
+            entries = pb.values() if isinstance(pb, dict) else (pb if isinstance(pb, list) else [])
+            for val in entries:
+                if not isinstance(val, dict):
+                    continue
+                pane_id = val.get("pane") or val.get("pane_id") or ""
+                proj = val.get("project") or val.get("topic") or ""
+                wdir = val.get("work_dir") or val.get("output_dir") or ""
+                if pane_id in working_panes and wdir:
+                    ag = working_panes[pane_id]
+                    add_lock(wdir, f"Herdr窗口运行中 ({ag['name']})", ag["name"])
+                elif pane_id in working_panes and proj:
+                    for cand in glob.glob(str(MODEL_OUT_ROOT / "*输出" / f"*{proj}*")):
+                        add_lock(cand, f"Herdr活跃课题 ({working_panes[pane_id]['name']})", working_panes[pane_id]["name"])
+        except Exception:
+            pass
+
+    if handoffs_root and handoffs_root.is_dir():
+        path_rx = re.compile(r"[A-Za-z]:\\[^\r\n`\"'<>|*?\t]+Desktop\\模型输出\\[^\r\n`\"'<>|*?\t]+")
+        now = time.time()
+        for st_file in handoffs_root.glob("*/STATE.md"):
             try:
-                for ln in sends_log.read_text(encoding="utf-8", errors="replace").splitlines():
-                    if not ln.strip():
-                        continue
-                    obj = json.loads(ln)
-                    if obj.get("dry_run") or obj.get("status") in ("rejected", "dry_run_rejected"):
-                        continue
-                    ag = (obj.get("agent") or "").strip()
-                    proj = (obj.get("project") or "").strip()
-                    if ag and proj:
-                        sends_map[ag] = proj
+                age_h = (now - st_file.stat().st_mtime) / 3600.0
+                if age_h > 36:
+                    continue
+                txt = st_file.read_text(encoding="utf-8", errors="ignore")
+                head = txt[:1500]
+                is_closed = bool(re.search(r"status\s*[:=]\s*(?:closed|completed|done)|已完结归档", head, re.I))
+                if is_closed and age_h > 2.0:
+                    continue
+                m_gen = re.search(r"第\s*(\d+)\s*代", head)
+                gen_str = f"第{m_gen.group(1)}代" if m_gen else ""
+                for mp in path_rx.findall(txt):
+                    clean_p = mp.rstrip("\\/.,;:)）]】 ")
+                    p_obj = pathlib.Path(clean_p)
+                    if p_obj.is_file():
+                        p_obj = p_obj.parent
+                    for anc in [p_obj] + list(p_obj.parents):
+                        if anc.parent and anc.parent.parent == MODEL_OUT_ROOT:
+                            add_lock(str(anc), f"交接链活跃 ({st_file.parent.name})", "", gen_str)
+                            break
+                        if anc.parent and anc.parent.parent and anc.parent.parent.parent == MODEL_OUT_ROOT:
+                            add_lock(str(anc), f"交接链活跃 ({st_file.parent.name})", "", gen_str)
+                            break
             except Exception:
                 pass
 
-    handoff_proj_refs = {}
-    handoff_root_str = PROFILE.get("handoff_root") or os.environ.get("MODEL_HANDOFF_ROOT") or ""
-    if handoff_root_str:
-        handoff_root = pathlib.Path(handoff_root_str)
-        closed_pat = re.compile(r"^状态\s*[:：]\s*(?:已完结|已归档|已完成|完结|closed|done|archived)\b", re.I | re.M)
-        closed_body = re.compile(r"(?:状态\s*[:：]\s*已完结|本链.{0,16}已完结|无需(?:新开会话|下一棒|交接))", re.I)
-        gen_pat = re.compile(r"代号\s*[:：]\s*(第\s*\d+\s*代)")
-        root_name_low = MODEL_OUT_ROOT.name.lower()
-
-        if handoff_root.is_dir():
-            for hd in handoff_root.iterdir():
-                if not hd.is_dir():
-                    continue
-                sp = hd / "STATE.md"
-                if not sp.is_file():
-                    continue
-                try:
-                    txt = sp.read_text(encoding="utf-8", errors="replace")
-                    st_mtime = sp.stat().st_mtime
-                except Exception:
-                    continue
-                is_closed = bool(closed_pat.search(txt[:600]) or closed_body.search(txt[:800]))
-                gm = gen_pat.search(txt[:600])
-                gen_str = gm.group(1).replace(" ", "") if gm else ""
-                refs = set()
-                for m in re.finditer(r"([A-Za-z]:[\\/][^\s`\"'()\[\]<>，。；]+)", txt):
-                    raw_p = m.group(1).rstrip("\\/.,;:")
-                    parts = pathlib.Path(raw_p).parts
-                    low_parts = [pt.lower() for pt in parts]
-                    if root_name_low in low_parts:
-                        idx = low_parts.index(root_name_low)
-                        if idx + 2 < len(parts):
-                            if parts[idx + 1].lower() == "claude输出" and idx + 3 < len(parts):
-                                proj_dir = pathlib.Path(*parts[: idx + 4])
-                            else:
-                                proj_dir = pathlib.Path(*parts[: idx + 3])
-                            if proj_dir.exists():
-                                refs.add(str(proj_dir))
-                handoff_proj_refs[hd.name] = {"refs": list(refs), "is_closed": is_closed, "gen": gen_str, "mtime": st_mtime}
-                if not is_closed and (now - st_mtime < 48 * 3600):
-                    for rp in refs:
-                        add_lock(rp, f"活跃交接单: {hd.name} ({gen_str or '进行中'})", gen=gen_str)
-
-    herdr_agents = []
-    try:
-        herdr_bin = shutil.which("herdr")
-        if not herdr_bin:
-            herdr_glob = str(pathlib.Path.home() / ".herdr" / "packages" / "standalone" / "releases" / "*" / "herdr.exe")
-            cands = sorted(glob.glob(herdr_glob), reverse=True)
-            if cands:
-                herdr_bin = cands[0]
-        if herdr_bin:
-            r = subprocess.run(
-                [herdr_bin, "agent", "list"],
-                capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=4,
-                creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0x08000000),
-            )
-            if r.returncode == 0 and r.stdout.strip():
-                obj = json.loads(r.stdout)
-                ag_list = (obj.get("result", {}).get("agents") if isinstance(obj.get("result"), dict) else obj.get("agents")) if isinstance(obj, dict) else obj
-                if isinstance(ag_list, list):
-                    for a in ag_list:
-                        ag_name = a.get("name") or a.get("pane_id") or a.get("id") or ""
-                        status = a.get("agent_status") or a.get("status") or a.get("state") or ""
-                        pane = a.get("pane_id") or a.get("pane") or ""
-                        proj = sends_map.get(ag_name, "")
-                        herdr_agents.append({"name": ag_name, "status": status, "pane": pane, "project": proj})
-                        if status in ("working", "blocked", "running"):
-                            if proj and proj in handoff_proj_refs:
-                                hinfo = handoff_proj_refs[proj]
-                                for rp in hinfo["refs"]:
-                                    add_lock(rp, f"Herdr运行中: {ag_name} [{status}]", agent=ag_name, gen=hinfo["gen"])
-                            if proj:
-                                cand_g = MODEL_OUT_ROOT / "gemini输出" / proj
-                                if cand_g.is_dir():
-                                    add_lock(str(cand_g), f"Herdr运行中: {ag_name} [{status}]", agent=ag_name)
-    except Exception:
-        pass
-
     return {
+        "locked_paths": locked_paths,
         "herdr_agents": herdr_agents,
-        "locked_paths": locked,
-        "checked_at": _dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         "heartbeat_sec": heartbeat_sec,
     }
 
 
 def _extract_html_title(fp: pathlib.Path) -> str:
     try:
-        with open(fp, "r", encoding="utf-8", errors="ignore") as f:
-            head = f.read(6144)
-        m = re.search(r"<title>(.*?)</title>", head, re.I | re.S)
+        with open(fp, "rb") as f:
+            raw = f.read(8192).decode("utf-8", errors="ignore")
+        m = re.search(r"<title>(.*?)</title>", raw, re.I | re.S)
         if m:
             t = re.sub(r"\s+", " ", m.group(1)).strip()
             if t:
-                return t[:90]
+                return t[:100]
     except Exception:
         pass
     return fp.stem
@@ -478,22 +430,38 @@ def _infer_platform_info(platform_dir: str) -> tuple[str, str]:
     if platform_dir in PLATFORM_MAP:
         return PLATFORM_MAP[platform_dir]
     low = platform_dir.lower()
-    for kw, label, col in (
-        ("claude", "Claude", "#713E50"),
-        ("gemini", "Gemini", "#2E5B88"),
-        ("agy", "AGY", "#2E5B88"),
-        ("gpt", "OpenAI", "#2D6A4F"),
-        ("codex", "Codex", "#2D6A4F"),
-        ("cursor", "Cursor", "#3B4252"),
-        ("grok", "Grok", "#4A6B5D"),
-        ("deepseek", "DeepSeek", "#3D5A80"),
-        ("kimi", "Kimi", "#5C677D"),
-        ("qwen", "Qwen", "#5A4E7C"),
-    ):
-        if kw in low:
-            return label, col
-    clean = re.sub(r"(?:输出|[-_]?output|[-_]?out)$", "", platform_dir, flags=re.I).strip()
-    return (clean[:12] or "本地归档"), "#5C6B57"
+    for k, (lbl, col) in PLATFORM_MAP.items():
+        if k.replace("输出", "") in low:
+            return lbl, col
+    clean = re.sub(r"(?:输出|[-_]?outputs?)$", "", platform_dir, flags=re.I).strip() or platform_dir
+    return clean[:12], "#4A5568"
+
+
+def _compute_quick_tree_sig(pdir: pathlib.Path) -> tuple[float, int]:
+    """Checks mtime of pdir AND immediate child folders so subfolder writes on NTFS never stay stale."""
+    max_mt = 0.0
+    child_cnt = 0
+    try:
+        max_mt = pdir.stat().st_mtime
+        with os.scandir(pdir) as it:
+            for entry in it:
+                child_cnt += 1
+                try:
+                    mt = entry.stat(follow_symlinks=False).st_mtime
+                    if mt > max_mt:
+                        max_mt = mt
+                    if entry.is_dir(follow_symlinks=False) and not HARD_NOISE_DIR_PAT.match(entry.name):
+                        with os.scandir(entry.path) as it2:
+                            for e2 in it2:
+                                child_cnt += 1
+                                mt2 = e2.stat(follow_symlinks=False).st_mtime
+                                if mt2 > max_mt:
+                                    max_mt = mt2
+                except OSError:
+                    pass
+    except OSError:
+        pass
+    return (round(max_mt, 2), child_cnt)
 
 
 def scan_single_project_dir(pdir: pathlib.Path, platform_dir: str, parent_group: str, user_meta: dict, lock_info: dict, now_ts: float, dim_cache: dict) -> dict:
@@ -508,7 +476,8 @@ def scan_single_project_dir(pdir: pathlib.Path, platform_dir: str, parent_group:
     latest_mtime = 0.0
     latest_rel_file = ""
 
-    htmls, pptxs, raw_a4_pdfs, raw_single_pdfs, docs = [], [], [], [], []
+    htmls, pptxs, raw_a4_pdfs, raw_single_pdfs = [], [], [], []
+    images, docs, tables, archives, scripts = [], [], [], [], []
 
     for root, dirs, files in os.walk(pdir):
         rp = pathlib.Path(root)
@@ -536,17 +505,18 @@ def scan_single_project_dir(pdir: pathlib.Path, platform_dir: str, parent_group:
             mt = st.st_mtime
             total_files += 1
             total_bytes += sz
-            if in_hard_noise or fn.endswith((".b64", ".tgz", ".bak", ".pyc", ".log")):
+            if in_hard_noise or fn.endswith((".b64", ".bak", ".pyc", ".log")):
                 cache_bytes += sz
             if mt > latest_mtime and not fn.endswith(".pyc"):
                 latest_mtime = mt
                 latest_rel_file = str(fp.relative_to(pdir)).replace("\\", "/")
 
-            if in_hard_noise or depth > 4 or sz == 0:
+            if in_hard_noise or depth > 5 or sz == 0:
                 continue
 
             ext = fp.suffix.lower()
             stem = fp.stem
+            fn_low = fn.lower()
             rel_str = str(fp.relative_to(pdir)).replace("\\", "/")
             item_base = {
                 "name": fn,
@@ -556,10 +526,10 @@ def scan_single_project_dir(pdir: pathlib.Path, platform_dir: str, parent_group:
                 "mtime": mt,
                 "date": _dt.datetime.fromtimestamp(mt).strftime("%Y-%m-%d %H:%M"),
             }
-            if ext in (".html", ".htm") and depth <= 3:
+            if ext in (".html", ".htm") and depth <= 4:
                 item_base["title"] = _extract_html_title(fp)
                 htmls.append(item_base)
-            elif ext == ".pptx" and depth <= 3:
+            elif ext in (".pptx", ".ppt") and depth <= 4:
                 pptxs.append(item_base)
             elif ext == ".pdf":
                 if INTERMEDIATE_SLICE_PAT.search(stem):
@@ -583,13 +553,24 @@ def scan_single_project_dir(pdir: pathlib.Path, platform_dir: str, parent_group:
                 else:
                     item_base["kind"] = "single"
                     raw_single_pdfs.append(item_base)
-            elif depth <= 2 and (
-                ext in (".docx", ".xlsx")
-                or (ext in (".md", ".txt") and re.search(r"(?:legend|图注|稿件|manuscript|blueprint|蓝图|台账|readme|summary)", stem, re.I))
-            ):
-                docs.append(item_base)
+            elif ext in (".png", ".jpg", ".jpeg", ".svg", ".webp") and depth <= 4 and not in_panel_dir:
+                if not NOISE_IMG_NAME_PAT.search(stem):
+                    fig_group, fig_panel, fig_order = parse_figure_tag(fn, rel_str)
+                    item_base["fig_group"] = fig_group
+                    item_base["fig_panel"] = fig_panel
+                    item_base["fig_order"] = fig_order
+                    images.append(item_base)
+            elif ext in (".docx", ".doc", ".md", ".txt", ".rtf") and depth <= 4:
+                if fn_low not in PLUMBING_DOC_NAMES and not fn_low.endswith(("_lint.txt", ".log.txt")):
+                    docs.append(item_base)
+            elif ext in (".xlsx", ".xls", ".csv", ".tsv") and depth <= 4:
+                if not PLUMBING_TABLE_PAT.search(fn_low):
+                    tables.append(item_base)
+            elif (ext in (".zip", ".7z", ".rar", ".tgz") or fn_low.endswith(".tar.gz")) and depth <= 4:
+                archives.append(item_base)
+            elif ext in (".r", ".py", ".sh", ".ipynb") and depth <= 4:
+                scripts.append(item_base)
 
-    # Deduplicate identical PDF copies within the same project (keep shallowest / newest copy)
     def dedup_pdfs(arr: list[dict], limit: int) -> list[dict]:
         arr.sort(key=lambda x: (x["_depth"], -x["mtime"]))
         seen_sig = set()
@@ -605,11 +586,10 @@ def scan_single_project_dir(pdir: pathlib.Path, platform_dir: str, parent_group:
         out.sort(key=lambda x: x["mtime"], reverse=True)
         return out[:limit]
 
-    a4_pdfs = dedup_pdfs(raw_a4_pdfs, 40)
-    single_pdfs = dedup_pdfs(raw_single_pdfs, 60)
-    htmls.sort(key=lambda x: x["mtime"], reverse=True)
-    pptxs.sort(key=lambda x: x["mtime"], reverse=True)
-    docs.sort(key=lambda x: x["mtime"], reverse=True)
+    a4_pdfs = dedup_pdfs(raw_a4_pdfs, 80)
+    single_pdfs = dedup_pdfs(raw_single_pdfs, 120)
+    for arr in (htmls, pptxs, images, docs, tables, archives, scripts):
+        arr.sort(key=lambda x: x["mtime"], reverse=True)
 
     if latest_mtime <= 0:
         latest_mtime = pdir.stat().st_mtime
@@ -664,21 +644,29 @@ def scan_single_project_dir(pdir: pathlib.Path, platform_dir: str, parent_group:
         "lock_gen": lock_hit.get("gen", ""),
         "starred": starred,
         "note": note,
-        "htmls": htmls[:10],
-        "pptxs": pptxs[:8],
+        "htmls": htmls[:30],
+        "pptxs": pptxs[:20],
         "a4_pdfs": a4_pdfs,
         "single_pdfs": single_pdfs,
-        "pdfs": (a4_pdfs + single_pdfs)[:20],
-        "docs": docs[:8],
+        "pdfs": (a4_pdfs + single_pdfs)[:30],
+        "images": images[:40],
+        "docs": docs[:40],
+        "tables": tables[:25],
+        "archives": archives[:20],
+        "scripts": scripts[:25],
         "counts": {
             "html": len(htmls),
             "pptx": len(pptxs),
             "a4_pdf": len(a4_pdfs),
             "single_pdf": len(single_pdfs),
             "pdf": len(a4_pdfs) + len(single_pdfs),
+            "image": len(images),
             "doc": len(docs),
+            "table": len(tables),
+            "archive": len(archives),
+            "script": len(scripts),
         },
-        "_schema_ver": 2,
+        "_schema_ver": SCHEMA_VER,
     }
 
 
@@ -695,7 +683,7 @@ def scan_all_projects(use_cache: bool = True) -> dict:
         try:
             raw_c = json.loads(SCAN_CACHE_FILE.read_text(encoding="utf-8-sig"))
             for p in raw_c.get("projects", []):
-                if p.get("_schema_ver") == 2:
+                if p.get("_schema_ver") == SCHEMA_VER:
                     old_cache[p["path"]] = p
         except Exception:
             old_cache = {}
@@ -708,15 +696,16 @@ def scan_all_projects(use_cache: bool = True) -> dict:
         try:
             if (hasattr(pdir, "is_junction") and pdir.is_junction()) or pdir.is_symlink():
                 return
-            d_mt = pdir.stat().st_mtime
+            sig_mt, sig_cnt = _compute_quick_tree_sig(pdir)
         except OSError:
             return
         p_str = str(pdir)
         cached = old_cache.get(p_str)
         if (
             cached
-            and abs(cached.get("_dir_mtime", 0) - d_mt) < 0.01
-            and (now_ts - cached.get("mtime", now_ts) > 21600)
+            and abs(cached.get("_sig_mt", 0) - sig_mt) < 0.02
+            and cached.get("_sig_cnt") == sig_cnt
+            and (now_ts - cached.get("mtime", now_ts) > 14400)
         ):
             rel_key = str(pdir.relative_to(MODEL_OUT_ROOT)).replace("\\", "/")
             tid, sbr = classify_project(pdir.name, parent_group, rel_key, overrides)
@@ -735,7 +724,8 @@ def scan_all_projects(use_cache: bool = True) -> dict:
             return
 
         rec = scan_single_project_dir(pdir, platform_dir, parent_group, user_meta, lock_info, now_ts, dim_cache)
-        rec["_dir_mtime"] = d_mt
+        rec["_sig_mt"] = sig_mt
+        rec["_sig_cnt"] = sig_cnt
         projects.append(rec)
 
     claude_groups = set(PROFILE.get("claude_group_names") or [])
@@ -825,6 +815,11 @@ def scan_all_projects(use_cache: bool = True) -> dict:
             "a4_pdf_count": sum(x["counts"]["a4_pdf"] for x in t_projs),
             "single_pdf_count": sum(x["counts"]["single_pdf"] for x in t_projs),
             "pdf_count": sum(x["counts"]["pdf"] for x in t_projs),
+            "image_count": sum(x["counts"].get("image", 0) for x in t_projs),
+            "doc_count": sum(x["counts"].get("doc", 0) for x in t_projs),
+            "table_count": sum(x["counts"].get("table", 0) for x in t_projs),
+            "archive_count": sum(x["counts"].get("archive", 0) for x in t_projs),
+            "script_count": sum(x["counts"].get("script", 0) for x in t_projs),
             "size_mb": round(sum(x["size_mb"] for x in t_projs), 1),
             "cache_mb": round(sum(x["cache_mb"] for x in t_projs), 1),
             "latest_mtime": max((x["mtime"] for x in t_projs), default=0),
@@ -839,11 +834,16 @@ def scan_all_projects(use_cache: bool = True) -> dict:
             "total_projects": len(projects),
             "locked_projects": sum(1 for p in projects if p["locked"]),
             "starred_projects": sum(1 for p in projects if p["starred"]),
-            "total_html": sum(p["counts"]["html"] for x in projects for p in [x]),
-            "total_pptx": sum(p["counts"]["pptx"] for x in projects for p in [x]),
-            "total_a4_pdf": sum(p["counts"]["a4_pdf"] for x in projects for p in [x]),
-            "total_single_pdf": sum(p["counts"]["single_pdf"] for x in projects for p in [x]),
-            "total_pdf": sum(p["counts"]["pdf"] for x in projects for p in [x]),
+            "total_html": sum(p["counts"]["html"] for p in projects),
+            "total_pptx": sum(p["counts"]["pptx"] for p in projects),
+            "total_a4_pdf": sum(p["counts"]["a4_pdf"] for p in projects),
+            "total_single_pdf": sum(p["counts"]["single_pdf"] for p in projects),
+            "total_pdf": sum(p["counts"]["pdf"] for p in projects),
+            "total_image": sum(p["counts"].get("image", 0) for p in projects),
+            "total_doc": sum(p["counts"].get("doc", 0) for p in projects),
+            "total_table": sum(p["counts"].get("table", 0) for p in projects),
+            "total_archive": sum(p["counts"].get("archive", 0) for p in projects),
+            "total_script": sum(p["counts"].get("script", 0) for p in projects),
             "total_size_gb": round(sum(p["size_mb"] for p in projects) / 1024.0, 2),
             "total_cache_gb": round(sum(p["cache_mb"] for p in projects) / 1024.0, 2),
             "dup_size_mb": round(sum(d["size_mb"] for d in duplicates_info), 1),
@@ -865,4 +865,8 @@ def scan_all_projects(use_cache: bool = True) -> dict:
 if __name__ == "__main__":
     res = scan_all_projects(use_cache=False)
     s = res["summary"]
-    print(f"Scanned {s['total_projects']} projects in {res['scan_ms']} ms | A4={s['total_a4_pdf']} | Single={s['total_single_pdf']}")
+    print(
+        f"Scanned {s['total_projects']} projects in {res['scan_ms']} ms | "
+        f"HTML={s['total_html']} PPTX={s['total_pptx']} A4={s['total_a4_pdf']} Single={s['total_single_pdf']} "
+        f"IMG={s['total_image']} DOC={s['total_doc']} TBL={s['total_table']} ZIP={s['total_archive']}"
+    )
