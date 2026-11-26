@@ -98,6 +98,9 @@ def build_portable_package(local_lib_fallback: pathlib.Path = None) -> pathlib.P
         "/r:System.Drawing.dll",
         "/r:System.Windows.Forms.dll",
         "/r:System.Web.Extensions.dll",
+        "/r:System.Security.dll",
+        "/r:System.IO.Compression.dll",
+        "/r:System.IO.Compression.FileSystem.dll",
         str(SRC_DIR / "ModelOutputHubApp.cs"),
     ]
     r = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace")
