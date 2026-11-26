@@ -37,27 +37,27 @@
     --fs-hero: 56px;
 
     /* Default Paradigm: Takram Speculative Atlas (观星纸本) */
-    --bg-canvas: #F1F3EE;
-    --bg-surface: #FAFAF7;
-    --bg-elevated: #E6EAE2;
-    --bg-hover: #E0E5DB;
-    --ink-1: #18211D;
-    --ink-2: #3F4D46;
-    --ink-3: #516059;
-    --line-soft: #D2D8CD;
-    --line-strong: #9AA696;
-    --accent: #1E513F;
+    --bg-canvas: #E6EEE8;
+    --bg-surface: #F2F6F3;
+    --bg-elevated: #D7E3DA;
+    --bg-hover: #CAD9CE;
+    --ink-1: #141E19;
+    --ink-2: #2C3B34;
+    --ink-3: #3E4F46;
+    --line-soft: #C2CEC5;
+    --line-strong: #87988B;
+    --accent: #1B4D3B;
     --accent-ink: #FFFFFF;
     --accent-soft: #DCE7E1;
-    --warm: #7A5614;
+    --warm: #6E4D12;
     --warm-soft: #EFE6D2;
-    --danger: #9E2E22;
+    --danger: #992B1F;
     --danger-soft: #F3DFDC;
-    --info: #234B6E;
+    --info: #1F4566;
     --info-soft: #DCE6F0;
-    --radius-lg: 14px;
-    --radius-md: 8px;
-    --radius-sm: 5px;
+    --radius-lg: 12px;
+    --radius-md: 7px;
+    --radius-sm: 4px;
     --border-w: 1px;
     --display-font: var(--font-serif);
   }
@@ -66,14 +66,14 @@
   body[data-paradigm="pentagram"] {
     --bg-canvas: #FFFFFF;
     --bg-surface: #F6F7F8;
-    --bg-elevated: #ECEEF0;
-    --bg-hover: #EFEFEF;
+    --bg-elevated: #EAECEF;
+    --bg-hover: #E5E8EC;
     --ink-1: #0D0F12;
-    --ink-2: #363B40;
-    --ink-3: #545B62;
-    --line-soft: #D8DCE0;
+    --ink-2: #2D3238;
+    --ink-3: #464C53;
+    --line-soft: #D5D9DF;
     --line-strong: #0D0F12;
-    --accent: #C92525;
+    --accent: #B81D1D;
     --accent-ink: #FFFFFF;
     --accent-soft: #FCE8E8;
     --warm: #184999;
@@ -89,20 +89,20 @@
     --display-font: "Georgia", "Noto Serif SC", serif;
   }
 
-  /* Paradigm 3: Sugiura Night Observatory (夜观星象) */
+  /* Paradigm 3: Sugiura Night Observatory (夜观星象 · Midnight Star-Atlas Indigo) */
   body[data-paradigm="sugiura"] {
-    --bg-canvas: #121110;
-    --bg-surface: #1B1917;
-    --bg-elevated: #25221F;
-    --bg-hover: #2C2925;
-    --ink-1: #F0E9DC;
-    --ink-2: #C7BFA9;
-    --ink-3: #9F9784;
-    --line-soft: #2E2B26;
-    --line-strong: #5E5649;
-    --accent: #E2AE48;
-    --accent-ink: #121110;
-    --accent-soft: #2E2616;
+    --bg-canvas: #121726;
+    --bg-surface: #192033;
+    --bg-elevated: #232C45;
+    --bg-hover: #2B3654;
+    --ink-1: #F4EFE6;
+    --ink-2: #D4DCEB;
+    --ink-3: #9FB0CC;
+    --line-soft: #2B3654;
+    --line-strong: #4B5B82;
+    --accent: #E8B654;
+    --accent-ink: #121726;
+    --accent-soft: #2D291C;
     --warm: #EC7258;
     --warm-soft: #331D19;
     --danger: #F07158;
@@ -130,12 +130,12 @@
     --font-sans: "Microsoft YaHei UI", "Microsoft YaHei", "微软雅黑", sans-serif;
   }
   body[data-font="wenkai_bold"] {
-    --display-font: "HubWenKaiXBold", "HubWenKaiBold", "LXGWWenKaiMonoBold", "LXGW WenKai", serif;
-    --font-sans: "HubWenKaiBold", "LXGWWenKaiMonoBold", "霞鹜文楷等宽粗体", "LXGW WenKai", serif;
+    --display-font: "HubWenKaiXBold", "HubWenKaiBold", "霞鹜文楷等宽粗体", "LXGW WenKai", serif;
+    --font-sans: "HubWenKaiBold", "霞鹜文楷等宽粗体", "LXGW WenKai", serif;
   }
   body[data-font="wenkai_xbold"] {
-    --display-font: "HubWenKaiXBold", "LXGWWenKaiMonoXBold", "霞鹜文楷等宽特粗", serif;
-    --font-sans: "HubWenKaiXBold", "LXGWWenKaiMonoXBold", "HubWenKaiBold", serif;
+    --display-font: "HubWenKaiXBold", "霞鹜文楷等宽特粗", serif;
+    --font-sans: "HubWenKaiXBold", "HubWenKaiBold", "霞鹜文楷等宽特粗", serif;
   }
   body[data-font="wenkai_reg"] {
     --display-font: "HubWenKaiReg", "LXGW WenKai", "霞鹜文楷", serif;
@@ -225,7 +225,53 @@
     z-index: 30;
   }
   body[data-paradigm="pentagram"] .titlebar {
-    border-bottom: 2px solid var(--ink-1);
+    background: #0D0F12;
+    border-bottom: 2px solid #0D0F12;
+  }
+  body[data-paradigm="pentagram"] .titlebar .brand-title {
+    color: #FFFFFF;
+  }
+  body[data-paradigm="pentagram"] .titlebar .brand-mark {
+    color: #FF5A5A;
+  }
+  body[data-paradigm="pentagram"] .titlebar .brand-sub {
+    color: #CBD5E1;
+    border-left-color: #2E3440;
+  }
+  body[data-paradigm="pentagram"] .titlebar .nav-tabs {
+    background: #161A21;
+    border: 1.5px solid #3B424F;
+  }
+  body[data-paradigm="pentagram"] .titlebar .nav-tab {
+    color: #E2E8F0;
+  }
+  body[data-paradigm="pentagram"] .titlebar .nav-tab:hover {
+    color: #FFFFFF;
+  }
+  body[data-paradigm="pentagram"] .titlebar .nav-tab.active {
+    background: #FFFFFF;
+    color: #0D0F12;
+    font-weight: 700;
+  }
+  body[data-paradigm="pentagram"] .titlebar .icon-btn {
+    background: #161A21;
+    border: 1.5px solid #3B424F;
+    color: #F1F5F9;
+  }
+  body[data-paradigm="pentagram"] .titlebar .icon-btn:hover {
+    background: #232934;
+    border-color: #FF5A5A;
+    color: #FFFFFF;
+  }
+  body[data-paradigm="pentagram"] .titlebar .win-controls {
+    border-left-color: #2E3440;
+  }
+  body[data-paradigm="pentagram"] .titlebar .win-btn {
+    color: #E2E8F0;
+  }
+  body[data-paradigm="pentagram"] .titlebar .win-btn:hover {
+    background: #232934;
+    color: #FFFFFF;
   }
 
   .brand-cluster {
@@ -1116,6 +1162,13 @@
     background: var(--bg-elevated);
     color: var(--ink-2);
   }
+  .fig-plate-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(236px, 1fr));
+    gap: 16px;
+    padding: 18px;
+    background: var(--bg-surface);
+  }
 
   /* =========================================================
      VIEW 2: FOCUSED LINEAGE MIND-MAP (100% Crisp Scale!)
@@ -1486,7 +1539,8 @@
     padding: 10px 14px;
     background: var(--bg-elevated);
     border-radius: var(--radius-sm);
-    font-family: var(--font-mono);
+    font-family: var(--font-sans);
+    font-variant-numeric: tabular-nums;
     font-size: 14.5px;
     color: var(--ink-1);
     user-select: text;
@@ -1767,88 +1821,103 @@
   }
 
   /* =========================================================
-     V2.0 INSTANT FILE FINDER + LIVE QUICKLOOK WORKBENCH
+     V3.0 HUASHU-DESIGN EDITORIAL ARCHIVE & CHRONICLE FOLIO
+     Single Semantic Accent · Generous Breathing Space · Visual Plates
      ========================================================= */
-  .omni-search-wrap {
-    flex: 1;
-    max-width: 470px;
-    margin: 0 14px;
-    position: relative;
-    display: flex;
-    align-items: center;
-  }
-  .omni-search-icon {
-    position: absolute;
-    left: 12px;
-    color: var(--accent);
-    pointer-events: none;
-    display: flex;
-    align-items: center;
-  }
-  .omni-search-input {
+  .finder-shell {
     width: 100%;
-    height: 36px;
-    padding: 0 72px 0 36px;
-    border-radius: 99px;
-    border: 1.5px solid var(--line-strong);
-    background: var(--bg-surface);
-    color: var(--ink-1);
-    font-size: 14.5px;
-    font-weight: 500;
-    outline: none;
-    transition: border-color 0.15s, box-shadow 0.15s;
-  }
-  body[data-paradigm="pentagram"] .omni-search-input {
-    border-radius: 0;
-    border-width: 2px;
-  }
-  .omni-search-input:focus {
-    border-color: var(--accent);
-    box-shadow: 0 0 0 3px var(--accent-soft);
-  }
-  .omni-search-input::placeholder {
-    color: var(--ink-3);
-    font-weight: 400;
-  }
-  .omni-clear-btn {
-    display: none;
-    position: absolute;
-    right: 8px;
-    height: 24px;
-    padding: 0 9px;
-    border-radius: 99px;
-    border: 1px solid var(--line-soft);
-    background: var(--bg-elevated);
-    color: var(--ink-2);
-    font-size: 12.5px;
-    cursor: pointer;
-  }
-  .omni-clear-btn.show {
-    display: inline-flex;
-    align-items: center;
-  }
-  .omni-kbd-hint {
-    position: absolute;
-    right: 11px;
-    font-size: 12px;
-    color: var(--ink-3);
-    background: var(--bg-elevated);
-    padding: 1px 7px;
-    border-radius: 4px;
-    pointer-events: none;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: var(--bg-canvas);
   }
 
   .finder-root {
+    flex: 1;
     width: 100%;
-    height: 100%;
+    min-height: 0;
     display: flex;
     overflow: hidden;
     background: var(--bg-canvas);
   }
 
-  /* Left Navigation Rail */
+  /* Pentagram Exclusive Full-Width Swiss Broadsheet Index Header (Replaces Vertical Left Sidebar) */
+  .ch-pentagram-indexbar {
+    display: none;
+  }
+  body[data-paradigm="pentagram"] .ch-pentagram-indexbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 22px;
+    padding: 12px 26px;
+    background: #0D0F12;
+    color: #FFFFFF;
+    border-bottom: 2px solid #0D0F12;
+    flex-shrink: 0;
+  }
+  .pg-idx-left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-shrink: 0;
+    padding-right: 18px;
+    border-right: 1px solid #2E3440;
+  }
+  .pg-idx-num {
+    font-family: var(--display-font);
+    font-size: 38px;
+    font-weight: 700;
+    line-height: 0.92;
+    color: #FF6B6B;
+    letter-spacing: -0.03em;
+  }
+  .pg-idx-label {
+    font-size: 14.5px;
+    font-weight: 700;
+    color: #FFFFFF;
+    line-height: 1.25;
+  }
+  .pg-idx-sub {
+    font-size: 12.5px;
+    color: #CBD5E1;
+  }
+  .pg-idx-strip {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    overflow-x: auto;
+    padding-bottom: 2px;
+  }
+  .pg-idx-chip {
+    height: 30px;
+    padding: 0 11px;
+    border: 1px solid #323946;
+    background: #161A21;
+    color: #E2E8F0;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .pg-idx-chip:hover {
+    border-color: #FF6B6B;
+    color: #FFFFFF;
+  }
+  .pg-idx-chip.active {
+    background: #FFFFFF;
+    border-color: #FFFFFF;
+    color: #0D0F12;
+    font-weight: 700;
+  }
+
+  /* Left Bookmark & Directory Index Rail */
   .finder-rail {
-    width: 242px;
+    width: 244px;
     flex-shrink: 0;
     border-right: var(--border-w) solid var(--line-soft);
     background: var(--bg-surface);
@@ -1856,45 +1925,68 @@
     flex-direction: column;
     overflow: hidden;
   }
+  /* Pentagram switches from 3-column to 2-column Broadsheet (Full-width top index + 4-col plates + right folio) */
+  body[data-paradigm="pentagram"] .finder-rail {
+    display: none;
+  }
+  /* Sugiura switches to Observatory Loupe-Center Skeleton (Left Rail -> Center Illuminated Folio -> Right 2-Col Large Plates) */
+  body[data-paradigm="sugiura"] .finder-rail {
+    order: 1;
+    width: 220px;
+  }
+  body[data-paradigm="sugiura"] .finder-preview {
+    order: 2;
+    width: 492px;
+    border-left: none;
+    border-right: 1px solid var(--line-soft);
+  }
+  body[data-paradigm="sugiura"] .finder-center {
+    order: 3;
+  }
+
   .finder-rail-top {
-    padding: 10px 12px;
+    padding: 13px 16px 0;
     border-bottom: 1px solid var(--line-soft);
     flex-shrink: 0;
   }
-  .rail-mode-switch {
+  .rail-mode-tabs {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 4px;
-    background: var(--bg-elevated);
-    padding: 3px;
-    border-radius: var(--radius-sm);
+    gap: 12px;
   }
   .rail-mode-btn {
-    height: 30px;
+    padding: 0 2px 10px;
     border: none;
-    border-radius: var(--radius-sm);
+    border-bottom: 2px solid transparent;
     background: transparent;
-    font-size: 13.5px;
-    font-weight: 600;
-    color: var(--ink-2);
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--ink-3);
     cursor: pointer;
+    transition: color 0.14s, border-color 0.14s;
+  }
+  .rail-mode-btn:hover {
+    color: var(--ink-1);
   }
   .rail-mode-btn.active {
-    background: var(--bg-surface);
-    color: var(--accent);
-    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    color: var(--ink-1);
+    font-weight: 700;
+    border-bottom-color: var(--accent);
   }
+
   .finder-rail-scroll {
     flex: 1;
     overflow-y: auto;
-    padding: 8px 8px 18px;
+    padding: 12px 10px 24px;
   }
   .f-sec-label {
     font-size: 12.5px;
-    font-weight: 700;
+    font-weight: 600;
     color: var(--ink-3);
-    padding: 8px 10px 4px;
-    letter-spacing: 0.02em;
+    padding: 12px 10px 6px;
+  }
+  .f-sec-label:first-child {
+    padding-top: 2px;
   }
   .f-nav-btn {
     width: 100%;
@@ -1902,23 +1994,26 @@
     align-items: center;
     justify-content: space-between;
     gap: 8px;
-    padding: 8px 10px;
+    padding: 7px 10px;
     border: none;
-    border-radius: var(--radius-sm);
+    border-left: 2px solid transparent;
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
     background: transparent;
-    color: var(--ink-1);
+    color: var(--ink-2);
     font-size: 14px;
     text-align: left;
     cursor: pointer;
-    transition: background 0.12s;
+    transition: background 0.12s, color 0.12s;
   }
   .f-nav-btn:hover {
     background: var(--bg-hover);
+    color: var(--ink-1);
   }
   .f-nav-btn.active {
+    border-left-color: var(--accent);
     background: var(--accent-soft);
-    color: var(--accent);
-    font-weight: 700;
+    color: var(--ink-1);
+    font-weight: 600;
   }
   .f-nav-name {
     min-width: 0;
@@ -1927,29 +2022,26 @@
     white-space: nowrap;
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 7px;
   }
   .f-nav-cnt {
     font-size: 12.5px;
     color: var(--ink-3);
-    background: var(--bg-elevated);
-    padding: 1px 7px;
-    border-radius: 99px;
     flex-shrink: 0;
   }
   .f-nav-btn.active .f-nav-cnt {
-    background: var(--accent);
-    color: var(--accent-ink);
+    color: inherit;
+    font-weight: 600;
   }
   .live-mini-dot {
-    width: 7px;
-    height: 7px;
+    width: 6px;
+    height: 6px;
     border-radius: 50%;
-    background: var(--danger);
+    background: var(--accent);
     flex-shrink: 0;
   }
 
-  /* Center Stream / Visual Thumbnail Grid */
+  /* Center Editorial Chronicle Stage */
   .finder-center {
     flex: 1;
     min-width: 0;
@@ -1958,227 +2050,552 @@
     overflow: hidden;
     background: var(--bg-canvas);
   }
-  .finder-type-bar {
-    padding: 10px 16px 8px;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    flex-wrap: wrap;
+
+  .ch-masthead {
+    padding: 14px 26px 0;
     background: var(--bg-surface);
-    border-bottom: 1px solid var(--line-soft);
+    border-bottom: var(--border-w) solid var(--line-soft);
     flex-shrink: 0;
   }
-  .ftype-pill {
-    height: 31px;
-    padding: 0 11px;
-    border-radius: 99px;
-    border: 1px solid var(--line-soft);
-    background: var(--bg-canvas);
-    color: var(--ink-2);
-    font-size: 13.5px;
-    font-weight: 500;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    white-space: nowrap;
-    transition: all 0.12s;
-  }
-  body[data-paradigm="pentagram"] .ftype-pill {
-    border-radius: 0;
-  }
-  .ftype-pill:hover {
-    border-color: var(--accent);
-    color: var(--ink-1);
-  }
-  .ftype-pill.active {
-    background: var(--accent);
-    border-color: var(--accent);
-    color: var(--accent-ink);
-    font-weight: 600;
-  }
-  .ftype-cnt {
-    font-size: 12px;
-    opacity: 0.82;
+  body[data-paradigm="pentagram"] .ch-masthead {
+    background: #FFFFFF;
+    border-bottom: 2px solid var(--ink-1);
+    padding-top: 14px;
   }
 
-  .finder-subbar {
-    padding: 7px 16px;
+  .ch-head-top {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 10px;
-    border-bottom: 1px solid var(--line-soft);
-    background: var(--bg-canvas);
-    flex-shrink: 0;
-    font-size: 13.5px;
-    color: var(--ink-2);
+    gap: 14px;
+    flex-wrap: wrap;
   }
-  .subbar-right {
+  .ch-title-cluster {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 16px;
+    min-width: 0;
+  }
+  .ch-pg-inline-stat {
+    display: none;
+  }
+  body[data-paradigm="pentagram"] .ch-pg-inline-stat {
+    display: block;
+    font-family: var(--display-font);
+    font-size: 38px;
+    font-weight: 700;
+    line-height: 0.94;
+    color: #B81D1D;
+    padding-right: 14px;
+    border-right: 2px solid #0D0F12;
+    letter-spacing: -0.03em;
     flex-shrink: 0;
   }
-  .tiny-toggle {
+  .ch-title {
+    font-family: var(--display-font);
+    font-size: 24px;
+    font-weight: 600;
+    line-height: 1.22;
+    letter-spacing: -0.02em;
+    color: var(--ink-1);
+  }
+  body[data-paradigm="pentagram"] .ch-title {
+    font-size: 22px;
+  }
+  .ch-subtitle {
+    font-size: 14px;
+    color: var(--ink-3);
+    margin-top: 3px;
+  }
+
+  .ch-view-controls {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    flex-wrap: wrap;
+  }
+  .ch-seg {
+    display: inline-flex;
+    align-items: center;
+    background: var(--bg-elevated);
+    padding: 2px;
+    border-radius: var(--radius-sm);
+    gap: 2px;
+  }
+  body[data-paradigm="pentagram"] .ch-seg {
+    background: transparent;
+    border: 1.5px solid var(--ink-1);
+  }
+  .ch-seg-btn {
     height: 28px;
+    padding: 0 10px;
+    border: none;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--ink-2);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .ch-seg-btn.active {
+    background: var(--bg-surface);
+    color: var(--ink-1);
+    font-weight: 600;
+  }
+  body[data-paradigm="pentagram"] .ch-seg-btn.active {
+    background: var(--ink-1);
+    color: #FFFFFF;
+  }
+  body[data-paradigm="sugiura"] .ch-seg-btn.active {
+    background: var(--accent);
+    color: var(--accent-ink);
+  }
+
+  .ch-quiet-toggle {
+    height: 30px;
+    padding: 0 10px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--line-soft);
+    background: transparent;
+    color: var(--ink-2);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .ch-quiet-toggle:hover {
+    border-color: var(--line-strong);
+    color: var(--ink-1);
+  }
+  .ch-quiet-toggle.active {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+    color: var(--ink-1);
+    font-weight: 600;
+  }
+  body[data-paradigm="pentagram"] .ch-quiet-toggle.active {
+    background: var(--ink-1);
+    border-color: var(--ink-1);
+    color: #FFFFFF;
+  }
+
+  /* Clean Desk Search Bar inside Masthead */
+  .ch-search-row {
+    margin-top: 10px;
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+  .ch-search-icon {
+    position: absolute;
+    left: 13px;
+    color: var(--ink-3);
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+  }
+  .ch-search-input {
+    width: 100%;
+    height: 36px;
+    padding: 0 92px 0 38px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--line-strong);
+    background: var(--bg-canvas);
+    color: var(--ink-1);
+    font-size: 14.5px;
+    outline: none;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  body[data-paradigm="pentagram"] .ch-search-input {
+    border: 1.5px solid var(--ink-1);
+    background: #FFFFFF;
+  }
+  .ch-search-input:focus {
+    border-color: var(--accent);
+    background: var(--bg-surface);
+  }
+  .ch-search-input::placeholder {
+    color: var(--ink-3);
+  }
+  .ch-search-kbd {
+    position: absolute;
+    right: 12px;
+    font-size: 12.5px;
+    color: var(--ink-3);
+    padding: 1px 7px;
+    border-radius: 3px;
+    background: var(--bg-elevated);
+    pointer-events: none;
+  }
+  .ch-search-clear {
+    display: none;
+    position: absolute;
+    right: 8px;
+    height: 25px;
     padding: 0 10px;
     border-radius: var(--radius-sm);
     border: 1px solid var(--line-soft);
     background: var(--bg-surface);
     color: var(--ink-2);
-    font-size: 13px;
-    font-weight: 500;
+    font-size: 12.5px;
     cursor: pointer;
   }
-  .tiny-toggle.active {
-    border-color: var(--accent);
-    background: var(--accent-soft);
-    color: var(--accent);
-    font-weight: 600;
+  .ch-search-clear.show {
+    display: inline-flex;
+    align-items: center;
   }
 
-  /* Topic Latest Quick-Pin Banner */
-  .topic-pin-card {
-    margin: 12px 16px 4px;
-    padding: 12px 15px;
-    background: var(--bg-surface);
-    border: 1.5px solid var(--accent);
-    border-radius: var(--radius-md);
-    display: flex;
-    flex-direction: column;
-    gap: 9px;
-  }
-  .topic-pin-head {
+  /* Single-line Editorial Underline Category Tabs (Zero Pill Clutter!) */
+  .ch-underline-tabs {
+    margin-top: 8px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 8px;
+    gap: 12px;
   }
-  .topic-pin-title {
-    font-size: 15px;
+  .ch-tab-list {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding-right: 14px;
+    overflow-x: auto;
+  }
+  .ch-utab {
+    padding: 5px 0 9px;
+    border: none;
+    border-bottom: 2px solid transparent;
+    background: transparent;
+    color: var(--ink-3);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: baseline;
+    gap: 5px;
+    transition: color 0.14s, border-color 0.14s;
+  }
+  .ch-utab:hover {
+    color: var(--ink-1);
+  }
+  .ch-utab.active {
+    color: var(--ink-1);
     font-weight: 700;
+    border-bottom-color: var(--accent);
+  }
+  .ch-utab-cnt {
+    font-size: 12.5px;
+    color: var(--ink-3);
+  }
+  .ch-utab.active .ch-utab-cnt {
     color: var(--accent);
   }
-  .topic-pin-actions {
+
+  /* Topic Monograph Spotlight Desk */
+  .monograph-desk {
+    margin: 16px 26px 2px;
+    padding: 16px 20px;
+    background: var(--bg-surface);
+    border: var(--border-w) solid var(--line-strong);
+    border-radius: var(--radius-lg);
+  }
+  body[data-paradigm="pentagram"] .monograph-desk {
+    border: 2px solid var(--ink-1);
+    background: #FFFFFF;
+  }
+  .mono-desk-head {
     display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--line-soft);
+  }
+  .mono-desk-title {
+    font-family: var(--display-font);
+    font-size: 19px;
+    font-weight: 600;
+    color: var(--ink-1);
+  }
+  .mono-strip {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+    margin-top: 12px;
+  }
+  @media (max-width: 1420px) {
+    .mono-strip { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   }
 
+  /* Main Chronicle Scroll Canvas */
   .finder-list-scroll {
     flex: 1;
     overflow-y: auto;
-    padding: 8px 16px 28px;
+    padding: 12px 26px 34px;
   }
 
-  .day-group-header {
-    position: sticky;
-    top: -8px;
-    z-index: 4;
-    background: var(--bg-canvas);
-    padding: 10px 4px 6px;
-    font-size: 13.5px;
-    font-weight: 700;
-    color: var(--accent);
+  .chronicle-chapter {
+    margin-top: 16px;
+    margin-bottom: 10px;
+    padding-bottom: 7px;
+    border-bottom: var(--border-w) solid var(--line-strong);
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .chronicle-chapter:first-child {
+    margin-top: 2px;
+  }
+  body[data-paradigm="sugiura"] .chronicle-chapter {
+    padding-left: 10px;
+    border-left: 3px solid var(--accent);
+  }
+  .ch-chapter-title {
+    font-family: var(--display-font);
+    font-size: 18.5px;
+    font-weight: 600;
+    color: var(--ink-1);
+  }
+  .ch-chapter-meta {
+    font-size: 13px;
+    color: var(--ink-3);
+  }
+
+  /* Visual Plate Cards (True Artwork First, Pure White Artboard, Single Neutral Tag) */
+  .plate-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(202px, 1fr));
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  body[data-paradigm="pentagram"] .plate-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+  }
+  body[data-paradigm="sugiura"] .plate-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+  }
+  .plate-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--line-soft);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    transition: border-color 0.14s, transform 0.14s;
+  }
+  body[data-paradigm="pentagram"] .plate-card {
+    border: 1.5px solid var(--ink-1);
+  }
+  .plate-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-1px);
+  }
+  .plate-card.selected {
+    border: 2px solid var(--accent);
+  }
+  .plate-artboard {
+    height: 158px;
+    background: #FFFFFF;
+    padding: 8px;
     border-bottom: 1px solid var(--line-soft);
-    margin-bottom: 6px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+  body[data-paradigm="sugiura"] .plate-artboard {
+    height: 188px;
+    background: #222B42;
+    padding: 12px;
+  }
+  body[data-paradigm="sugiura"] .plate-artboard img {
+    background: #FFFFFF;
+    padding: 4px;
+    border-radius: 3px;
+  }
+  .plate-artboard img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+  }
+  .plate-typo-sheet {
+    width: 100%;
+    height: 100%;
+    padding: 14px;
+    background: var(--bg-canvas);
+    border: 1px solid var(--line-soft);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    text-align: left;
+  }
+  .plate-tag {
+    position: absolute;
+    top: 7px;
+    left: 7px;
+    padding: 2px 8px;
+    border-radius: var(--radius-sm);
+    font-size: 12.5px;
+    font-weight: 600;
+    background: #161F1B;
+    color: #FFFFFF;
+    z-index: 2;
+  }
+  body[data-paradigm="pentagram"] .plate-tag {
+    background: #0D0F12;
+  }
+  .plate-caption {
+    padding: 9px 11px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .plate-title {
+    font-size: 14.5px;
+    font-weight: 600;
+    color: var(--ink-1);
+    line-height: 1.36;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    overflow-wrap: anywhere;
+  }
+  .plate-meta {
+    font-size: 12.5px;
+    color: var(--ink-3);
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 8px;
   }
 
-  /* Clean File Row */
-  .f-row {
-    display: grid;
-    grid-template-columns: 78px minmax(0, 1fr) auto;
-    align-items: center;
-    gap: 12px;
-    padding: 10px 12px;
-    margin-bottom: 5px;
-    border-radius: var(--radius-md);
+  /* Editorial Hairline Document Rows (Zero Rainbow Stickers!) */
+  .ed-doc-list {
+    display: flex;
+    flex-direction: column;
     background: var(--bg-surface);
     border: 1px solid var(--line-soft);
-    cursor: pointer;
-    transition: border-color 0.12s, background 0.12s;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    margin-bottom: 12px;
   }
-  .f-row:hover {
-    border-color: var(--line-strong);
+  body[data-paradigm="pentagram"] .ed-doc-list {
+    border: 1.5px solid var(--ink-1);
+  }
+  .ed-doc-row {
+    display: grid;
+    grid-template-columns: 80px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 14px;
+    padding: 10px 15px;
+    border-bottom: 1px solid var(--line-soft);
+    cursor: pointer;
+    transition: background 0.12s;
+  }
+  .ed-doc-row:last-child {
+    border-bottom: none;
+  }
+  .ed-doc-row:hover {
     background: var(--bg-hover);
   }
-  .f-row.selected {
-    border-color: var(--accent);
-    box-shadow: inset 3px 0 0 var(--accent);
+  .ed-doc-row.selected {
     background: var(--accent-soft);
+    box-shadow: inset 3px 0 0 var(--accent);
+  }
+  body[data-paradigm="pentagram"] .ed-doc-row.selected {
+    background: #F4F5F7;
+    box-shadow: inset 4px 0 0 var(--accent);
   }
 
-  .ext-badge {
+  /* Monochrome Restrained Kind Tag (Only Primary Deliverable gets Subtle Semantic Tint) */
+  .kind-mark {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    height: 28px;
+    height: 26px;
     padding: 0 8px;
     border-radius: var(--radius-sm);
     font-size: 12.5px;
-    font-weight: 700;
-    letter-spacing: 0.01em;
+    font-weight: 600;
+    background: var(--bg-elevated);
+    color: var(--ink-2);
     white-space: nowrap;
   }
-  .ext-html { background: var(--accent-soft); color: var(--accent); border: 1px solid var(--accent); }
-  .ext-pptx { background: var(--warm-soft); color: var(--warm); border: 1px solid var(--warm); }
-  .ext-a4   { background: var(--danger-soft); color: var(--danger); border: 1px solid var(--danger); }
-  .ext-single { background: var(--info-soft); color: var(--info); border: 1px solid var(--info); }
-  .ext-img  { background: #EAE4F2; color: #52347A; border: 1px solid #B7A4D4; }
-  .ext-doc  { background: #E3ECEF; color: #245263; border: 1px solid #9BBAC6; }
-  .ext-tbl  { background: #E4EFE7; color: #225C39; border: 1px solid #96C2A6; }
-  .ext-zip  { background: #F4EAD5; color: #7C5211; border: 1px solid #D5B57A; }
-  .ext-code { background: var(--bg-elevated); color: var(--ink-2); border: 1px solid var(--line-strong); }
-  .ext-dir  { background: var(--warm-soft); color: var(--warm); border: 1px dashed var(--warm); }
-  body[data-paradigm="sugiura"] .ext-img { background: #2A2236; color: #D4BFFF; border-color: #5C4978; }
-  body[data-paradigm="sugiura"] .ext-doc { background: #1D2D33; color: #A6DCEF; border-color: #3E6473; }
-  body[data-paradigm="sugiura"] .ext-tbl { background: #1C2E23; color: #A3E4BA; border-color: #3B694C; }
-  body[data-paradigm="sugiura"] .ext-zip { background: #332814; color: #F5D08A; border-color: #70572A; }
+  .kind-mark.primary {
+    background: var(--accent-soft);
+    color: var(--ink-1);
+    border: 1px solid var(--accent);
+  }
+  body[data-paradigm="sugiura"] .kind-mark.primary {
+    color: var(--accent);
+  }
 
-  .f-main-title {
+  .ed-doc-title {
     font-size: var(--fs-body);
     font-weight: 600;
     color: var(--ink-1);
     line-height: 1.38;
     overflow-wrap: anywhere;
   }
-  .f-sub-meta {
+  .ed-doc-sub {
     font-size: 13px;
     color: var(--ink-3);
     margin-top: 3px;
     display: flex;
     align-items: center;
     flex-wrap: wrap;
-    gap: 6px;
+    gap: 10px;
   }
-  .f-topic-chip {
+  .ed-topic-lbl {
     color: var(--ink-2);
-    background: var(--bg-elevated);
-    padding: 0 6px;
-    border-radius: 4px;
     font-weight: 600;
   }
-  .f-time-fresh {
-    color: var(--danger);
+  .ed-fresh-lbl {
+    color: var(--accent);
     font-weight: 700;
   }
-  .f-folder-link {
+  .ed-folder-jump {
+    color: var(--ink-3);
     text-decoration: underline;
     text-underline-offset: 2px;
     cursor: pointer;
+    max-width: 380px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
-  .f-folder-link:hover {
-    color: var(--accent);
+  .ed-folder-jump:hover {
+    color: var(--ink-1);
+  }
+  .ed-fold-more {
+    width: 100%;
+    padding: 9px 15px;
+    border: none;
+    background: var(--bg-canvas);
+    color: var(--ink-2);
+    font-size: 13.5px;
+    font-weight: 500;
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.12s, color 0.12s;
+  }
+  .ed-fold-more:hover {
+    background: var(--bg-hover);
+    color: var(--ink-1);
   }
   mark.hl {
-    background: #FDE047;
-    color: #111827;
-    padding: 0 2px;
+    background: var(--accent-soft);
+    color: var(--ink-1);
+    padding: 0 3px;
     border-radius: 2px;
+    font-weight: 700;
   }
 
   .f-actions {
@@ -2188,112 +2605,30 @@
     flex-shrink: 0;
   }
   .star-btn {
-    width: 28px;
     height: 28px;
+    padding: 0 8px;
     border-radius: var(--radius-sm);
     border: 1px solid var(--line-soft);
-    background: var(--bg-canvas);
+    background: transparent;
     color: var(--ink-3);
-    font-size: 15px;
+    font-size: 12.5px;
+    font-weight: 500;
     cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+  }
+  .star-btn:hover {
+    border-color: var(--line-strong);
+    color: var(--ink-1);
   }
   .star-btn.starred {
-    color: #D97706;
-    border-color: #D97706;
-    background: #FEF3C7;
-  }
-
-  /* Visual Thumbnail Grid Mode */
-  .thumb-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(225px, 1fr));
-    gap: 12px;
-    padding-top: 6px;
-  }
-  .thumb-card {
-    background: var(--bg-surface);
-    border: 1px solid var(--line-soft);
-    border-radius: var(--radius-md);
-    overflow: hidden;
-    cursor: pointer;
-    display: flex;
-    flex-direction: column;
-    transition: transform 0.12s, border-color 0.12s;
-  }
-  .thumb-card:hover {
     border-color: var(--accent);
-    transform: translateY(-1px);
-  }
-  .thumb-card.selected {
-    border: 2px solid var(--accent);
-    box-shadow: 0 4px 14px rgba(0,0,0,0.08);
-  }
-  .thumb-stage {
-    height: 176px;
-    background: #FFFFFF;
-    border-bottom: 1px solid var(--line-soft);
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-  }
-  .thumb-stage img {
-    max-width: 100%;
-    max-height: 100%;
-    object-fit: contain;
-  }
-  .thumb-fallback {
-    padding: 14px;
-    text-align: center;
-    color: #4B5563;
-    font-size: 13.5px;
-    font-weight: 600;
-    line-height: 1.45;
-  }
-  .thumb-corner-badge {
-    position: absolute;
-    top: 7px;
-    left: 7px;
-    padding: 2px 7px;
-    border-radius: 4px;
-    font-size: 12px;
-    font-weight: 700;
-    background: rgba(24, 33, 29, 0.82);
-    color: #FFFFFF;
-  }
-  .thumb-meta {
-    padding: 9px 11px 10px;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-  }
-  .thumb-name {
-    font-size: 14px;
-    font-weight: 600;
+    background: var(--accent-soft);
     color: var(--ink-1);
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    line-height: 1.35;
-    overflow-wrap: anywhere;
-  }
-  .thumb-sub {
-    font-size: 12.5px;
-    color: var(--ink-3);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 6px;
+    font-weight: 600;
   }
 
-  /* Right QuickLook Live Preview Pane */
+  /* Right Paper Folio QuickLook Pane */
   .finder-preview {
-    width: 465px;
+    width: 444px;
     flex-shrink: 0;
     border-left: var(--border-w) solid var(--line-soft);
     background: var(--bg-surface);
@@ -2301,24 +2636,50 @@
     flex-direction: column;
     overflow: hidden;
   }
+  body[data-paradigm="pentagram"] .finder-preview {
+    width: 472px;
+    border-left: 2px solid var(--ink-1);
+    background: #FFFFFF;
+  }
+  body[data-paradigm="pentagram"] .pv-head {
+    background: #0D0F12;
+    border-bottom: 2px solid #0D0F12;
+  }
+  body[data-paradigm="pentagram"] .pv-head .pv-title {
+    color: #FFFFFF;
+  }
+  body[data-paradigm="pentagram"] .pv-head .pv-path {
+    color: #CBD5E1;
+  }
+  body[data-paradigm="pentagram"] .pv-head .deliv-btn.ghost {
+    background: #181C24;
+    border: 1px solid #3E4656;
+    color: #F1F5F9;
+  }
+  body[data-paradigm="pentagram"] .pv-head .deliv-btn.primary-html {
+    background: #FFFFFF;
+    border: 1px solid #FFFFFF;
+    color: #0D0F12;
+    font-weight: 700;
+  }
   .finder-preview.collapsed {
     display: none;
   }
   .pv-head {
-    padding: 12px 16px 10px;
+    padding: 15px 18px 13px;
     border-bottom: 1px solid var(--line-soft);
     flex-shrink: 0;
   }
   .pv-title {
-    font-size: 16px;
-    font-weight: 700;
+    font-family: var(--display-font);
+    font-size: 16.5px;
+    font-weight: 600;
     color: var(--ink-1);
     line-height: 1.35;
     overflow-wrap: anywhere;
   }
   .pv-path {
     margin-top: 4px;
-    font-family: var(--font-mono);
     font-size: 12.5px;
     color: var(--ink-3);
     word-break: break-all;
@@ -2342,7 +2703,7 @@
     width: 100%;
     height: 100%;
     border: none;
-    background: #FFFFFF;
+    background: var(--bg-surface);
     flex: 1;
   }
   .pv-img-box {
@@ -2350,15 +2711,21 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 12px;
+    padding: 14px;
     background: #FFFFFF;
     overflow: auto;
+  }
+  body[data-paradigm="sugiura"] .pv-img-box {
+    background: #1B1917;
   }
   .pv-img-box img {
     max-width: 100%;
     max-height: 100%;
     object-fit: contain;
     cursor: zoom-in;
+    background: #FFFFFF;
+    padding: 6px;
+    border-radius: var(--radius-sm);
   }
   .pv-img-box.zoomed {
     align-items: flex-start;
@@ -2369,11 +2736,79 @@
     max-height: none;
     cursor: zoom-out;
   }
-  .pv-text-pre {
-    padding: 16px;
-    font-family: var(--font-sans);
+  .pv-dossier {
+    padding: 16px 18px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .pv-dossier-card {
+    padding: 14px 16px;
+    background: var(--bg-surface);
+    border: 1px solid var(--line-soft);
+    border-radius: var(--radius-md);
+  }
+  body[data-paradigm="pentagram"] .pv-dossier-card {
+    border: 1.5px solid var(--ink-1);
+  }
+  .pv-dossier-h {
+    font-size: 13.5px;
+    font-weight: 700;
+    color: var(--ink-2);
+    margin-bottom: 8px;
+  }
+  .pv-toc-item {
     font-size: 14px;
-    line-height: 1.65;
+    color: var(--ink-1);
+    line-height: 1.45;
+    padding: 5px 0;
+    border-bottom: 1px solid var(--line-soft);
+  }
+  .pv-toc-item:last-child {
+    border-bottom: none;
+  }
+  .pv-mini-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+  .pv-mini-plate {
+    border: 1px solid var(--line-soft);
+    border-radius: var(--radius-sm);
+    background: var(--bg-canvas);
+    overflow: hidden;
+    cursor: pointer;
+    transition: border-color 0.14s;
+  }
+  .pv-mini-plate:hover {
+    border-color: var(--accent);
+  }
+  .pv-mini-art {
+    height: 108px;
+    background: #FFFFFF;
+    padding: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .pv-mini-art img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+  }
+  .pv-mini-cap {
+    padding: 6px 8px;
+    font-size: 12.5px;
+    color: var(--ink-2);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .pv-text-pre {
+    padding: 20px 22px;
+    font-family: var(--font-sans);
+    font-size: 14.5px;
+    line-height: 1.72;
     color: var(--ink-1);
     white-space: pre-wrap;
     overflow-wrap: anywhere;
@@ -2385,11 +2820,12 @@
     width: 100%;
     border-collapse: collapse;
     font-size: 13px;
+    font-variant-numeric: tabular-nums;
     background: var(--bg-surface);
     user-select: text;
   }
   .pv-data-table th, .pv-data-table td {
-    padding: 6px 9px;
+    padding: 7px 10px;
     border: 1px solid var(--line-soft);
     text-align: left;
     max-width: 220px;
@@ -2399,263 +2835,63 @@
   }
   .pv-data-table th {
     background: var(--bg-elevated);
-    font-weight: 700;
+    font-weight: 600;
     position: sticky;
     top: 0;
   }
-
-
-  /* =========================================================
-     AI SEMANTIC ASSISTANT & OPTIONAL API KEY CONNECTOR DRAWER
-     ========================================================= */
-  .omni-ai-btn {
-    position: absolute;
-    right: 6px;
-    height: 26px;
-    padding: 0 10px;
-    border-radius: 99px;
-    border: 1px solid var(--accent);
-    background: var(--accent-soft);
-    color: var(--accent);
-    font-size: 12.5px;
-    font-weight: 700;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    transition: all 0.14s;
-  }
-  .omni-ai-btn:hover {
-    background: var(--accent);
-    color: var(--accent-ink);
-  }
-  .omni-search-input {
-    padding-right: 132px !important;
-  }
-  .omni-clear-btn {
-    right: 78px !important;
-  }
-  .omni-kbd-hint {
-    right: 82px !important;
-  }
-
-  .ai-status-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: var(--line-strong);
-    display: inline-block;
-  }
-  .ai-status-dot.ready {
-    background: #16A34A;
-    box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.18);
-  }
-
-  .ai-drawer {
-    position: fixed;
-    top: 54px;
-    right: 0;
-    bottom: 0;
-    width: 500px;
-    max-width: 94vw;
-    background: var(--bg-surface);
-    border-left: var(--border-w) solid var(--line-strong);
-    z-index: 62;
-    transform: translateX(103%);
-    transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1);
-    display: flex;
-    flex-direction: column;
-    box-shadow: -14px 0 40px rgba(0,0,0,0.16);
-  }
-  .ai-drawer.open {
-    transform: translateX(0);
-  }
-  .ai-head {
-    padding: 14px 18px 12px;
-    border-bottom: 1px solid var(--line-soft);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-  }
-  .ai-tabs {
-    display: flex;
-    gap: 6px;
-    padding: 8px 18px;
-    border-bottom: 1px solid var(--line-soft);
-    background: var(--bg-canvas);
-  }
-  .ai-tab-btn {
-    height: 31px;
-    padding: 0 13px;
-    border-radius: var(--radius-sm);
-    border: 1px solid var(--line-soft);
-    background: var(--bg-surface);
-    font-size: 13.5px;
-    font-weight: 600;
-    color: var(--ink-2);
-    cursor: pointer;
-  }
-  .ai-tab-btn.active {
-    border-color: var(--accent);
-    background: var(--accent);
-    color: var(--accent-ink);
-  }
-
-  .ai-chat-body {
-    flex: 1;
-    overflow-y: auto;
-    padding: 14px 18px;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-  }
-  .ai-bubble {
-    padding: 12px 14px;
-    border-radius: var(--radius-md);
-    font-size: 14px;
-    line-height: 1.6;
-    user-select: text;
-    overflow-wrap: anywhere;
-  }
-  .ai-bubble.user {
-    align-self: flex-end;
-    max-width: 86%;
-    background: var(--accent);
-    color: var(--accent-ink);
-  }
-  .ai-bubble.bot {
-    align-self: stretch;
-    background: var(--bg-canvas);
-    border: 1px solid var(--line-soft);
-    color: var(--ink-1);
-    white-space: pre-wrap;
-  }
-  .ai-match-card {
-    margin-top: 8px;
-    padding: 9px 11px;
-    border-radius: var(--radius-sm);
-    background: var(--bg-surface);
-    border: 1px solid var(--accent);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-  }
-  .ai-input-bar {
-    padding: 12px 18px 14px;
-    border-top: 1px solid var(--line-soft);
-    background: var(--bg-surface);
-    display: flex;
-    gap: 8px;
-  }
-  .ai-prompt-inp {
-    flex: 1;
-    height: 38px;
-    padding: 0 12px;
-    border-radius: var(--radius-sm);
-    border: 1.5px solid var(--line-strong);
-    background: var(--bg-canvas);
-    font-size: 14px;
-    outline: none;
-  }
-  .ai-prompt-inp:focus {
-    border-color: var(--accent);
-  }
-
-  .ai-cfg-body {
-    flex: 1;
-    overflow-y: auto;
-    padding: 16px 18px 24px;
-    display: none;
-    flex-direction: column;
-    gap: 13px;
-  }
-  .cfg-field label {
-    display: block;
-    font-size: 13.5px;
-    font-weight: 600;
-    color: var(--ink-1);
-    margin-bottom: 5px;
-  }
-  .cfg-inp, .cfg-sel {
-    width: 100%;
-    height: 37px;
-    padding: 0 11px;
-    border-radius: var(--radius-sm);
-    border: 1px solid var(--line-strong);
-    background: var(--bg-canvas);
-    font-size: 14px;
-    outline: none;
-  }
-  .cfg-inp:focus, .cfg-sel:focus {
-    border-color: var(--accent);
-  }
-
 </style>
 </head>
 <body data-paradigm="takram" data-scale="normal">
 
 <div class="app-shell">
-  <!-- Custom Frameless Window Titlebar -->
+  <!-- Custom Frameless Editorial Titlebar -->
   <header class="titlebar" id="titlebarDrag">
     <div class="brand-cluster">
       <div class="brand-mark">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-          <circle cx="12" cy="12" r="9.5"/>
-          <circle cx="12" cy="12" r="3.2" fill="currentColor"/>
-          <line x1="12" y1="2.5" x2="12" y2="6"/>
-          <line x1="12" y1="18" x2="12" y2="21.5"/>
-          <line x1="2.5" y1="12" x2="6" y2="12"/>
-          <line x1="18" y1="12" x2="21.5" y2="12"/>
+        <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+          <circle cx="12" cy="12" r="9.2"/>
+          <circle cx="12" cy="12" r="2.8" fill="currentColor"/>
+          <line x1="12" y1="2.8" x2="12" y2="6.2"/>
+          <line x1="12" y1="17.8" x2="12" y2="21.2"/>
+          <line x1="2.8" y1="12" x2="6.2" y2="12"/>
+          <line x1="17.8" y1="12" x2="21.2" y2="12"/>
         </svg>
       </div>
       <span class="brand-title">模型输出管家</span>
-      <span class="brand-sub meta-caption" id="brandStatSub">科研课题归整与谱系直达台</span>
-    </div>
-
-    <div class="omni-search-wrap" data-no-drag="1">
-      <span class="omni-search-icon">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="7.5"/><line x1="16.65" y1="16.65" x2="21" y2="21"/></svg>
-      </span>
-      <input type="text" class="omni-search-input" id="omniSearchInput" placeholder="直接打字秒找任意文件：如 Fig S2 / 最新 ppt / 压缩包 / 图注 稿件 ..." oninput="onOmniSearchInput()" onkeydown="onOmniSearchKey(event)">
-      <span class="omni-kbd-hint" id="omniKbdHint">/</span>
-      <button class="omni-clear-btn" id="omniClearBtn" onclick="clearOmniSearch()">×</button>
-      <button class="omni-ai-btn" onclick="triggerAiFromOmni()" title="用大模型自然语言模糊找文件（需配置 API Key 或本地 Ollama）">AI 帮找</button>
+      <span class="brand-sub meta-caption num" id="brandStatSub">科研成果编年画册与课题归整台</span>
     </div>
 
     <nav class="nav-tabs" data-no-drag="1">
-      <button class="nav-tab active" data-view="finder" onclick="switchView('finder')">找文件</button>
-      <button class="nav-tab" data-view="figures" onclick="switchView('figures')">按Fig组图</button>
-      <button class="nav-tab" data-view="lineage" onclick="switchView('lineage')">谱系脑图</button>
+      <button class="nav-tab active" data-view="finder" onclick="switchView('finder')">成果画册</button>
+      <button class="nav-tab" data-view="figures" onclick="switchView('figures')">组图图录</button>
       <button class="nav-tab" data-view="overview" onclick="switchView('overview')">课题星盘</button>
-      <button class="nav-tab" data-view="guide" onclick="switchView('guide')">规范维护</button>
+      <button class="nav-tab" data-view="lineage" onclick="switchView('lineage')">谱系脑图</button>
+      <button class="nav-tab" data-view="guide" onclick="switchView('guide')">归整维护</button>
     </nav>
 
     <div class="toolbar-right" data-no-drag="1">
-
-      <button class="icon-btn" onclick="openAiDrawer('chat')" id="btnAiHub" title="打开 AI 智能找文件助手或配置大模型 API Key（不填也可 100% 离线使用）">
-        <span class="ai-status-dot" id="aiStatusDot"></span>
-        <span>AI / API</span>
+      <button class="icon-btn" onclick="openCmdPalette()" title="全局快速检索课题与成果 (Ctrl+K)">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7.5"/><line x1="16.65" y1="16.65" x2="21" y2="21"/></svg>
+        <span>快搜</span>
       </button>
 
       <button class="icon-btn" onclick="nativeCall('pickRootDir')" id="btnPickRoot" title="切换或选择要纳管的大模型输出总目录">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
-        <span>选择目录</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+        <span>目录</span>
       </button>
 
       <button class="icon-btn" onclick="triggerRefresh()" id="btnRefresh" title="重新扫描目录与活跃会话">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><polyline points="21 3 21 9 15 9"/></svg>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><polyline points="21 3 21 9 15 9"/></svg>
         <span>刷新</span>
       </button>
 
-      <button class="icon-btn" onclick="toggleFontPop(event)" id="btnFontPicker" title="切换界面字体（微软雅黑 / 楷体 / 霞鹜文楷加粗等）">
+      <button class="icon-btn" onclick="toggleFontPop(event)" id="btnFontPicker" title="切换界面排印字体">
         <span style="font-weight:700;font-size:13.5px;letter-spacing:-0.03em;">Aa</span>
         <span id="currentFontLabel">原装混排</span>
       </button>
 
-      <button class="icon-btn" onclick="toggleTweaks(event)" id="btnTweaks">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9c.26.6.85 1 1.51 1H21a2 2 0 1 1 0 4h-.09c-.66 0-1.25.4-1.51 1z"/></svg>
+      <button class="icon-btn" onclick="toggleTweaks(event)" id="btnTweaks" title="切换工作室视觉范式与字号">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9c.26.6.85 1 1.51 1H21a2 2 0 1 1 0 4h-.09c-.66 0-1.25.4-1.51 1z"/></svg>
         <span id="currentParadigmLabel">观星纸本</span>
       </button>
 
@@ -2675,59 +2911,95 @@
 
   <!-- Stage Area -->
   <main class="stage-wrap">
-    <!-- VIEW 0 (DEFAULT HOME): THREE-PANE INSTANT FILE FINDER + LIVE QUICKLOOK -->
+    <!-- VIEW 0 (DEFAULT HOME): EDITORIAL CHRONICLE & MONOGRAPH FOLIO -->
     <section class="view-page active" id="view-finder">
-      <div class="finder-root">
-        <!-- Left Scope & Folder Rail -->
-        <aside class="finder-rail">
-          <div class="finder-rail-top">
-            <div class="rail-mode-switch">
-              <button class="rail-mode-btn active" id="railModeTopicBtn" onclick="setFinderRailMode('topic')">按时间与课题</button>
-              <button class="rail-mode-btn" id="railModeFolderBtn" onclick="setFinderRailMode('folder')">看真实文件夹</button>
+      <div class="finder-shell">
+        <!-- Pentagram Exclusive Horizontal Swiss Index Masthead -->
+        <div class="ch-pentagram-indexbar">
+          <div class="pg-idx-left">
+            <div class="pg-idx-num num" id="chPgTopNum">0</div>
+            <div>
+              <div class="pg-idx-label">瑞士年鉴定稿总目</div>
+              <div class="pg-idx-sub meta-caption">横向检索条与双栏宽幅图版</div>
             </div>
           </div>
-          <div class="finder-rail-scroll" id="finderRailScroll"></div>
-        </aside>
-
-        <!-- Center File Stream / Visual Thumbnail Grid -->
-        <div class="finder-center">
-          <div class="finder-type-bar" id="finderTypeBar"></div>
-          <div class="finder-subbar">
-            <div id="finderStatusText" style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">正在加载文件索引...</div>
-            <div class="subbar-right">
-              <span id="finderFigSortWrap" style="display:none;gap:4px;">
-                <button class="tiny-toggle" id="btnSortByTime" onclick="setFinderSort('time')">按最新时间</button>
-                <button class="tiny-toggle" id="btnSortByFig" onclick="setFinderSort('fig')">按 Fig 图号排</button>
-              </span>
-              <button class="tiny-toggle" id="btnDedupOld" onclick="toggleFinderDedup()" title="同名文件只保留最新修改的那一份，折叠旧目录里的重复版本">去重同名旧版</button>
-              <button class="tiny-toggle" id="btnLayoutList" onclick="setFinderLayout('list')">列表</button>
-              <button class="tiny-toggle" id="btnLayoutGrid" onclick="setFinderLayout('grid')">看缩略图</button>
-              <button class="tiny-toggle" id="btnTogglePreview" onclick="togglePreviewPane()">右侧预览</button>
-            </div>
-          </div>
-          <div id="finderTopicPinArea"></div>
-          <div class="finder-list-scroll" id="finderListScroll" onscroll="onFinderScroll(this)"></div>
+          <div class="pg-idx-strip" id="pentagramIndexStrip"></div>
         </div>
 
-        <!-- Right Instant QuickLook Preview Pane -->
-        <aside class="finder-preview" id="finderPreviewPane">
-          <div class="pv-head" id="pvHeaderBox">
-            <div class="pv-title">点击左侧任意文件即可在此秒看内容</div>
-            <div class="pv-path">支持 PDF 组图/单图、PNG 卡通图、HTML 报告、TXT/MD 图注稿件、CSV 表格与 ZIP 压缩包直接预览</div>
-          </div>
-          <div class="pv-body" id="pvBodyBox">
-            <div style="padding:48px 28px;text-align:center;color:var(--ink-3);font-size:14.5px;line-height:1.7;">
-              单击中间列表任意一行文件，无需打开外部软件即可在这里直接看清图表、报告或文稿内容；<br>双击文件行则直接调用系统默认程序大图打开。
+        <div class="finder-root">
+          <!-- Left Bookmark & Directory Index Rail -->
+          <aside class="finder-rail">
+            <div class="finder-rail-top">
+              <div class="rail-mode-tabs">
+                <button class="rail-mode-btn active" id="railModeTopicBtn" onclick="setFinderRailMode('topic')">编年与课题</button>
+                <button class="rail-mode-btn" id="railModeFolderBtn" onclick="setFinderRailMode('folder')">真实文件夹</button>
+              </div>
             </div>
+            <div class="finder-rail-scroll" id="finderRailScroll"></div>
+          </aside>
+
+          <!-- Center Editorial Stage -->
+          <div class="finder-center">
+            <div class="ch-masthead">
+              <div class="ch-head-top">
+                <div class="ch-title-cluster">
+                  <div class="ch-pg-inline-stat num" id="chPgBigNum">0</div>
+                  <div style="min-width:0;">
+                    <h1 class="ch-title" id="finderHeadingText">近期科研成果编年画册</h1>
+                    <p class="ch-subtitle meta-caption" id="finderStatusText">正在加载本地文件索引...</p>
+                  </div>
+                </div>
+
+                <div class="ch-view-controls">
+                  <span class="ch-seg" id="finderFigSortWrap" style="display:none;">
+                    <button class="ch-seg-btn active" id="btnSortByTime" onclick="setFinderSort('time')">最新排前</button>
+                    <button class="ch-seg-btn" id="btnSortByFig" onclick="setFinderSort('fig')">按 Fig 顺序</button>
+                  </span>
+                  <div class="ch-seg">
+                    <button class="ch-seg-btn active" id="btnLayoutEditorial" onclick="setFinderLayout('editorial')" title="图版展示真实画幅，报告与文稿展示清晰标题行">画册图文</button>
+                    <button class="ch-seg-btn" id="btnLayoutGrid" onclick="setFinderLayout('grid')" title="大尺寸缩略图画廊">纯图墙</button>
+                    <button class="ch-seg-btn" id="btnLayoutList" onclick="setFinderLayout('list')" title="高密度细线文字目录">紧凑目录</button>
+                  </div>
+                  <button class="ch-quiet-toggle" id="btnDedupOld" onclick="toggleFinderDedup()" title="同名文件只保留最新修改的一份，收起旧文件夹内的同名历史版">折叠同名旧版</button>
+                  <button class="ch-quiet-toggle active" id="btnTogglePreview" onclick="togglePreviewPane()">阅览席</button>
+                </div>
+              </div>
+
+              <div class="ch-search-row">
+                <span class="ch-search-icon">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7.5"/><line x1="16.65" y1="16.65" x2="21" y2="21"/></svg>
+                </span>
+                <input type="text" class="ch-search-input" id="omniSearchInput" placeholder="输入任意词秒找文件：如 Fig S2 / 最新报告 / PPT / 图注稿件 / 便携包 ..." oninput="onOmniSearchInput()" onkeydown="onOmniSearchKey(event)">
+                <span class="ch-search-kbd" id="omniKbdHint">/</span>
+                <button class="ch-search-clear" id="omniClearBtn" onclick="clearOmniSearch()">清空</button>
+              </div>
+
+              <div class="ch-underline-tabs" id="finderTypeBar"></div>
+            </div>
+
+            <div id="finderTopicPinArea"></div>
+            <div class="finder-list-scroll" id="finderListScroll" onscroll="onFinderScroll(this)"></div>
           </div>
-        </aside>
+
+          <!-- Right Paper Folio QuickLook Preview -->
+          <aside class="finder-preview" id="finderPreviewPane">
+            <div class="pv-head" id="pvHeaderBox">
+              <div class="pv-title">即时阅览席</div>
+              <div class="pv-path meta-caption">单击左侧任意卡片或条目，即可在此直接检阅 PDF 组图、PNG 配图、HTML 审阅报告、文稿图注或表格内容</div>
+            </div>
+            <div class="pv-body" id="pvBodyBox">
+              <div style="padding:56px 32px;text-align:center;color:var(--ink-3);font-size:14.5px;line-height:1.75;">
+                单击任意成果卡片即刻在此呈现高清内容；双击卡片可直接调用系统默认程序打开原件。
+              </div>
+            </div>
+          </aside>
+        </div>
       </div>
     </section>
 
     <!-- VIEW 1: OVERVIEW -->
     <section class="view-page" id="view-overview">
       <div class="overview-root">
-        <!-- Pentagram Exclusive Poster Masthead -->
         <div class="pentagram-masthead">
           <div>
             <div class="pg-giant-num num" id="pgTotalNum">267</div>
@@ -2735,7 +3007,7 @@
           </div>
           <div>
             <h1 class="pg-headline">全部交互报告、组图演示与拼版定稿一屏直达</h1>
-            <p class="pg-subline" id="pgSummaryLine">横跨八大 Agent 输出目录，实时识别活跃写入锁，零干扰安全巡航。</p>
+            <p class="pg-subline" id="pgSummaryLine">横跨各大 Agent 输出目录，实时识别活跃写入锁，零干扰安全巡航。</p>
           </div>
           <div>
             <button class="deliv-btn primary-html" onclick="openFolderShortcut('00_按课题总览')">打开按课题总览文件夹</button>
@@ -2743,7 +3015,6 @@
         </div>
 
         <div class="ov-split-pentagram">
-          <!-- Visual Centerpiece Pane -->
           <div class="ov-visual-pane">
             <div class="atlas-header">
               <div>
@@ -2756,13 +3027,9 @@
               </div>
             </div>
 
-            <!-- Takram & Sugiura: Interactive Radial Mandala -->
             <div class="mandala-stage" id="mandalaContainer"></div>
-
-            <!-- Pentagram: Swiss Proportional Density Index -->
             <div class="swiss-bars-stage" id="swissBarsContainer"></div>
 
-            <!-- Bottom Active Agent Protection Strip -->
             <div class="live-guard-bar">
               <div class="guard-left">
                 <span class="dot-live"></span>
@@ -2773,7 +3040,6 @@
             </div>
           </div>
 
-          <!-- Right Editorial Stream Pane -->
           <div class="ov-editorial-pane" id="editorialPane">
             <div class="ed-masthead">
               <div class="ed-hero-metric">
@@ -2787,7 +3053,6 @@
             </div>
 
             <div class="ed-stats-strip" id="edStatsStrip"></div>
-
             <div id="spotlightContainer"></div>
 
             <div class="stream-section-head">
@@ -2842,8 +3107,12 @@
                 <button class="seg-btn" data-g="date" onclick="setFigGroupMode('date')">按修改日期整理</button>
                 <button class="seg-btn" data-g="project" onclick="setFigGroupMode('project')">按阶段目录整理</button>
               </div>
+              <div class="seg-box" id="figDisplaySeg">
+                <button class="seg-btn active" data-d="plates" onclick="setFigDisplay('plates')">真图画廊</button>
+                <button class="seg-btn" data-d="rows" onclick="setFigDisplay('rows')">目录明细</button>
+              </div>
             </div>
-            <input type="text" class="ledger-search" style="width:240px;" id="figsSearchInput" placeholder="搜 FigS2、1B、卡通、目录名..." oninput="renderFiguresMain()">
+            <input type="text" class="ledger-search" style="width:240px;" id="figsSearchInput" placeholder="搜 FigS2、1B、目录名..." oninput="renderFiguresMain()">
           </div>
           <div class="figs-scroll" id="figsScrollArea"></div>
         </div>
@@ -2897,8 +3166,8 @@
             </div>
 
             <div class="rule-block">
-              <div class="rule-title">三、常驻系统托盘与双入口秒找</div>
-              <p class="rule-p">点击右上角关闭按钮默认最小化到右下角系统托盘常驻守护（单击托盘图标秒唤起，右键托盘图标可彻底退出）；根目录下的「00_按课题总览」亦同步维护原生快捷方式树。</p>
+              <div class="rule-title">三、常驻系统托盘与纯离线免安装架构</div>
+              <p class="rule-p">点击右上角关闭按钮默认最小化到右下角系统托盘常驻守护（单击托盘图标秒唤起，右键托盘图标可彻底退出）；全功能 100% 本地离线运行，零外部依赖与网络请求。</p>
             </div>
           </div>
 
@@ -2943,7 +3212,7 @@
   <div class="cmd-dialog">
     <div class="cmd-input-row">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7.5"/><line x1="16.65" y1="16.65" x2="21" y2="21"/></svg>
-      <input type="text" class="cmd-input" id="cmdInput" placeholder="输入任意课题名、关键词、版本号（如 v4、SOP、报告）回车直开..." oninput="renderCmdResults()" onkeydown="handleCmdKey(event)">
+      <input type="text" class="cmd-input" id="cmdInput" placeholder="输入任意课题名、关键词、版本号（如 v8、SOP、报告）回车直开..." oninput="renderCmdResults()" onkeydown="handleCmdKey(event)">
       <span class="kbd-pill">ESC</span>
     </div>
     <div class="cmd-results" id="cmdResults"></div>
@@ -2963,13 +3232,13 @@
     </button>
 
     <button class="font-card" data-f="wenkai_bold" onclick="setFontFamily('wenkai_bold')">
-      <div class="fc-title" style="font-family:'HubWenKaiBold','LXGWWenKaiMonoBold',serif;">霞鹜文楷 · 加粗</div>
-      <div class="fc-sample" style="font-family:'HubWenKaiBold','LXGWWenKaiMonoBold',serif;">饱满温润定制粗体</div>
+      <div class="fc-title" style="font-family:'HubWenKaiBold',serif;">霞鹜文楷 加粗</div>
+      <div class="fc-sample" style="font-family:'HubWenKaiBold',serif;">饱满温润定制粗体</div>
     </button>
 
     <button class="font-card" data-f="wenkai_xbold" onclick="setFontFamily('wenkai_xbold')">
-      <div class="fc-title" style="font-family:'HubWenKaiXBold','LXGWWenKaiMonoXBold',serif;">霞鹜文楷 · 特粗</div>
-      <div class="fc-sample" style="font-family:'HubWenKaiXBold','LXGWWenKaiMonoXBold',serif;">浓墨重笔大屏醒目</div>
+      <div class="fc-title" style="font-family:'HubWenKaiXBold',serif;">霞鹜文楷 特粗</div>
+      <div class="fc-sample" style="font-family:'HubWenKaiXBold',serif;">浓墨重笔大屏醒目</div>
     </button>
 
     <button class="font-card" data-f="yahei" onclick="setFontFamily('yahei')">
@@ -2988,7 +3257,7 @@
     </button>
 
     <button class="font-card" data-f="wenkai_reg" onclick="setFontFamily('wenkai_reg')">
-      <div class="fc-title" style="font-family:'HubWenKaiReg','LXGW WenKai',serif;font-synthesis:weight;">霞鹜文楷 · 常规</div>
+      <div class="fc-title" style="font-family:'HubWenKaiReg','LXGW WenKai',serif;font-synthesis:weight;">霞鹜文楷 常规</div>
       <div class="fc-sample" style="font-family:'HubWenKaiReg','LXGW WenKai',serif;">清隽轻盈手写书卷</div>
     </button>
 
@@ -3014,7 +3283,7 @@
       <div class="tweak-opt-name">观星纸本</div>
       <div class="tweak-opt-desc">植物灰宣纸底与同心刻度星盘</div>
     </div>
-    <span style="width:18px;height:18px;border-radius:50%;background:#1E513F;border:3px solid #DCE7E1;"></span>
+    <span style="width:18px;height:18px;border-radius:50%;background:#1B4D3B;border:3px solid #DCE7E1;"></span>
   </button>
 
   <button class="tweak-option" data-p="pentagram" onclick="setParadigm('pentagram')">
@@ -3022,15 +3291,15 @@
       <div class="tweak-opt-name">瑞士年鉴</div>
       <div class="tweak-opt-desc">纯白美术馆刊头与建筑黑线网格</div>
     </div>
-    <span style="width:18px;height:18px;background:#C92525;border:2px solid #0D0F12;"></span>
+    <span style="width:18px;height:18px;background:#B81D1D;border:2px solid #0D0F12;"></span>
   </button>
 
   <button class="tweak-option" data-p="sugiura" onclick="setParadigm('sugiura')">
     <div>
       <div class="tweak-opt-name">夜观星象</div>
-      <div class="tweak-opt-desc">黑曜墨底与鎏金朱砂天文星轨</div>
+      <div class="tweak-opt-desc">黑曜墨底与鎏金星历暗房画册</div>
     </div>
-    <span style="width:18px;height:18px;border-radius:50%;background:#E2AE48;border:3px solid #2E2616;"></span>
+    <span style="width:18px;height:18px;border-radius:50%;background:#E2AE48;border:3px solid #2D2414;"></span>
   </button>
 
   <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--line-soft);display:flex;align-items:center;justify-content:space-between;">
@@ -3042,92 +3311,11 @@
   </div>
 </div>
 
-
-<!-- AI Semantic File Finder & Optional LLM API Key Connector -->
-<aside class="ai-drawer" id="aiDrawer">
-  <div class="ai-head">
-    <div>
-      <div style="font-size:16.5px;font-weight:700;color:var(--ink-1);">AI 智能找文件与文档解读助手</div>
-      <div style="font-size:12.5px;color:var(--ink-3);" id="aiSubStatusLine">本地功能 100% 离线可用 · 接入 API Key 可开启模糊语义找文件</div>
-    </div>
-    <button class="icon-btn" onclick="closeAiDrawer()">关闭</button>
-  </div>
-
-  <div class="ai-tabs">
-    <button class="ai-tab-btn active" id="aiTabChatBtn" onclick="switchAiTab('chat')">AI 找文件与解读</button>
-    <button class="ai-tab-btn" id="aiTabCfgBtn" onclick="switchAiTab('cfg')">API Key 接口设置</button>
-  </div>
-
-  <!-- Tab 1: AI Chat -->
-  <div class="ai-chat-body" id="aiChatBody">
-    <div class="ai-bubble bot" id="aiWelcomeBubble">你可以直接用自然语言让我帮你找文件或总结文档，例如：
-• 「帮我找今天最新生成的 PPT 和交互审阅报告」
-• 「找一下讲算法原理或图注的 txt / md 文档」
-• 「提炼一下当前右侧正在预览的这份文件的核心结论」
-
-（提示：不填 API Key 也不影响本软件全部离线秒搜、缩略图与预览功能；点击上方「API Key 接口设置」可一键接入 DeepSeek / OpenAI / 千问 / Kimi / Claude / Gemini 或本地免 Key 的 Ollama。）</div>
-  </div>
-
-  <div class="ai-input-bar" id="aiInputBar">
-    <input type="text" class="ai-prompt-inp" id="aiPromptInput" placeholder="描述你想找的文件印象，或针对当前文件提问..." onkeydown="if(event.key==='Enter')sendAiPrompt()">
-    <button class="deliv-btn primary-html" id="btnSendAi" onclick="sendAiPrompt()">发送</button>
-  </div>
-
-  <!-- Tab 2: API Key Settings -->
-  <div class="ai-cfg-body" id="aiCfgBody">
-    <div style="padding:11px 13px;background:var(--accent-soft);border-radius:var(--radius-sm);font-size:13px;color:var(--ink-1);line-height:1.55;">
-      <strong>纯离线优先承诺：</strong>软件内置完整本地搜索引擎与预览器，断网/不填 Key 亦可 100% 满血使用。此处填入的 API Key 采用 Windows 系统级 DPAPI 加密存储在您个人本机（<code>%LOCALAPPDATA%\ModelOutputHub</code>），绝不写入项目目录或上传第三方。
-    </div>
-
-    <div class="cfg-field">
-      <label>一键选择大模型服务商预设</label>
-      <select class="cfg-sel" id="aiProviderSelect" onchange="onAiProviderChange()">
-        <option value="deepseek">DeepSeek 官方（推荐 · 极速高性价比）</option>
-        <option value="openai">OpenAI 官方 / 通用兼容中转 (OneAPI / NewAPI)</option>
-        <option value="siliconflow">硅基流动 SiliconFlow</option>
-        <option value="qwen">阿里云百炼（通义千问 Qwen）</option>
-        <option value="kimi">月之暗面 Kimi (Moonshot)</option>
-        <option value="glm">智谱开放平台 (GLM)</option>
-        <option value="gemini">Google Gemini 官方兼容接口</option>
-        <option value="anthropic">Anthropic Claude 官方 / 兼容接口</option>
-        <option value="ollama">本地 Ollama 离线大模型（免填 API Key）</option>
-        <option value="custom">自定义任意 OpenAI 兼容接口</option>
-      </select>
-    </div>
-
-    <div class="cfg-field">
-      <label>API 接口地址 (Base URL)</label>
-      <input type="text" class="cfg-inp" id="aiBaseUrlInput" placeholder="例如 https://api.deepseek.com/v1">
-    </div>
-
-    <div class="cfg-field">
-      <label style="display:flex;justify-content:space-between;">
-        <span>API Key 密钥（本地 Ollama 可留空）</span>
-        <span style="font-weight:400;font-size:12.5px;color:var(--accent);cursor:pointer;" onclick="toggleAiKeyVis()">显示/隐藏</span>
-      </label>
-      <input type="password" class="cfg-inp" id="aiApiKeyInput" placeholder="粘贴您的 sk-... 密钥（已保存密钥会自动掩码保护）">
-    </div>
-
-    <div class="cfg-field">
-      <label>模型名称 (Model ID)</label>
-      <input type="text" class="cfg-inp" id="aiModelInput" placeholder="例如 deepseek-chat / gpt-4o-mini / qwen-plus">
-    </div>
-
-    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;">
-      <button class="deliv-btn primary-html" onclick="saveAiConfigFromUi()">加密保存配置</button>
-      <button class="deliv-btn ghost" id="btnTestAi" onclick="testAiConfigFromUi()">测试接口连通性</button>
-      <button class="deliv-btn ghost" style="margin-left:auto;color:var(--danger);" onclick="clearSavedAiKey()">清除已存密钥</button>
-    </div>
-
-    <div id="aiTestResultBox" style="font-size:13.5px;padding:10px 12px;border-radius:var(--radius-sm);display:none;"></div>
-  </div>
-</aside>
-
 <div class="toast" id="toastMsg">已执行</div>
 
 <script>
   let HUB = null;
-  let USER_META = { starred: [], starred_files: [], notes: {}, topic_overrides: {}, ui_paradigm: 'takram', ui_scale: 'normal', ui_font: 'default', finder_layout: 'list', finder_dedup: false };
+  let USER_META = { starred: [], starred_files: [], notes: {}, topic_overrides: {}, ui_paradigm: 'takram', ui_scale: 'normal', ui_font: 'default', finder_layout: 'editorial', finder_dedup: true };
   let ALL_FILES = [];
   let LIVE_SEARCH_ITEMS = [];
   let LIVE_SEARCH_QUERY = '';
@@ -3140,10 +3328,10 @@
     finderRailMode: 'topic',
     finderTime: 'ALL',
     finderTopic: 'ALL',
-    finderType: 'ALL',
+    finderType: 'CORE',
     finderSort: 'time',
-    finderLayout: 'list',
-    finderDedup: false,
+    finderLayout: 'editorial',
+    finderDedup: true,
     finderPreviewOpen: true,
     finderLimit: 120,
     finderFolderPath: '',
@@ -3153,6 +3341,7 @@
     figsTopicId: 'ALL',
     figKind: 'a4',
     figGroupMode: 'fig',
+    figDisplay: 'plates',
     drawerSortMode: 'fig',
     drawerExpandSingle: false,
     expandedBranches: {},
@@ -3188,7 +3377,7 @@
 
   function esc(s) {
     const d = document.createElement('div');
-    d.textContent = s == null ? '' : String(s);
+    d.textContent = s == null ? '' : String(s).replace(/\s+·\s+/g, '·');
     return d.innerHTML;
   }
 
@@ -3247,7 +3436,6 @@
     } else if (e.key === 'Escape') {
       closeCmdPalette();
       closeInspector();
-      closeAiDrawer();
       document.getElementById('tweaksPop').classList.remove('open');
       document.getElementById('fontPop').classList.remove('open');
       if (document.activeElement === document.getElementById('omniSearchInput')) {
@@ -3286,7 +3474,7 @@
       ui_paradigm: USER_META.ui_paradigm || 'takram',
       ui_scale: USER_META.ui_scale || 'normal',
       ui_font: USER_META.ui_font || 'default',
-      finder_layout: STATE.finderLayout || 'list',
+      finder_layout: STATE.finderLayout || 'editorial',
       finder_dedup: Boolean(STATE.finderDedup)
     });
   }
@@ -3321,7 +3509,8 @@
       persistUiPrefs();
     }
     if (HUB) {
-      renderOverview();
+      if (STATE.view === 'finder') renderFinderAll(true);
+      else renderOverview();
       if (STATE.view === 'lineage') setTimeout(drawMindmapWires, 30);
     }
   }
@@ -3846,6 +4035,12 @@
     renderFiguresMain();
   }
 
+  function setFigDisplay(d) {
+    STATE.figDisplay = d;
+    document.querySelectorAll('#figDisplaySeg .seg-btn').forEach(b => b.classList.toggle('active', b.getAttribute('data-d') === d));
+    renderFiguresMain();
+  }
+
   function renderFiguresView() {
     if (!HUB) return;
     const rail = document.getElementById('figsTopicRail');
@@ -3862,7 +4057,7 @@
       return `
         <button class="rail-item ${t.id === STATE.figsTopicId ? 'active' : ''}" onclick="STATE.figsTopicId='${t.id}';renderFiguresView();">
           <span>${esc(cleanLabel(t.short))}</span>
-          <span class="rail-cnt num">${a4c} A4 / ${sgc} 单</span>
+          <span class="rail-cnt num">${a4c} / ${sgc}</span>
         </button>
       `;
     }).join('');
@@ -3911,7 +4106,6 @@
       pushList(sgs, 'single');
     });
 
-    // Update segment button counts live
     const btns = document.querySelectorAll('#figKindSeg .seg-btn');
     if (btns.length >= 3) {
       btns[0].textContent = `整页 A4 组图 (${allA4Count})`;
@@ -3950,42 +4144,87 @@
 
     let html = '';
     for (const [gTitle, arr] of groups.entries()) {
-      const shown = arr.slice(0, 80);
-      html += `
-        <div class="fig-group-block">
-          <div class="fig-group-head">
-            <span>${esc(gTitle)}</span>
-            <span class="meta-caption num" style="font-size:13px;color:var(--ink-3);">共 ${arr.length} 张图件</span>
+      const shown = arr.slice(0, 60);
+      if (STATE.figDisplay === 'plates') {
+        html += `
+          <div class="fig-group-block">
+            <div class="fig-group-head">
+              <span>${esc(gTitle)}</span>
+              <span class="meta-caption num" style="font-size:13px;color:var(--ink-3);">共 ${arr.length} 张图件（单击在画册阅览，双击打开原图）</span>
+            </div>
+            <div class="fig-plate-grid">
+              ${shown.map(it => {
+                const badgeTxt = it.figGroup === '专题与汇总图'
+                  ? (it.kind === 'a4' ? 'A4 组图' : '独立单图')
+                  : (it.figPanel ? `${it.figGroup}-${it.figPanel}` : it.figGroup);
+                const thumbUrl = 'https://hub.local/api/thumb?path=' + encodeURIComponent(it.f.path);
+                return `
+                  <div class="plate-card" onclick="jumpPreviewFromFigures('${escAttr(it.f.path)}')" ondblclick="openDeliverable('${escAttr(it.f.path)}')">
+                    <div class="plate-artboard">
+                      <span class="plate-tag">${esc(badgeTxt)}</span>
+                      <img loading="lazy" src="${thumbUrl}" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+                      <div class="plate-typo-sheet" style="display:none;">
+                        <div style="font-size:13px;font-weight:700;color:var(--ink-2);">${esc(badgeTxt)}</div>
+                        <div style="font-size:13px;color:var(--ink-3);">${esc(it.f.dim_mm || 'PDF 矢量图版')}</div>
+                      </div>
+                    </div>
+                    <div class="plate-caption">
+                      <div class="plate-title">${esc(it.f.name)}</div>
+                      <div class="plate-meta num">
+                        <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(it.projName)}</span>
+                        <span style="flex-shrink:0;">${esc((it.f.date || '').slice(5, 16))}</span>
+                      </div>
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
           </div>
-          ${shown.map(it => {
-            const badgeTxt = it.figGroup === '专题与汇总图'
-              ? (it.kind === 'a4' ? 'A4 组图' : '独立单图')
-              : (it.figPanel ? `${it.figGroup} · ${it.figPanel}` : it.figGroup);
-            const dimHtml = it.f.dim_mm
-              ? `<span class="dim-pill ${it.kind === 'single' ? 'single' : ''} num">${esc(it.f.dim_mm)}</span>`
-              : '';
-            return `
-              <div class="fig-row">
-                <span class="fig-badge ${it.kind === 'single' ? 'single' : ''}">${esc(badgeTxt)}</span>
-                <div style="min-width:0;">
-                  <div style="font-weight:600;color:var(--ink-1);overflow-wrap:anywhere;">
-                    ${esc(it.f.name)}${dimHtml}
+        `;
+      } else {
+        html += `
+          <div class="fig-group-block">
+            <div class="fig-group-head">
+              <span>${esc(gTitle)}</span>
+              <span class="meta-caption num" style="font-size:13px;color:var(--ink-3);">共 ${arr.length} 张图件</span>
+            </div>
+            ${shown.map(it => {
+              const badgeTxt = it.figGroup === '专题与汇总图'
+                ? (it.kind === 'a4' ? 'A4 组图' : '独立单图')
+                : (it.figPanel ? `${it.figGroup}-${it.figPanel}` : it.figGroup);
+              const dimHtml = it.f.dim_mm
+                ? `<span class="dim-pill ${it.kind === 'single' ? 'single' : ''} num">${esc(it.f.dim_mm)}</span>`
+                : '';
+              return `
+                <div class="fig-row">
+                  <span class="fig-badge ${it.kind === 'single' ? 'single' : ''}">${esc(badgeTxt)}</span>
+                  <div style="min-width:0;">
+                    <div style="font-weight:600;color:var(--ink-1);overflow-wrap:anywhere;">
+                      ${esc(it.f.name)}${dimHtml}
+                    </div>
+                    <div class="meta-caption num" style="font-size:13px;color:var(--ink-3);margin-top:2px;">
+                      来源目录：<span style="cursor:pointer;text-decoration:underline;" onclick="openInspector('${escAttr(it.projKey)}')">${esc(it.projName)}</span>（${esc(it.platform)}） / 路径：${esc(it.f.rel)} / 更新于 ${esc(it.f.date)} / ${it.f.size_mb.toFixed(2)} MB
+                    </div>
                   </div>
-                  <div class="meta-caption num" style="font-size:13px;color:var(--ink-3);margin-top:2px;">
-                    来源目录：<span style="cursor:pointer;text-decoration:underline;" onclick="openInspector('${escAttr(it.projKey)}')">${esc(it.projName)}</span>（${esc(it.platform)}） / 路径：${esc(it.f.rel)} / 更新于 ${esc(it.f.date)} / ${it.f.size_mb.toFixed(2)} MB
+                  <div style="display:flex;gap:6px;flex-shrink:0;">
+                    <button class="mini-open ${it.kind === 'a4' ? 'html-accent' : ''}" onclick="openDeliverable('${escAttr(it.f.path)}')">${it.kind === 'a4' ? '打开 A4 组图' : '打开单图'}</button>
+                    <button class="mini-open" onclick="revealInExplorer('${escAttr(it.f.path)}')">定位</button>
                   </div>
                 </div>
-                <div style="display:flex;gap:6px;flex-shrink:0;">
-                  <button class="mini-open ${it.kind === 'a4' ? 'html-accent' : ''}" onclick="openDeliverable('${escAttr(it.f.path)}')">${it.kind === 'a4' ? '打开 A4 组图' : '打开单图'}</button>
-                  <button class="mini-open" onclick="revealInExplorer('${escAttr(it.f.path)}')">定位</button>
-                </div>
-              </div>
-            `;
-          }).join('')}
-        </div>
-      `;
+              `;
+            }).join('')}
+          </div>
+        `;
+      }
     }
     box.innerHTML = html;
+  }
+
+  function jumpPreviewFromFigures(filePath) {
+    STATE.finderType = 'ALL';
+    STATE.selectedFilePath = filePath;
+    switchView('finder');
+    selectFileForPreview(filePath, false);
   }
 
   // =========================================================
@@ -4310,12 +4549,12 @@
         });
         (p.a4_pdfs || []).forEach(f => {
           if (((f.fig_group || '') + ' ' + f.name).toLowerCase().includes(q)) {
-            items.push({ kind: `A4组图 · ${f.fig_group || ''}`, title: f.name, sub: `${p.name} / ${f.dim_mm || ''} / ${f.date}`, key: p.key, path: f.path });
+            items.push({ kind: `A4组图 ${f.fig_group || ''}`, title: f.name, sub: `${p.name} / ${f.dim_mm || ''} / ${f.date}`, key: p.key, path: f.path });
           }
         });
         (p.single_pdfs || []).forEach(f => {
           if (((f.fig_group || '') + ' ' + (f.fig_panel || '') + ' ' + f.name).toLowerCase().includes(q)) {
-            items.push({ kind: `PDF单图 · ${f.fig_group || ''}${f.fig_panel ? '·'+f.fig_panel : ''}`, title: f.name, sub: `${p.name} / ${f.dim_mm || ''} / ${f.date}`, key: p.key, path: f.path });
+            items.push({ kind: `PDF单图 ${f.fig_group || ''}${f.fig_panel ? '-' + f.fig_panel : ''}`, title: f.name, sub: `${p.name} / ${f.dim_mm || ''} / ${f.date}`, key: p.key, path: f.path });
           }
         });
       }
@@ -4363,7 +4602,8 @@
 
 
   // =========================================================
-  // V2.0 UNIFIED FILE INDEX + MULTI-TOKEN SYNONYM SEARCH + QUICKLOOK
+  // V3.0 EDITORIAL CHRONICLE INDEX + CURATED MONOGRAPH + QUICKLOOK
+  // 100% Pure Offline · Zero AI/API Bloat · Zero Rainbow Badges
   // =========================================================
   const BUILTIN_SYNONYMS = [
     ['图注', '备注', 'legend', 'legends', 'notes'],
@@ -4379,16 +4619,18 @@
   ];
 
   const FTYPE_META = {
-    html:    { label: 'HTML 报告', badge: 'HTML报告', cls: 'ext-html' },
-    pptx:    { label: 'PPT 演示',  badge: 'PPT演示',  cls: 'ext-pptx' },
-    a4:      { label: 'A4 整页组图', badge: 'A4组图', cls: 'ext-a4' },
-    single:  { label: 'PDF 单图',  badge: 'PDF单图',  cls: 'ext-single' },
-    image:   { label: '图片/卡通', badge: '图片PNG',  cls: 'ext-img' },
-    doc:     { label: '文档/图注/稿件', badge: '文档/图注', cls: 'ext-doc' },
-    table:   { label: '数据表格',  badge: '数据表',   cls: 'ext-tbl' },
-    archive: { label: '压缩包',    badge: '压缩包',   cls: 'ext-zip' },
-    script:  { label: '代码脚本',  badge: '代码脚本', cls: 'ext-code' }
+    html:    { label: '交互报告', badge: 'HTML 报告', primary: true,  plate: false },
+    a4:      { label: 'A4 组图',  badge: 'A4 组图',   primary: true,  plate: true  },
+    pptx:    { label: '演示文稿', badge: 'PPT 演示',  primary: false, plate: true  },
+    single:  { label: 'PDF 单图', badge: 'PDF 单图',  primary: false, plate: true  },
+    image:   { label: '图像配图', badge: '图像 PNG',  primary: false, plate: true  },
+    doc:     { label: '文稿图注', badge: '文稿图注',  primary: false, plate: false },
+    table:   { label: '数据表格', badge: '数据表格',  primary: false, plate: false },
+    archive: { label: '归档压缩', badge: '归档包',    primary: false, plate: false },
+    script:  { label: '代码脚本', badge: '脚本',      primary: false, plate: false }
   };
+
+  const SUBPANEL_RX = /(?:^|[\\/])(?:panels?|subpanels?|crops?|slices?|single_panels?)[\\/]|(?:^|_)(?:panel|crop|slice)_[a-z0-9]/i;
 
   function inferFTypeFromExt(ext, isA4) {
     ext = (ext || '').toLowerCase();
@@ -4402,16 +4644,31 @@
     return 'script';
   }
 
+  const PLUMBING_NOISE_RX = /^(?:_index|_map|manifest|readme|license|changelog|direction-approved|polish-log|state|ledger|donotretry|annotations|claim|prompt)\b|\.exe$|modeloutputhub|模型输出管家|便携包/i;
+
+  function isCuratedCoreDeliverable(item) {
+    if (PLUMBING_NOISE_RX.test(item.name || '') || PLUMBING_NOISE_RX.test(item.projName || '')) {
+      return false;
+    }
+    if (item.ftype === 'script') return false;
+    if (item.ftype === 'html' || item.ftype === 'a4' || item.ftype === 'pptx') {
+      return true;
+    }
+    if (item.ftype === 'doc' || item.ftype === 'table' || item.ftype === 'archive') {
+      return !(item.rel && item.rel.includes('/'));
+    }
+    if (SUBPANEL_RX.test(item.rel || '') || SUBPANEL_RX.test(item.name || '')) return false;
+    if (item.figPanel && item.figPanel.length === 1 && item.ftype === 'single') return false;
+    return !(item.rel && item.rel.includes('/'));
+  }
+
   function rebuildFlatFileIndex() {
     ALL_FILES = [];
     if (!HUB || !HUB.projects) return;
     const tMap = getTopicMap();
     const starFileSet = new Set((USER_META.starred_files || []).map(x => String(x).toLowerCase()));
     const s = HUB.summary || {};
-    const brandEl = document.getElementById('brandStatSub');
-    if (brandEl) {
-      brandEl.textContent = `${s.total_projects || 0} 课题 · ${s.total_html || 0} 报告 · ${s.total_a4_pdf || 0} A4组图`;
-    }
+
     if (!STATE.lineageTopicId && HUB.topics && HUB.topics.length) {
       STATE.lineageTopicId = HUB.topics[0].id;
     }
@@ -4425,18 +4682,18 @@
         (arr || []).forEach(f => {
           const ext = (f.name.includes('.') ? '.' + f.name.split('.').pop() : '').toLowerCase();
           const normPath = String(f.path || '').toLowerCase();
-          const displayTitle = (ftype === 'html' && f.title && f.title !== f.name) ? f.title : f.name;
+          const rawTitle = (ftype === 'html' && f.title && f.title !== f.name) ? cleanLabel(f.title) : f.name;
           const figStr = f.fig_group && f.fig_group !== '专题与汇总图'
-            ? (f.fig_panel ? `${f.fig_group}·${f.fig_panel}` : f.fig_group)
+            ? (f.fig_panel ? `${f.fig_group}-${f.fig_panel}` : f.fig_group)
             : '';
           const metaInfo = FTYPE_META[ftype] || FTYPE_META.doc;
-          const searchHay = `${f.name} ${displayTitle} ${f.rel || ''} ${figStr} ${metaInfo.label} ${ext} ${baseCtx}`.toLowerCase();
+          const searchHay = `${f.name} ${rawTitle} ${f.rel || ''} ${figStr} ${metaInfo.label} ${ext} ${baseCtx}`.toLowerCase();
 
-          ALL_FILES.push({
+          const rec = {
             ftype,
             ext,
             name: f.name,
-            displayTitle,
+            displayTitle: rawTitle,
             path: f.path,
             normPath,
             rel: f.rel || f.name,
@@ -4457,8 +4714,11 @@
             figBadge: figStr,
             starred: starFileSet.has(normPath) || Boolean(p.starred),
             fileStarred: starFileSet.has(normPath),
+            isCore: false,
             hay: searchHay
-          });
+          };
+          rec.isCore = isCuratedCoreDeliverable(rec);
+          ALL_FILES.push(rec);
         });
       };
 
@@ -4474,10 +4734,21 @@
     });
 
     ALL_FILES.sort((a, b) => b.mtime - a.mtime);
+
+    const brandEl = document.getElementById('brandStatSub');
+    if (brandEl) {
+      brandEl.textContent = `${s.total_projects || 0} 课题 / ${ALL_FILES.length.toLocaleString()} 份本地产出`;
+    }
+    const pgBig = document.getElementById('chPgBigNum');
+    if (pgBig) pgBig.textContent = ALL_FILES.filter(x => x.isCore).length;
+    const pgSub = document.getElementById('chPgSubline');
+    if (pgSub) {
+      pgSub.textContent = `共纳管 ${s.total_projects || 0} 个课题阶段目录、${s.total_html || 0} 份交互审阅报告与 ${s.total_a4_pdf || 0} 张整页 A4 组图`;
+    }
   }
 
   function formatRelativeTime(mtimeSec, fullDateStr) {
-    if (!mtimeSec) return fullDateStr || '';
+    if (!mtimeSec) return { text: fullDateStr || '', fresh: false };
     const nowSec = Date.now() / 1000;
     const diff = Math.max(0, nowSec - mtimeSec);
     const dObj = new Date(mtimeSec * 1000);
@@ -4488,22 +4759,24 @@
     const hm = (fullDateStr || '').slice(11, 16) || dObj.toTimeString().slice(0, 5);
 
     if (diff < 120) return { text: '刚刚', fresh: true };
-    if (diff < 3600) return { text: `${Math.floor(diff / 60)} 分钟前 (${hm})`, fresh: true };
+    if (diff < 3600) return { text: `${Math.floor(diff / 60)} 分钟前`, fresh: true };
     if (isToday) return { text: `今天 ${hm}`, fresh: true };
     if (isYest) return { text: `昨天 ${hm}`, fresh: false };
-    if (diff < 86400 * 7) return { text: `${Math.floor(diff / 86400)} 天前 (${(fullDateStr || '').slice(5, 16)})`, fresh: false };
+    if (diff < 86400 * 7) return { text: `${Math.floor(diff / 86400)} 天前 ${(fullDateStr || '').slice(5, 10)}`, fresh: false };
     return { text: (fullDateStr || '').slice(0, 16), fresh: false };
   }
 
   function getDayBucketLabel(mtimeSec) {
-    if (!mtimeSec) return '更早归档';
+    if (!mtimeSec) return '历史归档成果';
     const dObj = new Date(mtimeSec * 1000);
     const nowObj = new Date();
-    if (dObj.toDateString() === nowObj.toDateString()) return '今天刚出炉';
+    if (dObj.toDateString() === nowObj.toDateString()) return '今日新作';
     const yestObj = new Date(nowObj.getFullYear(), nowObj.getMonth(), nowObj.getDate() - 1);
-    if (dObj.toDateString() === yestObj.toDateString()) return '昨天';
-    if ((Date.now() / 1000 - mtimeSec) < 86400 * 7) return '最近 7 天';
-    return '更早归档';
+    if (dObj.toDateString() === yestObj.toDateString()) return '昨日产出';
+    const age = Date.now() / 1000 - mtimeSec;
+    if (age < 86400 * 7) return '最近七日';
+    if (dObj.getFullYear() === nowObj.getFullYear() && dObj.getMonth() === nowObj.getMonth()) return '本月早些时候';
+    return `${dObj.getFullYear()} 年 ${dObj.getMonth() + 1} 月归档`;
   }
 
   function expandQueryTokensJs(q) {
@@ -4555,10 +4828,10 @@
           if ((document.getElementById('omniSearchInput').value || '').trim() === q) {
             LIVE_SEARCH_QUERY = q;
             LIVE_SEARCH_ITEMS = data.items || [];
-            renderFinderCenter();
+            renderFinderCenter(true);
           }
         } catch (_) {}
-      }, 140);
+      }, 130);
     } else {
       LIVE_SEARCH_QUERY = '';
       LIVE_SEARCH_ITEMS = [];
@@ -4640,9 +4913,6 @@
   function setFinderType(tp) {
     STATE.finderType = tp;
     STATE.finderLimit = 120;
-    if ((tp === 'a4' || tp === 'image') && !USER_META._manual_layout_chosen) {
-      // Keep user's chosen layout, just refresh smoothly
-    }
     renderFinderCenter();
   }
 
@@ -4658,10 +4928,9 @@
   }
 
   function setFinderLayout(ly) {
-    USER_META._manual_layout_chosen = true;
     STATE.finderLayout = ly;
     persistUiPrefs();
-    renderFinderCenter();
+    renderFinderCenter(true);
   }
 
   function togglePreviewPane() {
@@ -4684,6 +4953,7 @@
     rebuildFlatFileIndex();
     renderFinderRail();
     renderFinderCenter(true);
+    if (STATE.selectedFilePath === filePath) selectFileForPreview(filePath, true);
   }
 
   function listSetHelper(arr) {
@@ -4706,27 +4976,42 @@
     const rail = document.getElementById('finderRailScroll');
     if (!rail || !HUB) return;
 
+    const folderIconSvg = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="flex-shrink:0;opacity:0.78;"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>`;
+
     if (STATE.finderRailMode === 'folder') {
-      const fd = FOLDER_VIEW_DATA || { dirs: [], path: HUB.root_path, parent: '', is_root: true };
-      let html = `<div class="f-sec-label">真实磁盘目录直看</div>`;
+      const fd = FOLDER_VIEW_DATA || { dirs: [], root_dirs: [], path: HUB.root_path, parent: '', is_root: true };
+      const curLow = String(fd.path || '').toLowerCase();
+      let html = `<div class="f-sec-label">平台与一级目录直达</div>`;
       html += `
         <button class="f-nav-btn ${fd.is_root ? 'active' : ''}" onclick="loadFolderBrowser('${escAttr(HUB.root_path)}')">
-          <span class="f-nav-name">输出总根目录</span>
+          <span class="f-nav-name">${folderIconSvg}<span>输出总根目录</span></span>
         </button>
       `;
-      if (fd.parent) {
+      (fd.root_dirs || []).forEach(rd => {
+        const rdLow = String(rd.path || '').toLowerCase();
+        const isAct = curLow === rdLow || curLow.startsWith(rdLow + '\\');
         html += `
-          <button class="f-nav-btn" onclick="loadFolderBrowser('${escAttr(fd.parent)}')">
-            <span class="f-nav-name" style="color:var(--accent);font-weight:600;">↑ 返回上一级文件夹</span>
+          <button class="f-nav-btn ${isAct ? 'active' : ''}" onclick="loadFolderBrowser('${escAttr(rd.path)}')" title="${escAttr(rd.name)}">
+            <span class="f-nav-name">${folderIconSvg}<span>${esc(rd.name)}</span></span>
           </button>
         `;
+      });
+
+      if (!fd.is_root) {
+        html += `<div class="f-sec-label" style="margin-top:8px;">当前目录子文件夹 (${(fd.dirs || []).length})</div>`;
+        if (fd.parent) {
+          html += `
+            <button class="f-nav-btn" onclick="loadFolderBrowser('${escAttr(fd.parent)}')">
+              <span class="f-nav-name" style="color:var(--accent);font-weight:600;">返回上一级目录</span>
+            </button>
+          `;
+        }
+        html += (fd.dirs || []).map(d => `
+          <button class="f-nav-btn" onclick="loadFolderBrowser('${escAttr(d.path)}')" title="${escAttr(d.name)}">
+            <span class="f-nav-name">${folderIconSvg}<span>${esc(d.name)}</span></span>
+          </button>
+        `).join('') || `<div class="meta-caption" style="padding:10px 12px;font-size:13px;color:var(--ink-3);">当前已是最末级文件夹</div>`;
       }
-      html += `<div class="f-sec-label">当前子文件夹 (${(fd.dirs || []).length})</div>`;
-      html += (fd.dirs || []).map(d => `
-        <button class="f-nav-btn" onclick="loadFolderBrowser('${escAttr(d.path)}')" title="${escAttr(d.name)}">
-          <span class="f-nav-name">📁 ${esc(d.name)}</span>
-        </button>
-      `).join('') || `<div style="padding:10px 12px;font-size:13px;color:var(--ink-3);">此文件夹下无子目录</div>`;
       rail.innerHTML = html;
       return;
     }
@@ -4744,14 +5029,24 @@
     });
 
     const timeItems = [
-      { id: 'ALL',   name: '全部时间（最新排前）', cnt: ALL_FILES.length },
-      { id: 'TODAY', name: '今天刚出炉',          cnt: cntToday },
-      { id: '3D',    name: '最近 3 天',           cnt: cnt3d },
-      { id: '7D',    name: '最近 7 天',           cnt: cnt7d },
-      { id: 'STAR',  name: '我的星标收藏',        cnt: cntStar }
+      { id: 'ALL',   name: '全部近期成果', cnt: ALL_FILES.length },
+      { id: 'TODAY', name: '今日新作',     cnt: cntToday },
+      { id: '3D',    name: '近三日产出',   cnt: cnt3d },
+      { id: '7D',    name: '最近七日',     cnt: cnt7d },
+      { id: 'STAR',  name: '星标珍藏',     cnt: cntStar }
     ];
 
-    let html = `<div class="f-sec-label">按时间与收藏秒筛</div>`;
+    const pgTopNum = document.getElementById('chPgTopNum');
+    if (pgTopNum) pgTopNum.textContent = ALL_FILES.filter(x => x.isCore).length;
+    const pgStrip = document.getElementById('pentagramIndexStrip');
+    if (pgStrip) {
+      let pHtml = `<button class="pg-idx-chip ${STATE.finderRailMode === 'folder' ? 'active' : ''}" onclick="setFinderRailMode('${STATE.finderRailMode === 'folder' ? 'topic' : 'folder'}')">${STATE.finderRailMode === 'folder' ? '返回编年总目' : '浏览磁盘文件夹'}</button>`;
+      pHtml += timeItems.slice(0, 4).map(it => `<button class="pg-idx-chip ${STATE.finderRailMode === 'topic' && STATE.finderTime === it.id && STATE.finderTopic === 'ALL' ? 'active' : ''}" onclick="STATE.finderRailMode='topic';STATE.finderTopic='ALL';setFinderTime('${it.id}')">${esc(it.name)} (${it.cnt})</button>`).join('');
+      pHtml += (HUB.topics || []).slice(0, 6).map(t => `<button class="pg-idx-chip ${STATE.finderRailMode === 'topic' && STATE.finderTopic === t.id ? 'active' : ''}" onclick="STATE.finderRailMode='topic';setFinderTopic('${escAttr(t.id)}')">${esc(cleanLabel(t.short))}</button>`).join('');
+      pgStrip.innerHTML = pHtml;
+    }
+
+    let html = `<div class="f-sec-label">时间书签</div>`;
     html += timeItems.map(it => `
       <button class="f-nav-btn ${STATE.finderTime === it.id ? 'active' : ''}" onclick="setFinderTime('${it.id}')">
         <span class="f-nav-name">${it.id === 'TODAY' && cntToday > 0 ? '<span class="live-mini-dot"></span>' : ''}${esc(it.name)}</span>
@@ -4759,11 +5054,11 @@
       </button>
     `).join('');
 
-    html += `<div class="f-sec-label" style="margin-top:8px;">按课题范围锁定</div>`;
+    html += `<div class="f-sec-label" style="margin-top:8px;">课题专席</div>`;
     html += `
       <button class="f-nav-btn ${STATE.finderTopic === 'ALL' ? 'active' : ''}" onclick="setFinderTopic('ALL')">
         <span class="f-nav-name">全部课题汇总</span>
-        <span class="f-nav-cnt num">${(HUB.projects || []).length}目录</span>
+        <span class="f-nav-cnt num">${(HUB.projects || []).length}</span>
       </button>
     `;
 
@@ -4809,7 +5104,7 @@
         const ok = tokenGroups.every(alts => alts.some(a => f.hay.includes(a)));
         if (ok) {
           seenPaths.add(f.normPath);
-          let score = 0;
+          let score = f.isCore ? 12 : 0;
           const fnLow = f.name.toLowerCase();
           const titleLow = f.displayTitle.toLowerCase();
           tokenGroups.forEach(alts => {
@@ -4819,7 +5114,6 @@
         }
       });
 
-      // Merge live 64,000-file C# disk search hits so brand-new / deep / raw files NEVER hide!
       if (LIVE_SEARCH_QUERY === rawQuery && LIVE_SEARCH_ITEMS.length) {
         LIVE_SEARCH_ITEMS.forEach(lf => {
           const np = String(lf.path || '').toLowerCase();
@@ -4836,7 +5130,7 @@
             rel: lf.rel || lf.name,
             dir: lf.dir || '',
             projKey: '',
-            projName: lf.proj_name || '底层实时文件',
+            projName: lf.proj_name || '底层目录',
             topicId: 'ALL',
             topicShort: '全盘穿透命中',
             platform: lf.platform || '本地',
@@ -4851,6 +5145,7 @@
             figBadge: '',
             starred: false,
             fileStarred: false,
+            isCore: true,
             _score: lf._score || 5
           });
         });
@@ -4873,6 +5168,14 @@
     return pool;
   }
 
+  function matchTypeBucket(f, tp) {
+    if (tp === 'ALL') return true;
+    if (tp === 'CORE') return Boolean(f.isCore);
+    if (tp === 'visual_single') return f.ftype === 'single' || f.ftype === 'image';
+    if (tp === 'data_pack') return f.ftype === 'table' || f.ftype === 'archive' || f.ftype === 'script';
+    return f.ftype === tp;
+  }
+
   function renderTopicQuickPinBanner() {
     const pinArea = document.getElementById('finderTopicPinArea');
     const q = (document.getElementById('omniSearchInput').value || '').trim();
@@ -4886,21 +5189,55 @@
     const tFiles = ALL_FILES.filter(f => f.topicId === t.id);
     const topHtml = tFiles.find(f => f.ftype === 'html');
     const topPpt  = tFiles.find(f => f.ftype === 'pptx');
-    const a4Cnt   = tFiles.filter(f => f.ftype === 'a4').length;
+    const topDoc  = tFiles.find(f => f.ftype === 'doc');
+    const a4Plates = [];
+    const seenA4 = new Set();
+    tFiles.filter(f => f.ftype === 'a4').forEach(f => {
+      const k = (f.figBadge || f.name).toLowerCase();
+      if (!seenA4.has(k) && a4Plates.length < 4) {
+        seenA4.add(k);
+        a4Plates.push(f);
+      }
+    });
     const topProj = (HUB.projects || []).find(p => p.topic_id === t.id);
 
     pinArea.innerHTML = `
-      <div class="topic-pin-card">
-        <div class="topic-pin-head">
-          <span class="topic-pin-title">本课题最新定稿一键直取 · ${esc(cleanLabel(t.short))}</span>
-          <span style="font-size:12.5px;color:var(--ink-3);">不用在旧目录里翻找，直接打开最新一版</span>
+      <div class="monograph-desk">
+        <div class="mono-desk-head">
+          <div>
+            <div class="mono-desk-title">最新定稿专席：${esc(cleanLabel(t.short))}</div>
+            <div class="meta-caption" style="font-size:13.5px;color:var(--ink-3);margin-top:2px;">已自动从 ${t.project_count} 个历史阶段文件夹中提取最新定稿件，点击图版即刻预览</div>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            ${topHtml ? `<button class="deliv-btn primary-html" onclick="openDeliverable('${escAttr(topHtml.path)}')">打开最新 HTML 审阅报告</button>` : ''}
+            ${topPpt ? `<button class="deliv-btn ghost" onclick="openDeliverable('${escAttr(topPpt.path)}')">打开最新 PPTX</button>` : ''}
+            ${topDoc ? `<button class="deliv-btn ghost" onclick="selectFileForPreview('${escAttr(topDoc.path)}')">预览最新文稿图注</button>` : ''}
+            ${topProj ? `<button class="deliv-btn ghost" onclick="jumpToSameFolder('${escAttr(topProj.path)}')">浏览最新阶段目录</button>` : ''}
+          </div>
         </div>
-        <div class="topic-pin-actions">
-          ${topHtml ? `<button class="deliv-btn primary-html" onclick="openDeliverable('${escAttr(topHtml.path)}')">打开最新 HTML 报告（${esc(topHtml.name.slice(0, 26))}）</button>` : ''}
-          ${topPpt ? `<button class="deliv-btn ghost" onclick="openDeliverable('${escAttr(topPpt.path)}')">打开最新 PPTX（${esc(topPpt.name.slice(0, 26))}）</button>` : ''}
-          ${a4Cnt > 0 ? `<button class="deliv-btn ghost" onclick="setFinderType('a4');setFinderLayout('grid');">缩略图看本课题 ${a4Cnt} 张 A4 组图</button>` : ''}
-          ${topProj ? `<button class="deliv-btn ghost" onclick="revealInExplorer('${escAttr(topProj.path)}')">打开最新阶段文件夹</button>` : ''}
-        </div>
+        ${a4Plates.length ? `
+          <div class="mono-strip">
+            ${a4Plates.map(f => {
+              const thumbUrl = 'https://hub.local/api/thumb?path=' + encodeURIComponent(f.path);
+              return `
+                <div class="plate-card ${f.path === STATE.selectedFilePath ? 'selected' : ''}" data-fpath="${escAttr(f.path)}" onclick="selectFileForPreview('${escAttr(f.path)}')" ondblclick="openDeliverable('${escAttr(f.path)}')">
+                  <div class="plate-artboard" style="height:142px;">
+                    <span class="plate-tag">${esc(f.figBadge || 'A4 定稿')}</span>
+                    <img src="${thumbUrl}" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+                    <div class="plate-typo-sheet" style="display:none;">
+                      <div style="font-weight:700;font-size:13.5px;">${esc(f.figBadge || 'A4 组图')}</div>
+                      <div class="meta-caption" style="font-size:12.5px;color:var(--ink-3);">${esc(f.dimMm || 'PDF')}</div>
+                    </div>
+                  </div>
+                  <div class="plate-caption" style="padding:8px 10px;">
+                    <div class="plate-title" style="-webkit-line-clamp:1;">${esc(f.name)}</div>
+                    <div class="plate-meta meta-caption num"><span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(f.projName)}</span><span style="flex-shrink:0;">${esc((f.date || '').slice(5, 16))}</span></div>
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        ` : ''}
       </div>
     `;
   }
@@ -4908,8 +5245,9 @@
   function renderFinderCenter(keepSelection) {
     if (!HUB) return;
     document.getElementById('btnDedupOld').classList.toggle('active', STATE.finderDedup);
-    document.getElementById('btnLayoutList').classList.toggle('active', STATE.finderLayout === 'list');
+    document.getElementById('btnLayoutEditorial').classList.toggle('active', STATE.finderLayout === 'editorial');
     document.getElementById('btnLayoutGrid').classList.toggle('active', STATE.finderLayout === 'grid');
+    document.getElementById('btnLayoutList').classList.toggle('active', STATE.finderLayout === 'list');
     document.getElementById('btnTogglePreview').classList.toggle('active', STATE.finderPreviewOpen);
 
     // Real Folder Mode
@@ -4917,96 +5255,136 @@
       document.getElementById('finderTopicPinArea').innerHTML = '';
       document.getElementById('finderFigSortWrap').style.display = 'none';
       const fd = FOLDER_VIEW_DATA || { path: HUB.root_path, dirs: [], files: [] };
+      const folderName = (fd.path || '').replace(/[\\/]+$/, '').split(/[\\/]/).pop() || '输出根目录';
+      document.getElementById('finderHeadingText').textContent = folderName;
       document.getElementById('finderTypeBar').innerHTML = `
-        <span style="font-weight:700;color:var(--accent);font-size:14px;">当前文件夹：</span>
-        <span style="font-family:var(--font-mono);font-size:13.5px;color:var(--ink-1);user-select:text;">${esc(fd.path || '')}</span>
-        <button class="mini-open" style="margin-left:auto;" onclick="nativeCall('openFolder',{path:'${escAttr(fd.path || '')}'})">在 Windows 资源管理器中打开</button>
-      `;
-      const dirs = fd.dirs || [];
-      const files = (fd.files || []).map(f => ({
-        ftype: inferFTypeFromExt(f.ext, false),
-        ext: f.ext || '',
-        name: f.name,
-        displayTitle: f.name,
-        path: f.path,
-        normPath: String(f.path || '').toLowerCase(),
-        rel: f.name,
-        dir: fd.path,
-        projKey: '',
-        projName: (fd.path || '').split('\\').pop(),
-        topicShort: '当前文件夹',
-        platform: '',
-        sizeMb: f.size_mb || 0,
-        mtime: f.mtime || 0,
-        date: f.date || '',
-        dimMm: '',
-        figBadge: f.fig_group && f.fig_group !== '专题与汇总图' ? f.fig_group : '',
-        figOrder: 90,
-        fileStarred: false
-      }));
-      CURRENT_RENDERED_FILES = files;
-      document.getElementById('finderStatusText').textContent =
-        `包含 ${dirs.length} 个子文件夹、${files.length} 个文件 · 单击文件右侧直接预览，双击打开`;
-
-      const scrollBox = document.getElementById('finderListScroll');
-      let html = dirs.map(d => `
-        <div class="f-row" onclick="loadFolderBrowser('${escAttr(d.path)}')">
-          <span class="ext-badge ext-dir">文件夹</span>
-          <div style="min-width:0;">
-            <div class="f-main-title">📁 ${esc(d.name)}</div>
-            <div class="f-sub-meta num">最后更新：${esc(d.date)} · 点击进入此文件夹</div>
-          </div>
-          <div class="f-actions" onclick="event.stopPropagation()">
-            <button class="mini-open" onclick="loadFolderBrowser('${escAttr(d.path)}')">进入</button>
-            <button class="mini-open" onclick="nativeCall('openFolder',{path:'${escAttr(d.path)}'})">资源管理器</button>
+        <div style="padding:5px 0 9px;display:flex;align-items:center;justify-content:space-between;width:100%;gap:12px;">
+          <span class="meta-caption" style="font-size:14px;color:var(--ink-2);user-select:text;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">目录路径：${esc(fd.path || '')}</span>
+          <div style="display:flex;gap:8px;flex-shrink:0;">
+            ${fd.parent ? `<button class="mini-open" onclick="loadFolderBrowser('${escAttr(fd.parent)}')">返回上一级</button>` : ''}
+            <button class="mini-open html-accent" onclick="nativeCall('openFolder',{path:'${escAttr(fd.path || '')}'})">在资源管理器打开</button>
           </div>
         </div>
-      `).join('');
-      html += renderFileItemsHtml(files, '');
+      `;
+
+      const dirs = fd.dirs || [];
+      const files = (fd.files || []).map(f => {
+        const ft = inferFTypeFromExt(f.ext, f.ext === '.pdf' && !SUBPANEL_RX.test(f.name));
+        return {
+          ftype: ft,
+          ext: f.ext || '',
+          name: f.name,
+          displayTitle: f.name,
+          path: f.path,
+          normPath: String(f.path || '').toLowerCase(),
+          rel: f.name,
+          dir: fd.path,
+          projKey: '',
+          projName: folderName,
+          topicShort: '当前目录',
+          platform: '',
+          sizeMb: f.size_mb || 0,
+          mtime: f.mtime || 0,
+          date: f.date || '',
+          dimMm: '',
+          figBadge: f.fig_group && f.fig_group !== '专题与汇总图' ? (f.fig_panel ? `${f.fig_group}-${f.fig_panel}` : f.fig_group) : '',
+          figOrder: 90,
+          fileStarred: false,
+          isCore: true
+        };
+      });
+      CURRENT_RENDERED_FILES = files;
+      document.getElementById('finderStatusText').textContent =
+        `当前目录含 ${dirs.length} 个子文件夹、${files.length} 份成果文件`;
+
+      const scrollBox = document.getElementById('finderListScroll');
+      let html = '';
+      if (dirs.length) {
+        html += `<div class="chronicle-chapter"><span class="ch-chapter-title">平台与课题文件夹</span><span class="ch-chapter-meta meta-caption num">${dirs.length} 个目录</span></div>`;
+        html += `<div class="ed-doc-list">` + dirs.map(d => `
+          <div class="ed-doc-row" onclick="loadFolderBrowser('${escAttr(d.path)}')">
+            <span class="kind-mark">文件夹</span>
+            <div style="min-width:0;">
+              <div class="ed-doc-title">${esc(d.name)}</div>
+              <div class="ed-doc-sub meta-caption num"><span>最后修改 ${esc(d.date)}</span><span>点击进入浏览内部组图与报告</span></div>
+            </div>
+            <div class="f-actions" onclick="event.stopPropagation()">
+              <button class="mini-open html-accent" onclick="loadFolderBrowser('${escAttr(d.path)}')">进入</button>
+              <button class="mini-open" onclick="nativeCall('openFolder',{path:'${escAttr(d.path)}'})">打开目录</button>
+            </div>
+          </div>
+        `).join('') + `</div>`;
+      }
+      if (files.length) {
+        html += `<div class="chronicle-chapter"><span class="ch-chapter-title">目录内文件</span><span class="ch-chapter-meta meta-caption num">${files.length} 份文件</span></div>`;
+        html += renderEditorialMixedBlock(files, '', 'folder');
+      }
       if (!dirs.length && !files.length) {
         html = `<div style="padding:48px;text-align:center;color:var(--ink-3);">此文件夹为空</div>`;
       }
       scrollBox.innerHTML = html;
-      if (files.length && (!keepSelection || !STATE.selectedFilePath)) {
-        selectFileForPreview(files[0].path, true);
+      if (files.length) {
+        if (!keepSelection || !files.some(x => x.path === STATE.selectedFilePath)) {
+          selectFileForPreview(files[0].path, true);
+        }
+      } else {
+        STATE.selectedFilePath = '';
+        renderFolderOverviewInPreview(fd, dirs);
       }
       return;
     }
 
-    // Topic / Time / Omni Search Mode
+    // Chronicle / Topic / Search Mode
     const q = (document.getElementById('omniSearchInput').value || '').trim();
     const basePool = getFilteredBasePool(q);
 
-    // Count per ftype in current scope
-    const typeCounts = { ALL: basePool.length, html: 0, pptx: 0, a4: 0, single: 0, image: 0, doc: 0, table: 0, archive: 0, script: 0 };
-    basePool.forEach(f => { if (typeCounts[f.ftype] != null) typeCounts[f.ftype]++; });
+    const tMap = getTopicMap();
+    if (q) {
+      document.getElementById('finderHeadingText').textContent = `检索结果：「${q}」`;
+    } else if (STATE.finderTopic !== 'ALL' && tMap[STATE.finderTopic]) {
+      document.getElementById('finderHeadingText').textContent = cleanLabel(tMap[STATE.finderTopic].short);
+    } else if (STATE.finderTime === 'TODAY') {
+      document.getElementById('finderHeadingText').textContent = '今日新作编年';
+    } else if (STATE.finderTime === 'STAR') {
+      document.getElementById('finderHeadingText').textContent = '星标珍藏定稿';
+    } else {
+      document.getElementById('finderHeadingText').textContent = '近期科研成果编年画册';
+    }
 
-    const pillDefs = [
-      { id: 'ALL',     label: '全部成品' },
-      { id: 'html',    label: 'HTML 报告' },
-      { id: 'pptx',    label: 'PPT 演示' },
-      { id: 'a4',      label: 'A4 整页组图' },
-      { id: 'single',  label: 'PDF 单图' },
-      { id: 'image',   label: '图片/卡通' },
-      { id: 'doc',     label: '文档/图注/稿件' },
-      { id: 'table',   label: '数据表格' },
-      { id: 'archive', label: '压缩包' },
-      { id: 'script',  label: '代码脚本' }
+    const tabDefs = [
+      { id: 'CORE',          label: '核心成果' },
+      { id: 'ALL',           label: '全部文件' },
+      { id: 'html',          label: '交互报告' },
+      { id: 'a4',            label: 'A4 整页组图' },
+      { id: 'visual_single', label: '单图与配图' },
+      { id: 'pptx',          label: '演示文稿' },
+      { id: 'doc',           label: '文稿图注' },
+      { id: 'data_pack',     label: '表格与归档' }
     ];
-    document.getElementById('finderTypeBar').innerHTML = pillDefs.map(pd => `
-      <button class="ftype-pill ${STATE.finderType === pd.id ? 'active' : ''}" onclick="setFinderType('${pd.id}')">
-        <span>${esc(pd.label)}</span>
-        <span class="ftype-cnt num">${typeCounts[pd.id] || 0}</span>
-      </button>
-    `).join('');
+    const tabCounts = {};
+    tabDefs.forEach(td => { tabCounts[td.id] = 0; });
+    basePool.forEach(f => {
+      tabDefs.forEach(td => { if (matchTypeBucket(f, td.id)) tabCounts[td.id]++; });
+    });
+
+    const effectiveType = (q && STATE.finderType === 'CORE') ? 'ALL' : STATE.finderType;
+
+    document.getElementById('finderTypeBar').innerHTML = `
+      <div class="ch-tab-list">
+        ${tabDefs.map(td => `
+          <button class="ch-utab ${effectiveType === td.id ? 'active' : ''}" onclick="setFinderType('${td.id}')">
+            <span>${esc(td.label)}</span>
+            <span class="ch-utab-cnt num">${tabCounts[td.id] || 0}</span>
+          </button>
+        `).join('')}
+      </div>
+    `;
 
     renderTopicQuickPinBanner();
 
-    let finalItems = STATE.finderType === 'ALL'
-      ? basePool
-      : basePool.filter(f => f.ftype === STATE.finderType);
+    let finalItems = basePool.filter(f => matchTypeBucket(f, effectiveType));
 
-    const showFigSort = (STATE.finderType === 'a4' || STATE.finderType === 'single');
+    const showFigSort = (effectiveType === 'a4' || effectiveType === 'visual_single');
     const figSortWrap = document.getElementById('finderFigSortWrap');
     figSortWrap.style.display = showFigSort ? 'inline-flex' : 'none';
     if (showFigSort) {
@@ -5019,25 +5397,28 @@
 
     CURRENT_RENDERED_FILES = finalItems;
     const shown = finalItems.slice(0, STATE.finderLimit);
+    const hiddenNoiseCnt = Math.max(0, basePool.length - tabCounts.CORE);
 
     document.getElementById('finderStatusText').textContent = q
-      ? `搜索「${q}」共找到 ${finalItems.length} 个文件（含全盘实时穿透） · 单击右侧预览，双击打开`
-      : `当前范围共 ${finalItems.length} 个文件 · 单击右侧秒看真容，双击直接打开，↑↓键快速翻看`;
+      ? `共命中 ${finalItems.length} 份文件（含底层全盘实时穿透），上下键切换预览，回车打开`
+      : (effectiveType === 'CORE' && hiddenNoiseCnt > 0
+        ? `当前呈现 ${finalItems.length} 份核心定稿与主交付件（另有 ${hiddenNoiseCnt} 份子面板单图与脚本收纳于「全部文件」）`
+        : `当前范围共 ${finalItems.length} 份文件，单击卡片在右侧即时阅览，双击直接打开原件`);
 
     const scrollBox = document.getElementById('finderListScroll');
     if (!shown.length) {
       scrollBox.innerHTML = `
         <div style="padding:52px 24px;text-align:center;color:var(--ink-3);background:var(--bg-surface);border-radius:var(--radius-md);border:1px solid var(--line-soft);margin-top:12px;">
-          <div style="font-size:16px;font-weight:600;color:var(--ink-2);margin-bottom:8px;">当前筛选条件下没有匹配文件</div>
-          <div style="font-size:14px;">试试点击上方「全部成品」、左侧切换为「全部课题汇总」，或在顶部搜索框换个关键词。</div>
-          ${(STATE.finderType !== 'ALL' || STATE.finderTopic !== 'ALL' || STATE.finderTime !== 'ALL') ? `<button class="deliv-btn primary-html" style="margin-top:14px;" onclick="STATE.finderType='ALL';STATE.finderTopic='ALL';STATE.finderTime='ALL';renderFinderAll();">一键重置全部筛选条件</button>` : ''}
+          <div style="font-size:16px;font-weight:600;color:var(--ink-2);margin-bottom:8px;">当前筛选条件下暂无匹配文件</div>
+          <div style="font-size:14px;">可切换上方「全部文件」、左侧点击「全部课题汇总」，或清空搜索框关键词。</div>
+          ${(STATE.finderType !== 'ALL' || STATE.finderTopic !== 'ALL' || STATE.finderTime !== 'ALL') ? `<button class="deliv-btn primary-html" style="margin-top:14px;" onclick="STATE.finderType='ALL';STATE.finderTopic='ALL';STATE.finderTime='ALL';renderFinderAll();">展示全部文件</button>` : ''}
         </div>
       `;
       return;
     }
 
-    const useDayGroups = (!q && STATE.finderLayout === 'list' && !(showFigSort && STATE.finderSort === 'fig'));
-    if (useDayGroups) {
+    const useChronicleChapters = (!q && !(showFigSort && STATE.finderSort === 'fig'));
+    if (useChronicleChapters) {
       const buckets = new Map();
       shown.forEach(f => {
         const b = getDayBucketLabel(f.mtime);
@@ -5045,92 +5426,148 @@
         buckets.get(b).push(f);
       });
       let html = '';
+      let chapIdx = 0;
       for (const [bTitle, arr] of buckets.entries()) {
-        html += `<div class="day-group-header"><span>${esc(bTitle)}</span><span class="num" style="font-size:12.5px;color:var(--ink-3);font-weight:500;">${arr.length} 项</span></div>`;
-        html += renderFileItemsHtml(arr, q);
+        chapIdx++;
+        html += `
+          <div class="chronicle-chapter">
+            <span class="ch-chapter-title">${esc(bTitle)}</span>
+            <span class="ch-chapter-meta meta-caption num">${arr.length} 份成果</span>
+          </div>
+        `;
+        html += renderEditorialMixedBlock(arr, q, 'chap_' + chapIdx);
       }
       if (finalItems.length > STATE.finderLimit) {
-        html += `<button class="mm-expand-btn" style="width:100%;margin-top:12px;padding:10px;" onclick="STATE.finderLimit+=150;renderFinderCenter(true);">继续加载其余 ${finalItems.length - STATE.finderLimit} 个文件...</button>`;
+        html += `<button class="mm-expand-btn" style="width:100%;margin-top:12px;padding:10px;" onclick="STATE.finderLimit+=150;renderFinderCenter(true);">继续展开其余 ${finalItems.length - STATE.finderLimit} 份归档文件</button>`;
       }
       scrollBox.innerHTML = html;
     } else {
-      let html = renderFileItemsHtml(shown, q);
+      let html = renderEditorialMixedBlock(shown, q, 'flat');
       if (finalItems.length > STATE.finderLimit) {
-        html += `<button class="mm-expand-btn" style="width:100%;margin-top:12px;padding:10px;" onclick="STATE.finderLimit+=150;renderFinderCenter(true);">继续加载其余 ${finalItems.length - STATE.finderLimit} 个文件...</button>`;
+        html += `<button class="mm-expand-btn" style="width:100%;margin-top:12px;padding:10px;" onclick="STATE.finderLimit+=150;renderFinderCenter(true);">继续展开其余 ${finalItems.length - STATE.finderLimit} 份归档文件</button>`;
       }
       scrollBox.innerHTML = html;
     }
 
     const stillExists = finalItems.some(x => x.path === STATE.selectedFilePath);
     if (!keepSelection || !stillExists) {
-      selectFileForPreview(finalItems[0].path, true);
+      const preferredVisual = (!q && STATE.finderTopic === 'ALL')
+        ? (finalItems.find(x => x.ftype === 'a4' || x.ftype === 'html') || finalItems[0])
+        : finalItems[0];
+      selectFileForPreview(preferredVisual.path, true);
     } else {
       highlightSelectedDomRow();
     }
   }
 
-  function renderFileItemsHtml(items, rawQuery) {
-    if (STATE.finderLayout === 'grid') {
-      return `<div class="thumb-grid">` + items.map(f => {
-        const meta = FTYPE_META[f.ftype] || FTYPE_META.doc;
-        const relTime = formatRelativeTime(f.mtime, f.date);
-        const canThumb = (f.ftype === 'a4' || f.ftype === 'single' || f.ftype === 'image' || f.ftype === 'pptx');
-        const thumbUrl = 'https://hub.local/api/thumb?path=' + encodeURIComponent(f.path);
-        const selCls = f.path === STATE.selectedFilePath ? 'selected' : '';
-        const cornerTxt = f.figBadge || meta.badge;
-        return `
-          <div class="thumb-card ${selCls}" data-fpath="${escAttr(f.path)}" onclick="selectFileForPreview('${escAttr(f.path)}')" ondblclick="openDeliverable('${escAttr(f.path)}')">
-            <div class="thumb-stage">
-              <span class="thumb-corner-badge">${esc(cornerTxt)}</span>
-              ${canThumb
-                ? `<img loading="lazy" src="${thumbUrl}" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='block';"><div class="thumb-fallback" style="display:none;">${esc(meta.badge)}<br>${esc(f.dimMm || f.ext)}</div>`
-                : `<div class="thumb-fallback">${esc(meta.badge)}<div style="font-size:12px;margin-top:6px;opacity:0.75;">${esc(f.name.slice(0, 36))}</div></div>`
-              }
-            </div>
-            <div class="thumb-meta">
-              <div class="thumb-name">${highlightText(f.displayTitle, rawQuery)}</div>
-              <div class="thumb-sub num">
-                <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(f.topicShort || f.projName)}</span>
-                <span class="${relTime.fresh ? 'f-time-fresh' : ''}" style="flex-shrink:0;">${esc(relTime.text)}</span>
-              </div>
-            </div>
-          </div>
-        `;
-      }).join('') + `</div>`;
-    }
+  function renderPlateCardHtml(f, rawQuery, eagerLoad) {
+    const meta = FTYPE_META[f.ftype] || FTYPE_META.doc;
+    const relTime = formatRelativeTime(f.mtime, f.date);
+    const canThumb = (f.ftype === 'a4' || f.ftype === 'single' || f.ftype === 'image' || f.ftype === 'pptx');
+    const thumbUrl = 'https://hub.local/api/thumb?path=' + encodeURIComponent(f.path);
+    const selCls = f.path === STATE.selectedFilePath ? 'selected' : '';
+    const cornerTxt = f.figBadge || meta.badge;
+    const loadAttr = eagerLoad ? 'eager' : 'lazy';
 
-    return items.map(f => {
-      const meta = FTYPE_META[f.ftype] || FTYPE_META.doc;
-      const relTime = formatRelativeTime(f.mtime, f.date);
-      const selCls = f.path === STATE.selectedFilePath ? 'selected' : '';
-      const figHtml = f.figBadge ? `<span class="spot-badge" style="padding:1px 6px;margin-right:6px;">${esc(f.figBadge)}</span>` : '';
-      const dimHtml = f.dimMm ? `<span class="dim-pill ${f.ftype === 'single' ? 'single' : ''} num">${esc(f.dimMm)}</span>` : '';
-      const subNameHtml = (f.displayTitle !== f.name)
-        ? `<span style="font-weight:400;font-size:13px;color:var(--ink-3);margin-left:6px;">(${highlightText(f.name, rawQuery)})</span>`
-        : '';
-
-      return `
-        <div class="f-row ${selCls}" data-fpath="${escAttr(f.path)}" onclick="selectFileForPreview('${escAttr(f.path)}')" ondblclick="openDeliverable('${escAttr(f.path)}')">
-          <span class="ext-badge ${meta.cls}">${esc(meta.badge)}</span>
-          <div style="min-width:0;">
-            <div class="f-main-title">${figHtml}${highlightText(f.displayTitle, rawQuery)}${subNameHtml}${dimHtml}</div>
-            <div class="f-sub-meta num">
-              ${f.topicShort ? `<span class="f-topic-chip">${esc(f.topicShort)}</span>` : ''}
-              <span class="${relTime.fresh ? 'f-time-fresh' : ''}">${esc(relTime.text)}</span>
-              <span>·</span>
-              <span class="f-folder-link" title="点击只看此文件夹内的全部文件" onclick="event.stopPropagation();jumpToSameFolder('${escAttr(f.dir || '')}')">${highlightText((f.platform ? f.platform + ' / ' : '') + f.projName + (f.rel && f.rel !== f.name ? ' / ' + f.rel : ''), rawQuery)}</span>
-              <span>·</span>
-              <span>${f.sizeMb >= 0.01 ? f.sizeMb.toFixed(2) + ' MB' : '<0.01 MB'}</span>
-            </div>
-          </div>
-          <div class="f-actions" onclick="event.stopPropagation()">
-            <button class="mini-open html-accent" onclick="openDeliverable('${escAttr(f.path)}')">打开</button>
-            <button class="mini-open" onclick="revealInExplorer('${escAttr(f.path)}')" title="打开资源管理器并高亮选中该文件">定位</button>
-            <button class="star-btn ${f.fileStarred ? 'starred' : ''}" onclick="toggleFileStar('${escAttr(f.path)}', event)" title="星标收藏此文件">★</button>
+    return `
+      <div class="plate-card ${selCls}" data-fpath="${escAttr(f.path)}" onclick="selectFileForPreview('${escAttr(f.path)}')" ondblclick="openDeliverable('${escAttr(f.path)}')">
+        <div class="plate-artboard">
+          <span class="plate-tag">${esc(cornerTxt)}</span>
+          ${canThumb
+            ? `<img loading="${loadAttr}" src="${thumbUrl}" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"><div class="plate-typo-sheet" style="display:none;"><div style="font-weight:700;font-size:14px;color:var(--ink-1);">${esc(meta.badge)}</div><div class="meta-caption" style="font-size:12.5px;color:var(--ink-3);">${esc(f.dimMm || f.ext)}</div></div>`
+            : `<div class="plate-typo-sheet"><div style="font-weight:700;font-size:14px;color:var(--accent);">${esc(meta.badge)}</div><div style="font-size:14px;font-weight:600;color:var(--ink-1);line-height:1.4;overflow:hidden;max-height:60px;">${esc(f.displayTitle)}</div><div class="meta-caption" style="font-size:12.5px;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(f.projName)}</div></div>`
+          }
+        </div>
+        <div class="plate-caption">
+          <div class="plate-title">${highlightText(f.displayTitle, rawQuery)}</div>
+          <div class="plate-meta meta-caption num">
+            <span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(f.topicShort || f.projName)}</span>
+            <span class="${relTime.fresh ? 'ed-fresh-lbl' : ''}" style="flex-shrink:0;">${esc(relTime.text)}</span>
           </div>
         </div>
-      `;
-    }).join('');
+      </div>
+    `;
+  }
+
+  function renderDocRowHtml(f, rawQuery) {
+    const meta = FTYPE_META[f.ftype] || FTYPE_META.doc;
+    const relTime = formatRelativeTime(f.mtime, f.date);
+    const selCls = f.path === STATE.selectedFilePath ? 'selected' : '';
+    const figHtml = f.figBadge ? `<span class="spot-badge" style="padding:1px 6px;margin-right:6px;">${esc(f.figBadge)}</span>` : '';
+    const dimHtml = f.dimMm ? `<span class="dim-pill ${f.ftype === 'single' ? 'single' : ''} num">${esc(f.dimMm)}</span>` : '';
+    const subNameHtml = (f.displayTitle !== f.name)
+      ? `<span class="meta-caption" style="font-weight:400;font-size:13px;color:var(--ink-3);margin-left:6px;">(${highlightText(f.name, rawQuery)})</span>`
+      : '';
+
+    return `
+      <div class="ed-doc-row ${selCls}" data-fpath="${escAttr(f.path)}" onclick="selectFileForPreview('${escAttr(f.path)}')" ondblclick="openDeliverable('${escAttr(f.path)}')">
+        <span class="kind-mark ${meta.primary ? 'primary' : ''}">${esc(meta.badge)}</span>
+        <div style="min-width:0;">
+          <div class="ed-doc-title">${figHtml}${highlightText(f.displayTitle, rawQuery)}${subNameHtml}${dimHtml}</div>
+          <div class="ed-doc-sub meta-caption num">
+            ${f.topicShort ? `<span class="ed-topic-lbl">${esc(f.topicShort)}</span>` : ''}
+            <span class="${relTime.fresh ? 'ed-fresh-lbl' : ''}">${esc(relTime.text)}</span>
+            <span class="ed-folder-jump" title="点击浏览此文件夹内的全部配套文件" onclick="event.stopPropagation();jumpToSameFolder('${escAttr(f.dir || '')}')">${highlightText((f.platform ? f.platform + ' / ' : '') + f.projName + (f.rel && f.rel !== f.name ? ' / ' + f.rel : ''), rawQuery)}</span>
+            <span>${f.sizeMb >= 0.01 ? f.sizeMb.toFixed(2) + ' MB' : '小于 0.01 MB'}</span>
+          </div>
+        </div>
+        <div class="f-actions" onclick="event.stopPropagation()">
+          <button class="mini-open html-accent" onclick="openDeliverable('${escAttr(f.path)}')">打开</button>
+          <button class="mini-open" onclick="revealInExplorer('${escAttr(f.path)}')" title="在资源管理器中高亮定位">定位</button>
+          <button class="star-btn ${f.fileStarred ? 'starred' : ''}" onclick="toggleFileStar('${escAttr(f.path)}', event)">${f.fileStarred ? '已藏' : '收藏'}</button>
+        </div>
+      </div>
+    `;
+  }
+
+  const EXPANDED_DOC_BANDS = new Set();
+  function expandChapterDocs(bandKey) {
+    EXPANDED_DOC_BANDS.add(bandKey);
+    renderFinderCenter(true);
+  }
+
+  function renderEditorialMixedBlock(items, rawQuery, bandKey) {
+    if (STATE.finderLayout === 'grid') {
+      return `<div class="plate-grid">${items.map((f, idx) => renderPlateCardHtml(f, rawQuery, idx < 10)).join('')}</div>`;
+    }
+    if (STATE.finderLayout === 'list') {
+      return `<div class="ed-doc-list">${items.map(f => renderDocRowHtml(f, rawQuery)).join('')}</div>`;
+    }
+
+    // Three-Band Editorial Stream: (1) Top 2 Primary HTML Reports -> (2) Visual Artwork Plates -> (3) Collapsible Companion Docs
+    const leadReports = [];
+    const plates = [];
+    const restDocs = [];
+
+    items.forEach(f => {
+      const meta = FTYPE_META[f.ftype] || FTYPE_META.doc;
+      if (meta.plate) {
+        plates.push(f);
+      } else if (f.ftype === 'html' && leadReports.length < 2) {
+        leadReports.push(f);
+      } else {
+        restDocs.push(f);
+      }
+    });
+
+    let out = '';
+    if (leadReports.length) {
+      out += `<div class="ed-doc-list">${leadReports.map(f => renderDocRowHtml(f, rawQuery)).join('')}</div>`;
+    }
+    if (plates.length) {
+      out += `<div class="plate-grid">${plates.map((f, idx) => renderPlateCardHtml(f, rawQuery, idx < 8)).join('')}</div>`;
+    }
+    if (restDocs.length) {
+      const bk = bandKey || 'default';
+      const isExpanded = Boolean(rawQuery) || EXPANDED_DOC_BANDS.has(bk) || restDocs.length <= 4;
+      const visibleRest = isExpanded ? restDocs : restDocs.slice(0, 3);
+      const hiddenCnt = restDocs.length - visibleRest.length;
+      out += `<div class="ed-doc-list">
+        ${visibleRest.map(f => renderDocRowHtml(f, rawQuery)).join('')}
+        ${hiddenCnt > 0 ? `<button class="ed-fold-more" onclick="expandChapterDocs('${escAttr(bk)}')">展开本时段其余 ${hiddenCnt} 份配套文稿、图注与表格</button>` : ''}
+      </div>`;
+    }
+    return out;
   }
 
   function onFinderScroll(el) {
@@ -5144,7 +5581,7 @@
   }
 
   function highlightSelectedDomRow() {
-    document.querySelectorAll('#finderListScroll [data-fpath]').forEach(el => {
+    document.querySelectorAll('[data-fpath]').forEach(el => {
       el.classList.toggle('selected', el.getAttribute('data-fpath') === STATE.selectedFilePath);
     });
   }
@@ -5164,6 +5601,50 @@
     if (rowEl) rowEl.scrollIntoView({ block: 'nearest' });
   }
 
+  function renderFolderOverviewInPreview(fd, dirs) {
+    if (!STATE.finderPreviewOpen) return;
+    const headBox = document.getElementById('pvHeaderBox');
+    const bodyBox = document.getElementById('pvBodyBox');
+    const s = (HUB && HUB.summary) ? HUB.summary : {};
+    headBox.innerHTML = `
+      <div class="pv-title">本地成果目录总览</div>
+      <div class="pv-path meta-caption">${esc(fd.path || '')}</div>
+      <div class="pv-btn-row">
+        <button class="deliv-btn primary-html" style="height:31px;padding:0 12px;font-size:13px;" onclick="nativeCall('openFolder',{path:'${escAttr(fd.path || '')}'})">在资源管理器打开</button>
+        <button class="deliv-btn ghost" style="height:31px;padding:0 10px;font-size:13px;" onclick="setFinderRailMode('topic')">切回编年画册</button>
+      </div>
+    `;
+    bodyBox.innerHTML = `
+      <div class="pv-dossier">
+        <div class="pv-dossier-card">
+          <div class="pv-dossier-h">目录馆藏统计</div>
+          <div style="font-size:14.5px;color:var(--ink-1);line-height:1.6;">
+            当前纳管总目录共包含 <strong>${dirs.length}</strong> 个一级子目录、<strong>${s.total_projects || 0}</strong> 个课题阶段目录与 <strong>${ALL_FILES.length.toLocaleString()}</strong> 份本地科研产出。点击任意子文件夹即可逐层检阅内部 PDF 组图、HTML 报告与文稿数据。
+          </div>
+        </div>
+        <div class="pv-dossier-card">
+          <div class="pv-dossier-h">快速进入平台输出目录</div>
+          ${dirs.slice(0, 8).map(d => `
+            <div class="pv-toc-item" style="display:flex;justify-content:space-between;cursor:pointer;" onclick="loadFolderBrowser('${escAttr(d.path)}')">
+              <span style="font-weight:600;">${esc(d.name)}</span>
+              <span class="meta-caption num" style="font-size:12.5px;color:var(--ink-3);">${esc(d.date)}</span>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  }
+
+  function mountInlineLivePreview(filePath, mode) {
+    const bodyBox = document.getElementById('pvBodyBox');
+    const rawUrl = 'https://hub.local/rawfile?path=' + encodeURIComponent(filePath);
+    if (mode === 'pdf') {
+      bodyBox.innerHTML = `<iframe class="pv-iframe" src="${rawUrl}#view=FitH&toolbar=0&navpanes=0"></iframe>`;
+    } else {
+      bodyBox.innerHTML = `<iframe class="pv-iframe" sandbox="allow-same-origin allow-scripts" src="${rawUrl}"></iframe>`;
+    }
+  }
+
   async function selectFileForPreview(filePath, silentScroll) {
     STATE.selectedFilePath = filePath;
     highlightSelectedDomRow();
@@ -5175,60 +5656,121 @@
     const fName = item ? item.displayTitle : filePath.split('\\').pop();
     const ext = (filePath.includes('.') ? '.' + filePath.split('.').pop() : '').toLowerCase();
     const dirOfFile = filePath.replace(/\\[^\\]+$/, '');
+    const isStarred = item ? Boolean(item.fileStarred) : false;
+
+    const extraInlineBtn = (ext === '.html' || ext === '.htm')
+      ? `<button class="deliv-btn ghost" style="height:31px;padding:0 10px;font-size:13px;" onclick="mountInlineLivePreview('${escAttr(filePath)}','html')">内嵌加载网页</button>`
+      : (ext === '.pdf'
+        ? `<button class="deliv-btn ghost" style="height:31px;padding:0 10px;font-size:13px;" onclick="mountInlineLivePreview('${escAttr(filePath)}','pdf')">多页阅读器</button>`
+        : '');
 
     headBox.innerHTML = `
       <div class="pv-title">${esc(fName)}</div>
-      <div class="pv-path">${esc(filePath)}</div>
+      <div class="pv-path meta-caption">${esc(filePath)}</div>
       <div class="pv-btn-row">
-        <button class="deliv-btn primary-html" style="height:32px;padding:0 12px;font-size:13.5px;" onclick="openDeliverable('${escAttr(filePath)}')">直接打开文件</button>
-        <button class="deliv-btn ghost" style="height:32px;padding:0 11px;font-size:13px;" onclick="revealInExplorer('${escAttr(filePath)}')">在文件夹中选中</button>
-        <button class="deliv-btn ghost" style="height:32px;padding:0 11px;font-size:13px;" onclick="jumpToSameFolder('${escAttr(dirOfFile)}')">同目录全部文件</button>
-        <button class="deliv-btn ghost" style="height:32px;padding:0 11px;font-size:13px;border-color:var(--accent);color:var(--accent);" onclick="summarizeSelectedFileWithAi('${escAttr(filePath)}')">AI 解读此文件</button>
-        <button class="deliv-btn ghost" style="height:32px;padding:0 11px;font-size:13px;" onclick="copyText('${escAttr(filePath)}','已复制文件完整路径')">复制路径</button>
+        <button class="deliv-btn primary-html" style="height:31px;padding:0 12px;font-size:13px;" onclick="openDeliverable('${escAttr(filePath)}')">打开原件</button>
+        ${extraInlineBtn}
+        <button class="deliv-btn ghost" style="height:31px;padding:0 10px;font-size:13px;" onclick="revealInExplorer('${escAttr(filePath)}')">定位</button>
+        <button class="deliv-btn ghost" style="height:31px;padding:0 10px;font-size:13px;" onclick="jumpToSameFolder('${escAttr(dirOfFile)}')">同目录文件</button>
+        <button class="deliv-btn ghost" style="height:31px;padding:0 10px;font-size:13px;" onclick="copyText('${escAttr(filePath)}','已复制文件完整路径')">复制路径</button>
+        <button class="deliv-btn ghost" style="height:31px;padding:0 10px;font-size:13px;" onclick="toggleFileStar('${escAttr(filePath)}', event)">${isStarred ? '取消收藏' : '收藏'}</button>
       </div>
     `;
 
     const rawUrl = 'https://hub.local/rawfile?path=' + encodeURIComponent(filePath);
 
     if (ext === '.pdf') {
-      bodyBox.innerHTML = `<iframe class="pv-iframe" src="${rawUrl}#view=FitH&navpanes=0"></iframe>`;
+      const hiThumbUrl = 'https://hub.local/api/thumb?hi=1&path=' + encodeURIComponent(filePath);
+      bodyBox.innerHTML = `
+        <div class="pv-img-box" onclick="this.classList.toggle('zoomed')" title="点击切换 100% 原寸放大与自适应画幅">
+          <img src="${hiThumbUrl}" alt="" onerror="mountInlineLivePreview('${escAttr(filePath)}','pdf')">
+        </div>
+      `;
       return;
     }
 
     if (['.png', '.jpg', '.jpeg', '.svg', '.webp', '.gif'].includes(ext)) {
       bodyBox.innerHTML = `
-        <div class="pv-img-box" onclick="this.classList.toggle('zoomed')" title="点击切换 100% 原大细节与自适应缩放">
+        <div class="pv-img-box" onclick="this.classList.toggle('zoomed')" title="点击切换 100% 原尺寸细节与自适应画幅">
           <img src="${rawUrl}" alt="">
         </div>
       `;
       return;
     }
 
-    if (ext === '.html' || ext === '.htm') {
-      bodyBox.innerHTML = `<iframe class="pv-iframe" sandbox="allow-same-origin allow-scripts" src="${rawUrl}"></iframe>`;
-      return;
-    }
-
-    bodyBox.innerHTML = `<div style="padding:32px;text-align:center;color:var(--ink-3);">正在加载预览...</div>`;
+    bodyBox.innerHTML = `<div style="padding:36px;text-align:center;color:var(--ink-3);font-size:14.5px;">正在读取文件内容...</div>`;
     try {
       const res = await fetch('https://hub.local/api/preview-info?path=' + encodeURIComponent(filePath));
       const info = await res.json();
       if (STATE.selectedFilePath !== filePath) return;
 
       if (!info.ok) {
-        bodyBox.innerHTML = `<div style="padding:32px;text-align:center;color:var(--danger);">${esc(info.error || '无法读取文件')}</div>`;
+        bodyBox.innerHTML = `<div style="padding:36px;text-align:center;color:var(--danger);font-size:14.5px;">${esc(info.error || '无法读取文件')}</div>`;
+        return;
+      }
+
+      if (info.mode === 'html_dossier') {
+        const heads = info.headings || [];
+        const vsibs = info.visual_siblings || [];
+        const sibs = info.siblings || [];
+        bodyBox.innerHTML = `
+          <div class="pv-dossier">
+            <div class="pv-dossier-card">
+              <div class="pv-dossier-h">交互式审阅报告导览（${info.size_mb} MB）</div>
+              <div style="font-size:15px;font-weight:600;color:var(--ink-1);line-height:1.45;">${esc(info.html_title || info.name)}</div>
+              ${info.excerpt ? `<div style="font-size:14px;color:var(--ink-2);line-height:1.58;margin-top:8px;">${esc(info.excerpt)}</div>` : ''}
+              <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">
+                <button class="deliv-btn primary-html" onclick="openDeliverable('${escAttr(filePath)}')">在浏览器全屏打开审阅报告</button>
+                <button class="deliv-btn ghost" onclick="mountInlineLivePreview('${escAttr(filePath)}','html')">在阅览席内嵌渲染网页</button>
+              </div>
+            </div>
+            ${vsibs.length ? `
+              <div class="pv-dossier-card">
+                <div class="pv-dossier-h">同课题目录配套组图预览（单击看大图，双击打开）</div>
+                <div class="pv-mini-grid">
+                  ${vsibs.slice(0, 4).map(v => {
+                    const vt = 'https://hub.local/api/thumb?path=' + encodeURIComponent(v.path);
+                    return `
+                      <div class="pv-mini-plate" onclick="selectFileForPreview('${escAttr(v.path)}')" ondblclick="openDeliverable('${escAttr(v.path)}')">
+                        <div class="pv-mini-art"><img src="${vt}" alt=""></div>
+                        <div class="pv-mini-cap meta-caption">${esc(v.name)}</div>
+                      </div>
+                    `;
+                  }).join('')}
+                </div>
+              </div>
+            ` : ''}
+            ${heads.length ? `
+              <div class="pv-dossier-card">
+                <div class="pv-dossier-h">报告章节提纲</div>
+                ${heads.map(h => `<div class="pv-toc-item">${esc(h)}</div>`).join('')}
+              </div>
+            ` : ''}
+            ${(!vsibs.length && sibs.length) ? `
+              <div class="pv-dossier-card">
+                <div class="pv-dossier-h">同文件夹其他产出（点击切换预览）</div>
+                ${sibs.slice(0, 6).map(s => `
+                  <div class="pv-toc-item" style="display:flex;justify-content:space-between;gap:8px;cursor:pointer;" onclick="selectFileForPreview('${escAttr(s.path)}')">
+                    <span style="overflow-wrap:anywhere;">${esc(s.name)}</span>
+                    <span class="meta-caption num" style="font-size:12.5px;color:var(--ink-3);flex-shrink:0;">${esc(s.date)}</span>
+                  </div>
+                `).join('')}
+              </div>
+            ` : ''}
+          </div>
+        `;
         return;
       }
 
       if (info.mode === 'text') {
-        bodyBox.innerHTML = `<div class="pv-text-pre">${esc(info.content || '')}${info.truncated ? '\n\n... [仅预览前 48 KB，点击上方「直接打开文件」查看全文]' : ''}</div>`;
+        bodyBox.innerHTML = `<div class="pv-text-pre">${esc(info.content || '')}${info.truncated ? '\n\n... [仅预览前 48 KB，点击上方「打开原件」阅读全文]' : ''}</div>`;
         return;
       }
 
       if (info.mode === 'table') {
         const rows = info.rows || [];
         if (!rows.length) {
-          bodyBox.innerHTML = `<div style="padding:32px;text-align:center;color:var(--ink-3);">空数据表</div>`;
+          bodyBox.innerHTML = `<div style="padding:36px;text-align:center;color:var(--ink-3);font-size:14.5px;">空数据表</div>`;
           return;
         }
         const ths = rows[0].map(c => `<th>${esc(c)}</th>`).join('');
@@ -5240,12 +5782,12 @@
       if (info.mode === 'zip') {
         const entries = info.zip_entries || [];
         bodyBox.innerHTML = `
-          <div style="padding:16px;background:var(--bg-surface);min-height:100%;">
-            <div style="font-weight:700;font-size:14.5px;margin-bottom:10px;color:var(--ink-1);">压缩包内共 ${info.zip_total || entries.length} 个文件（${info.size_mb} MB）</div>
+          <div style="padding:18px 20px;background:var(--bg-surface);min-height:100%;">
+            <div style="font-weight:700;font-size:14.5px;margin-bottom:12px;color:var(--ink-1);">归档包内共 ${info.zip_total || entries.length} 个文件（${info.size_mb} MB）</div>
             ${entries.map(e => `
-              <div style="display:flex;justify-content:space-between;gap:10px;padding:6px 4px;border-bottom:1px solid var(--line-soft);font-size:13px;">
+              <div style="display:flex;justify-content:space-between;gap:10px;padding:7px 4px;border-bottom:1px solid var(--line-soft);font-size:13.5px;">
                 <span style="overflow-wrap:anywhere;color:var(--ink-1);">${esc(e.name)}</span>
-                <span class="num" style="color:var(--ink-3);flex-shrink:0;">${e.kb} KB</span>
+                <span class="meta-caption num" style="color:var(--ink-3);flex-shrink:0;">${e.kb} KB</span>
               </div>
             `).join('')}
           </div>
@@ -5253,26 +5795,25 @@
         return;
       }
 
-      // Binary (PPTX / DOCX / XLSX / etc.) -> Show Shell thumbnail if available + companion files in same folder!
       const thumbUrl = 'https://hub.local/api/thumb?path=' + encodeURIComponent(filePath);
       const sibs = info.siblings || [];
       bodyBox.innerHTML = `
-        <div style="padding:16px;display:flex;flex-direction:column;gap:16px;">
-          ${info.has_thumb ? `<div style="background:#FFFFFF;border:1px solid var(--line-soft);border-radius:var(--radius-md);padding:10px;text-align:center;"><img src="${thumbUrl}" style="max-width:100%;max-height:280px;object-fit:contain;" alt=""></div>` : ''}
-          <div style="padding:16px;background:var(--bg-surface);border:1px solid var(--line-soft);border-radius:var(--radius-md);">
-            <div style="font-size:15px;font-weight:700;color:var(--ink-1);margin-bottom:6px;">${esc(info.name)}</div>
-            <div class="num" style="font-size:13.5px;color:var(--ink-2);">文件大小：${info.size_mb} MB · 修改时间：${esc(info.date)}</div>
+        <div class="pv-dossier">
+          ${info.has_thumb ? `<div style="background:#FFFFFF;border:1px solid var(--line-soft);border-radius:var(--radius-md);padding:12px;text-align:center;"><img src="${thumbUrl}" style="max-width:100%;max-height:290px;object-fit:contain;" alt=""></div>` : ''}
+          <div class="pv-dossier-card">
+            <div style="font-size:15px;font-weight:600;color:var(--ink-1);margin-bottom:6px;">${esc(info.name)}</div>
+            <div class="meta-caption num" style="font-size:13.5px;color:var(--ink-2);">文件体积：${info.size_mb} MB / 最后修改：${esc(info.date)}</div>
             <div style="margin-top:12px;">
-              <button class="deliv-btn primary-html" onclick="openDeliverable('${escAttr(filePath)}')">用系统默认程序打开此 ${esc(ext.toUpperCase())} 文件</button>
+              <button class="deliv-btn primary-html" onclick="openDeliverable('${escAttr(filePath)}')">调用默认程序打开 ${esc(ext.toUpperCase())} 原件</button>
             </div>
           </div>
           ${sibs.length ? `
-            <div style="padding:14px 16px;background:var(--bg-surface);border:1px solid var(--line-soft);border-radius:var(--radius-md);">
-              <div style="font-size:14px;font-weight:700;color:var(--accent);margin-bottom:8px;">同文件夹内的配套报告与组图（点击直接预览）</div>
+            <div class="pv-dossier-card">
+              <div class="pv-dossier-h">同文件夹配套报告与组图（点击切换预览）</div>
               ${sibs.map(s => `
-                <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:7px 4px;border-bottom:1px solid var(--line-soft);cursor:pointer;" onclick="selectFileForPreview('${escAttr(s.path)}')">
-                  <span style="font-size:13.5px;color:var(--ink-1);overflow-wrap:anywhere;">${esc(s.name)}</span>
-                  <span class="num" style="font-size:12px;color:var(--ink-3);flex-shrink:0;">${esc(s.date)}</span>
+                <div class="pv-toc-item" style="display:flex;align-items:center;justify-content:space-between;gap:8px;cursor:pointer;" onclick="selectFileForPreview('${escAttr(s.path)}')">
+                  <span style="overflow-wrap:anywhere;">${esc(s.name)}</span>
+                  <span class="meta-caption num" style="font-size:12.5px;color:var(--ink-3);flex-shrink:0;">${esc(s.date)}</span>
                 </div>
               `).join('')}
             </div>
@@ -5280,244 +5821,9 @@
         </div>
       `;
     } catch (_) {
-      bodyBox.innerHTML = `<div style="padding:32px;text-align:center;color:var(--ink-3);">点击上方「直接打开文件」查看</div>`;
+      bodyBox.innerHTML = `<div style="padding:36px;text-align:center;color:var(--ink-3);font-size:14.5px;">点击上方「打开原件」直接查看</div>`;
     }
   }
-
-
-  // =========================================================
-  // OPTIONAL AI SEMANTIC FILE ASSISTANT & API KEY CONNECTOR
-  // =========================================================
-  let AI_CFG = { configured: false, provider: 'deepseek', base_url: 'https://api.deepseek.com/v1', model: 'deepseek-chat', has_key: false, masked_key: '' };
-  let LAST_AI_CAND_MAP = {};
-
-  const AI_PRESETS = {
-    deepseek:    { url: 'https://api.deepseek.com/v1', model: 'deepseek-chat' },
-    openai:      { url: 'https://api.openai.com/v1', model: 'gpt-4o-mini' },
-    siliconflow: { url: 'https://api.siliconflow.cn/v1', model: 'Qwen/Qwen2.5-72B-Instruct' },
-    qwen:        { url: 'https://dashscope.aliyuncs.com/compatible-mode/v1', model: 'qwen-plus' },
-    kimi:        { url: 'https://api.moonshot.cn/v1', model: 'moonshot-v1-32k' },
-    glm:         { url: 'https://open.bigmodel.cn/api/paas/v4', model: 'glm-4-flash' },
-    gemini:      { url: 'https://generativelanguage.googleapis.com/v1beta/openai', model: 'gemini-2.5-flash' },
-    anthropic:   { url: 'https://api.anthropic.com/v1', model: 'claude-3-5-sonnet-latest' },
-    ollama:      { url: 'http://127.0.0.1:11434/v1', model: 'qwen2.5:7b' }
-  };
-
-  async function loadAiConfigState() {
-    try {
-      const res = await fetch('https://hub.local/api/ai-config');
-      AI_CFG = await res.json();
-      syncAiUiStatus();
-    } catch (_) {}
-  }
-
-  function syncAiUiStatus() {
-    const dot = document.getElementById('aiStatusDot');
-    const sub = document.getElementById('aiSubStatusLine');
-    if (dot) dot.classList.toggle('ready', Boolean(AI_CFG.configured));
-    if (sub) {
-      sub.textContent = AI_CFG.configured
-        ? `当前已就绪模型：${AI_CFG.model}（密钥加密存储于本机）`
-        : '当前为 100% 纯离线本地模式 · 点「API Key 接口设置」可接入大模型';
-    }
-    const sel = document.getElementById('aiProviderSelect');
-    if (sel && AI_CFG.provider) sel.value = AI_CFG.provider;
-    const uInp = document.getElementById('aiBaseUrlInput');
-    if (uInp) uInp.value = AI_CFG.base_url || '';
-    const mInp = document.getElementById('aiModelInput');
-    if (mInp) mInp.value = AI_CFG.model || '';
-    const kInp = document.getElementById('aiApiKeyInput');
-    if (kInp) kInp.value = AI_CFG.masked_key || '';
-  }
-
-  function onAiProviderChange() {
-    const p = document.getElementById('aiProviderSelect').value;
-    if (AI_PRESETS[p]) {
-      document.getElementById('aiBaseUrlInput').value = AI_PRESETS[p].url;
-      document.getElementById('aiModelInput').value = AI_PRESETS[p].model;
-    }
-  }
-
-  function toggleAiKeyVis() {
-    const inp = document.getElementById('aiApiKeyInput');
-    inp.type = inp.type === 'password' ? 'text' : 'password';
-  }
-
-  function openAiDrawer(tab) {
-    document.getElementById('aiDrawer').classList.add('open');
-    switchAiTab(tab || (AI_CFG.configured ? 'chat' : 'cfg'));
-  }
-
-  function closeAiDrawer() {
-    document.getElementById('aiDrawer').classList.remove('open');
-  }
-
-  function switchAiTab(tab) {
-    const isChat = tab === 'chat';
-    document.getElementById('aiTabChatBtn').classList.toggle('active', isChat);
-    document.getElementById('aiTabCfgBtn').classList.toggle('active', !isChat);
-    document.getElementById('aiChatBody').style.display = isChat ? 'flex' : 'none';
-    document.getElementById('aiInputBar').style.display = isChat ? 'flex' : 'none';
-    document.getElementById('aiCfgBody').style.display = isChat ? 'none' : 'flex';
-    if (isChat) setTimeout(() => document.getElementById('aiPromptInput').focus(), 30);
-  }
-
-  function saveAiConfigFromUi() {
-    nativeCall('saveAiConfig', {
-      provider: document.getElementById('aiProviderSelect').value,
-      base_url: document.getElementById('aiBaseUrlInput').value.trim(),
-      model: document.getElementById('aiModelInput').value.trim(),
-      api_key: document.getElementById('aiApiKeyInput').value.trim(),
-      clear_key: false
-    });
-  }
-
-  function clearSavedAiKey() {
-    document.getElementById('aiApiKeyInput').value = '';
-    nativeCall('saveAiConfig', {
-      provider: document.getElementById('aiProviderSelect').value,
-      base_url: document.getElementById('aiBaseUrlInput').value.trim(),
-      model: document.getElementById('aiModelInput').value.trim(),
-      api_key: '',
-      clear_key: true
-    });
-    showToast('已清除本机保存的 API 密钥，恢复纯离线模式');
-  }
-
-  window.__onAiConfigSaved = function(cfg) {
-    AI_CFG = cfg;
-    syncAiUiStatus();
-    showToast(cfg.configured ? 'API 接口配置已加密保存！' : '设置已更新');
-    if (cfg.configured) switchAiTab('chat');
-  };
-
-  function testAiConfigFromUi() {
-    const box = document.getElementById('aiTestResultBox');
-    box.style.display = 'block';
-    box.style.background = 'var(--bg-elevated)';
-    box.style.color = 'var(--ink-2)';
-    box.textContent = '正在向模型发送连通性测试请求...';
-    nativeCall('testAiConnection', {
-      provider: document.getElementById('aiProviderSelect').value,
-      base_url: document.getElementById('aiBaseUrlInput').value.trim(),
-      model: document.getElementById('aiModelInput').value.trim(),
-      api_key: document.getElementById('aiApiKeyInput').value.trim()
-    });
-  }
-
-  window.__onAiTestResult = function(res) {
-    const box = document.getElementById('aiTestResultBox');
-    box.style.display = 'block';
-    if (res.ok) {
-      box.style.background = 'var(--accent-soft)';
-      box.style.color = 'var(--accent)';
-      box.textContent = `连接成功！模型响应：「${res.reply}」（耗时 ${res.ms} ms）`;
-    } else {
-      box.style.background = 'var(--danger-soft)';
-      box.style.color = 'var(--danger)';
-      box.textContent = `连接未通过：${res.error}`;
-    }
-  };
-
-  function triggerAiFromOmni() {
-    const q = (document.getElementById('omniSearchInput').value || '').trim();
-    openAiDrawer(AI_CFG.configured ? 'chat' : 'cfg');
-    if (AI_CFG.configured && q) {
-      document.getElementById('aiPromptInput').value = `帮我找与「${q}」最相关的文件`;
-      sendAiPrompt();
-    } else if (!AI_CFG.configured) {
-      showToast('请先填入您的 API Key（或选择本地免 Key 的 Ollama）即可启用 AI 找文件');
-    }
-  }
-
-  function summarizeSelectedFileWithAi(filePath) {
-    if (!AI_CFG.configured) {
-      openAiDrawer('cfg');
-      showToast('请先配置大模型 API Key（或本地 Ollama）以启用 AI 文档解读');
-      return;
-    }
-    STATE.selectedFilePath = filePath;
-    openAiDrawer('chat');
-    document.getElementById('aiPromptInput').value = '请用大白话提炼当前这份文件的核心内容、关键数据结论与版本重点。';
-    sendAiPrompt('summarize');
-  }
-
-  function buildSmartCandidatesForAi(promptStr) {
-    LAST_AI_CAND_MAP = {};
-    const qWords = promptStr.toLowerCase().replace(/[，。？！、,.?!]/g, ' ').split(/\s+/).filter(w => w.length >= 2);
-    const scored = ALL_FILES.map(f => {
-      let sc = 0;
-      qWords.forEach(w => { if (f.hay.includes(w)) sc += 15; });
-      if (f.ftype === 'html' || f.ftype === 'pptx' || f.ftype === 'a4' || f.ftype === 'doc' || f.ftype === 'archive') sc += 3;
-      return { f, sc };
-    });
-    scored.sort((a, b) => (b.sc - a.sc) || (b.f.mtime - a.f.mtime));
-    const top = scored.slice(0, 75).map((x, i) => {
-      const cid = 'F' + i;
-      LAST_AI_CAND_MAP[cid] = x.f;
-      const meta = FTYPE_META[x.f.ftype] || FTYPE_META.doc;
-      return `${cid} | ${meta.badge} | ${x.f.topicShort} | ${x.f.projName} | ${x.f.displayTitle} (${x.f.name}) | ${x.f.date}`;
-    });
-    return top.join('\n');
-  }
-
-  function sendAiPrompt(forcedMode) {
-    const inp = document.getElementById('aiPromptInput');
-    const prompt = (inp.value || '').trim();
-    if (!prompt) return;
-    if (!AI_CFG.configured) {
-      switchAiTab('cfg');
-      showToast('请先保存有效的 API Key 或选择本地 Ollama');
-      return;
-    }
-    inp.value = '';
-    const body = document.getElementById('aiChatBody');
-    body.insertAdjacentHTML('beforeend', `<div class="ai-bubble user">${esc(prompt)}</div>`);
-    body.insertAdjacentHTML('beforeend', `<div class="ai-bubble bot" id="aiPendingBubble">正在检索本地索引并请求大模型 (${esc(AI_CFG.model)})...</div>`);
-    body.scrollTop = body.scrollHeight;
-
-    const candsText = buildSmartCandidatesForAi(prompt);
-    nativeCall('askAiAssistant', {
-      mode: forcedMode || 'find',
-      prompt,
-      current_file: STATE.selectedFilePath || '',
-      candidates_text: candsText
-    });
-  }
-
-  window.__onAiReply = function(res) {
-    const pend = document.getElementById('aiPendingBubble');
-    if (pend) pend.remove();
-    const body = document.getElementById('aiChatBody');
-    if (!res.ok) {
-      body.insertAdjacentHTML('beforeend', `<div class="ai-bubble bot" style="color:var(--danger);">请求失败：${esc(res.error || '未知错误')}</div>`);
-      body.scrollTop = body.scrollHeight;
-      return;
-    }
-
-    const cardsHtml = (res.matched_ids || []).map(cid => {
-      const f = LAST_AI_CAND_MAP[cid];
-      if (!f) return '';
-      const meta = FTYPE_META[f.ftype] || FTYPE_META.doc;
-      return `
-        <div class="ai-match-card">
-          <div style="min-width:0;flex:1;">
-            <div style="font-weight:700;font-size:13.5px;color:var(--ink-1);overflow-wrap:anywhere;">[${esc(meta.badge)}] ${esc(f.displayTitle)}</div>
-            <div class="num" style="font-size:12px;color:var(--ink-3);">${esc(f.topicShort)} · ${esc(f.projName)} · ${esc(f.date)}</div>
-          </div>
-          <div style="display:flex;gap:5px;flex-shrink:0;">
-            <button class="mini-open" onclick="if(STATE.view!=='finder')switchView('finder');selectFileForPreview('${escAttr(f.path)}')">预览</button>
-            <button class="mini-open html-accent" onclick="openDeliverable('${escAttr(f.path)}')">打开</button>
-          </div>
-        </div>
-      `;
-    }).join('');
-
-    body.insertAdjacentHTML('beforeend', `
-      <div class="ai-bubble bot">${esc(res.answer || '')}${cardsHtml ? `<div style="margin-top:10px;">${cardsHtml}</div>` : ''}<div class="num" style="margin-top:8px;font-size:11.5px;color:var(--ink-3);">由 ${esc(res.model)} 生成 · ${res.ms} ms</div></div>
-    `);
-    body.scrollTop = body.scrollHeight;
-  };
 
   // Receive async updates from C# host
   window.__onHostDataUpdated = function(payload) {
@@ -5558,24 +5864,42 @@
     const initFont = params.get('font') || USER_META.ui_font || 'default';
     const initView = params.get('view') || 'finder';
     const initTopic = params.get('topic');
+    const initAutoTopic = params.get('autotopic');
+    const initRail = params.get('rail');
     const initFType = params.get('ftype');
     const initLayout = params.get('layout');
 
-    STATE.finderLayout = initLayout || USER_META.finder_layout || 'list';
-    STATE.finderDedup = Boolean(USER_META.finder_dedup);
+    const savedLayout = USER_META.finder_layout;
+    STATE.finderLayout = initLayout || ((savedLayout === 'editorial' || savedLayout === 'grid' || savedLayout === 'list') ? savedLayout : 'editorial');
+    STATE.finderDedup = USER_META.finder_dedup !== undefined ? Boolean(USER_META.finder_dedup) : true;
     if (initFType) STATE.finderType = initFType;
-    if (initTopic) {
+
+    if (initAutoTopic === '1' && HUB && HUB.topics && HUB.topics.length) {
+      const bestTopic = HUB.topics.find(t => (t.a4_pdf_count || 0) >= 2) || HUB.topics[0];
+      STATE.finderTopic = bestTopic.id;
+    } else if (initTopic) {
       STATE.finderTopic = initTopic;
       STATE.figsTopicId = initTopic;
       STATE.selectedTopicId = initTopic;
       STATE.lineageTopicId = initTopic;
     }
 
+    STATE.view = initRail === 'folder' ? 'finder' : initView;
+    if (initRail === 'folder') {
+      STATE.finderRailMode = 'folder';
+      updateRailModeButtons();
+    }
+
     setParadigm(initParadigm, true);
     setFontScale(initScale, true);
     setFontFamily(initFont, true);
-    switchView(initView);
-    loadAiConfigState();
+
+    if (initRail === 'folder') {
+      switchView('finder');
+      await setFinderRailMode('folder');
+    } else {
+      switchView(initView);
+    }
     window.__DESIGN_READY = true;
   }
 

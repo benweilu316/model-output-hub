@@ -16,7 +16,7 @@ except ImportError:
     sys.exit(2)
 
 
-def render_pdf_thumb(pdf_path: str, out_png: str, target_w: int = 420) -> bool:
+def render_pdf_thumb(pdf_path: str, out_png: str, target_w: int = 560) -> bool:
     doc = None
     try:
         doc = fitz.open(pdf_path)
@@ -25,11 +25,11 @@ def render_pdf_thumb(pdf_path: str, out_png: str, target_w: int = 420) -> bool:
         page = doc[0]
         rect = page.rect
         w = max(1.0, float(rect.width))
-        scale = min(2.2, max(0.35, target_w / w))
+        scale = min(2.5, max(0.4, target_w / w))
         pix = page.get_pixmap(matrix=fitz.Matrix(scale, scale), alpha=False)
         os.makedirs(os.path.dirname(out_png), exist_ok=True)
         tmp_png = out_png + ".tmp"
-        pix.save(tmp_png)
+        pix.save(tmp_png, output="png")
         os.replace(tmp_png, out_png)
         return True
     except Exception:
@@ -44,7 +44,7 @@ def render_pdf_thumb(pdf_path: str, out_png: str, target_w: int = 420) -> bool:
 
 def main() -> None:
     for line in sys.stdin:
-        raw = line.rstrip("\r\n")
+        raw = line.lstrip("\ufeff").rstrip("\r\n")
         if not raw:
             continue
         if raw == "QUIT":
@@ -54,7 +54,8 @@ def main() -> None:
             sys.stdout.write("ERR\n")
             sys.stdout.flush()
             continue
-        ok = render_pdf_thumb(parts[0], parts[1])
+        tw = int(parts[2]) if len(parts) >= 3 and parts[2].isdigit() else 560
+        ok = render_pdf_thumb(parts[0], parts[1], tw)
         sys.stdout.write("OK\n" if ok else "ERR\n")
         sys.stdout.flush()
 

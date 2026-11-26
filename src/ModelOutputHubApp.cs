@@ -1,8 +1,8 @@
 // -*- coding: utf-8 -*-
-// ModelOutputHubApp.cs — Model Output Hub (v2.0 Instant File Finder + Live QuickLook + Visual Thumbnails)
-// 1. True Single-File Zero-Dependency .exe (100% immune to Windows MOTW Zone.Identifier & ZIP-preview launch)
-// 2. Everything-grade Live Disk Search (/api/live-search) + Real Folder Browser (/api/folder-list)
-// 3. Instant Built-in QuickLook Preview (/rawfile, /api/preview-info) + Fast Cached Thumbnails (/api/thumb via fitz pipe or Win32 Shell)
+// ModelOutputHubApp.cs — Model Output Hub (v3.0 Huashu-Design Editorial Monograph & Instant Chronicle Finder)
+// 1. True Single-File Zero-Dependency .exe (100% offline, immune to Windows MOTW Zone.Identifier & ZIP-preview launch)
+// 2. Everything-grade Live Disk Search (/api/live-search) + Real Folder Tree Browser (/api/folder-list)
+// 3. Instant Built-in QuickLook Folio (/rawfile, /api/preview-info) + Fast Cached Thumbnails (/api/thumb via fitz pipe or Win32 Shell)
 // 4. Built-in Pure C# NativeScanner (9 deliverable categories) + Auto-Refresh on Window Activate + System Tray Resident
 
 using System;
@@ -66,7 +66,7 @@ namespace ModelOutputHub
 
             try
             {
-                try { SetCurrentProcessExplicitAppUserModelID("ModelOutputHub.Studio.Desktop.v2_0"); } catch { }
+                try { SetCurrentProcessExplicitAppUserModelID("ModelOutputHub.Studio.Desktop.v3_0"); } catch { }
 
                 s_appLocalDataDir = Path.Combine(
                     Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
@@ -75,6 +75,7 @@ namespace ModelOutputHub
                 Directory.CreateDirectory(nativeDir);
 
                 ExtractEmbeddedResourceToFile("ModelOutputHub.Wv2Loader", Path.Combine(nativeDir, "WebView2Loader.dll"));
+                ExtractEmbeddedResourceToFile("ModelOutputHub.ThumbWorker", Path.Combine(s_appLocalDataDir, "thumb_worker.py"));
                 SetDllDirectory(nativeDir);
 
                 string exeDir = AppDomain.CurrentDomain.BaseDirectory.TrimEnd('\\', '/');
@@ -101,12 +102,26 @@ namespace ModelOutputHub
                 using (Stream s = Assembly.GetExecutingAssembly().GetManifestResourceStream(resourceName))
                 {
                     if (s == null) return;
-                    if (File.Exists(targetPath) && new FileInfo(targetPath).Length == s.Length)
-                        return;
                     using (var ms = new MemoryStream())
                     {
                         s.CopyTo(ms);
-                        File.WriteAllBytes(targetPath, ms.ToArray());
+                        byte[] newBytes = ms.ToArray();
+                        if (File.Exists(targetPath))
+                        {
+                            var fi = new FileInfo(targetPath);
+                            if (fi.Length == newBytes.Length)
+                            {
+                                if (newBytes.Length > 65536) return;
+                                byte[] oldBytes = File.ReadAllBytes(targetPath);
+                                bool same = true;
+                                for (int i = 0; i < newBytes.Length; i++)
+                                {
+                                    if (oldBytes[i] != newBytes[i]) { same = false; break; }
+                                }
+                                if (same) return;
+                            }
+                        }
+                        File.WriteAllBytes(targetPath, newBytes);
                     }
                 }
             }
@@ -197,13 +212,8 @@ namespace ModelOutputHub
                 int hr = SHCreateItemFromParsingName(filePath, IntPtr.Zero, iid, out factory);
                 if (hr != 0 || factory == null) return false;
 
-                // SIIGBF_BIGGERSIZEOK (0x01) | SIIGBF_THUMBNAILONLY (0x08)
+                // SIIGBF_BIGGERSIZEOK (0x01) | SIIGBF_THUMBNAILONLY (0x08) — never fall back to generic OS file-type icons (0x00)
                 hr = factory.GetImage(new SIZE(maxPx, maxPx), 0x01 | 0x08, out hBitmap);
-                if (hr != 0 || hBitmap == IntPtr.Zero)
-                {
-                    // Fallback allowing icon/preview render (0x00)
-                    hr = factory.GetImage(new SIZE(maxPx, maxPx), 0x00, out hBitmap);
-                }
                 if (hr != 0 || hBitmap == IntPtr.Zero) return false;
 
                 using (Bitmap bmp = Image.FromHbitmap(hBitmap))
@@ -1090,312 +1100,6 @@ namespace ModelOutputHub
         }
     }
 
-
-    internal static class LlmGateway
-    {
-        private static readonly Encoding s_utf8 = new UTF8Encoding(false);
-        private static readonly JavaScriptSerializer s_js = new JavaScriptSerializer { MaxJsonLength = int.MaxValue };
-
-        static LlmGateway()
-        {
-            try { ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls12 | (SecurityProtocolType)12288; }
-            catch { try { ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls12; } catch { } }
-        }
-
-        private static string GetConfigPath(string appLocalDataDir)
-        {
-            return Path.Combine(appLocalDataDir, "ai_config.json");
-        }
-
-        public static Dictionary<string, string> LoadConfigRaw(string appLocalDataDir)
-        {
-            var res = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
-            {
-                { "provider", "deepseek" },
-                { "base_url", "https://api.deepseek.com/v1" },
-                { "model", "deepseek-chat" },
-                { "api_key", "" }
-            };
-            string fp = GetConfigPath(appLocalDataDir);
-            if (!File.Exists(fp)) return res;
-
-            try
-            {
-                var d = s_js.Deserialize<Dictionary<string, object>>(File.ReadAllText(fp, Encoding.UTF8));
-                if (d == null) return res;
-                if (d.ContainsKey("provider")) res["provider"] = Convert.ToString(d["provider"] ?? "deepseek");
-                if (d.ContainsKey("base_url")) res["base_url"] = Convert.ToString(d["base_url"] ?? "");
-                if (d.ContainsKey("model")) res["model"] = Convert.ToString(d["model"] ?? "");
-                if (d.ContainsKey("api_key_dpapi"))
-                {
-                    string encB64 = Convert.ToString(d["api_key_dpapi"] ?? "");
-                    if (!string.IsNullOrEmpty(encB64))
-                    {
-                        byte[] raw = ProtectedData.Unprotect(Convert.FromBase64String(encB64), null, DataProtectionScope.CurrentUser);
-                        res["api_key"] = Encoding.UTF8.GetString(raw);
-                    }
-                }
-            }
-            catch { }
-            return res;
-        }
-
-        public static string GetPublicConfigJson(string appLocalDataDir)
-        {
-            var cfg = LoadConfigRaw(appLocalDataDir);
-            string k = cfg["api_key"] ?? "";
-            bool isOllama = cfg["provider"].Equals("ollama", StringComparison.OrdinalIgnoreCase) ||
-                            cfg["base_url"].IndexOf("127.0.0.1:11434", StringComparison.OrdinalIgnoreCase) >= 0 ||
-                            cfg["base_url"].IndexOf("localhost:11434", StringComparison.OrdinalIgnoreCase) >= 0;
-            bool configured = (!string.IsNullOrEmpty(k) || isOllama) && !string.IsNullOrEmpty(cfg["base_url"]) && !string.IsNullOrEmpty(cfg["model"]);
-            string masked = "";
-            if (k.Length > 8)
-                masked = k.Substring(0, 4) + "••••••••" + k.Substring(k.Length - 4);
-            else if (k.Length > 0)
-                masked = "••••••••";
-
-            return s_js.Serialize(new Dictionary<string, object>
-            {
-                { "configured", configured },
-                { "provider", cfg["provider"] },
-                { "base_url", cfg["base_url"] },
-                { "model", cfg["model"] },
-                { "has_key", k.Length > 0 },
-                { "masked_key", masked }
-            });
-        }
-
-        public static void SaveConfig(string appLocalDataDir, string provider, string baseUrl, string model, string newApiKey, bool clearKey)
-        {
-            var cur = LoadConfigRaw(appLocalDataDir);
-            string finalKey = cur["api_key"] ?? "";
-            if (clearKey)
-                finalKey = "";
-            else if (!string.IsNullOrEmpty(newApiKey) && !newApiKey.Contains("••••"))
-                finalKey = newApiKey.Trim();
-
-            string encB64 = "";
-            if (!string.IsNullOrEmpty(finalKey))
-            {
-                byte[] enc = ProtectedData.Protect(Encoding.UTF8.GetBytes(finalKey), null, DataProtectionScope.CurrentUser);
-                encB64 = Convert.ToBase64String(enc);
-            }
-
-            var saveObj = new Dictionary<string, object>
-            {
-                { "provider", (provider ?? "custom").Trim() },
-                { "base_url", (baseUrl ?? "").Trim() },
-                { "model", (model ?? "").Trim() },
-                { "api_key_dpapi", encB64 }
-            };
-            Directory.CreateDirectory(appLocalDataDir);
-            File.WriteAllText(GetConfigPath(appLocalDataDir), s_js.Serialize(saveObj), s_utf8);
-        }
-
-        public static string CallLlmChat(string provider, string baseUrl, string apiKey, string model, string systemPrompt, string userPrompt, int maxTokens, out string errorMsg)
-        {
-            errorMsg = null;
-            baseUrl = (baseUrl ?? "").Trim().TrimEnd('/');
-            model = (model ?? "").Trim();
-            apiKey = (apiKey ?? "").Trim();
-
-            if (string.IsNullOrEmpty(baseUrl) || string.IsNullOrEmpty(model))
-            {
-                errorMsg = "请先填写完整的 API Base URL 与模型名称（Model）。";
-                return null;
-            }
-
-            bool isAnthropic = (provider ?? "").Equals("anthropic", StringComparison.OrdinalIgnoreCase) ||
-                               baseUrl.IndexOf("api.anthropic.com", StringComparison.OrdinalIgnoreCase) >= 0;
-
-            string endpoint;
-            string payloadJson;
-
-            if (isAnthropic)
-            {
-                if (baseUrl.EndsWith("/messages", StringComparison.OrdinalIgnoreCase))
-                    endpoint = baseUrl;
-                else if (baseUrl.EndsWith("/v1", StringComparison.OrdinalIgnoreCase))
-                    endpoint = baseUrl + "/messages";
-                else
-                    endpoint = baseUrl + "/v1/messages";
-
-                payloadJson = s_js.Serialize(new Dictionary<string, object>
-                {
-                    { "model", model },
-                    { "max_tokens", maxTokens },
-                    { "system", systemPrompt ?? "" },
-                    { "messages", new object[] { new Dictionary<string, object> { { "role", "user" }, { "content", userPrompt } } } }
-                });
-            }
-            else
-            {
-                if (baseUrl.EndsWith("/chat/completions", StringComparison.OrdinalIgnoreCase))
-                    endpoint = baseUrl;
-                else
-                    endpoint = baseUrl + "/chat/completions";
-
-                var msgs = new List<object>();
-                if (!string.IsNullOrEmpty(systemPrompt))
-                    msgs.Add(new Dictionary<string, object> { { "role", "system" }, { "content", systemPrompt } });
-                msgs.Add(new Dictionary<string, object> { { "role", "user" }, { "content", userPrompt } });
-
-                payloadJson = s_js.Serialize(new Dictionary<string, object>
-                {
-                    { "model", model },
-                    { "temperature", 0.2 },
-                    { "max_tokens", maxTokens },
-                    { "messages", msgs }
-                });
-            }
-
-            string rawResp = SendPostWithProxyFallback(endpoint, payloadJson, apiKey, isAnthropic, out errorMsg);
-            if (rawResp == null) return null;
-
-            try
-            {
-                var doc = s_js.Deserialize<Dictionary<string, object>>(rawResp);
-                if (doc == null) { errorMsg = "无法解析接口返回 JSON"; return null; }
-
-                if (isAnthropic && doc.ContainsKey("content") && doc["content"] is System.Collections.IEnumerable)
-                {
-                    var sb = new StringBuilder();
-                    foreach (object block in (System.Collections.IEnumerable)doc["content"])
-                    {
-                        var bd = block as Dictionary<string, object>;
-                        if (bd != null && bd.ContainsKey("text")) sb.Append(Convert.ToString(bd["text"]));
-                    }
-                    return sb.ToString().Trim();
-                }
-
-                if (doc.ContainsKey("choices") && doc["choices"] is System.Collections.IEnumerable)
-                {
-                    foreach (object ch in (System.Collections.IEnumerable)doc["choices"])
-                    {
-                        var cd = ch as Dictionary<string, object>;
-                        if (cd != null && cd.ContainsKey("message") && cd["message"] is Dictionary<string, object>)
-                        {
-                            var md = (Dictionary<string, object>)cd["message"];
-                            if (md.ContainsKey("content"))
-                                return Convert.ToString(md["content"] ?? "").Trim();
-                        }
-                    }
-                }
-                errorMsg = "接口返回格式不含 message.content：" + (rawResp.Length > 200 ? rawResp.Substring(0, 200) : rawResp);
-                return null;
-            }
-            catch (Exception ex)
-            {
-                errorMsg = "解析模型响应出错：" + ex.Message;
-                return null;
-            }
-        }
-
-        private static string SendPostWithProxyFallback(string url, string bodyJson, string apiKey, bool isAnthropic, out string errorMsg)
-        {
-            errorMsg = null;
-            byte[] bodyBytes = s_utf8.GetBytes(bodyJson);
-
-            for (int attempt = 0; attempt < 2; attempt++)
-            {
-                try
-                {
-                    var req = (HttpWebRequest)WebRequest.Create(url);
-                    req.Method = "POST";
-                    req.ContentType = "application/json; charset=utf-8";
-                    req.Accept = "application/json";
-                    req.UserAgent = "ModelOutputHub/2.0";
-                    req.Timeout = 40000;
-                    req.ReadWriteTimeout = 40000;
-                    if (attempt == 1) req.Proxy = null;
-
-                    if (isAnthropic)
-                    {
-                        if (!string.IsNullOrEmpty(apiKey)) req.Headers["x-api-key"] = apiKey;
-                        req.Headers["anthropic-version"] = "2023-06-01";
-                    }
-                    else
-                    {
-                        if (!string.IsNullOrEmpty(apiKey)) req.Headers["Authorization"] = "Bearer " + apiKey;
-                    }
-
-                    using (Stream rs = req.GetRequestStream())
-                        rs.Write(bodyBytes, 0, bodyBytes.Length);
-
-                    using (var resp = (HttpWebResponse)req.GetResponse())
-                    using (var sr = new StreamReader(resp.GetResponseStream(), Encoding.UTF8))
-                        return sr.ReadToEnd();
-                }
-                catch (WebException wex)
-                {
-                    if (wex.Response != null)
-                    {
-                        try
-                        {
-                            var hresp = (HttpWebResponse)wex.Response;
-                            using (var sr = new StreamReader(hresp.GetResponseStream(), Encoding.UTF8))
-                            {
-                                string errBody = sr.ReadToEnd();
-                                if (errBody.Length > 260) errBody = errBody.Substring(0, 260) + "...";
-                                errorMsg = string.Format("HTTP {0}: {1}", (int)hresp.StatusCode, errBody);
-                                return null;
-                            }
-                        }
-                        catch { }
-                    }
-                    if (attempt == 0) continue; // Retry once bypassing dead system proxy!
-                    errorMsg = "网络连接失败（离线或地址不可达）：" + wex.Message;
-                    return null;
-                }
-                catch (Exception ex)
-                {
-                    errorMsg = "请求异常：" + ex.Message;
-                    return null;
-                }
-            }
-            return null;
-        }
-
-        public static string ExtractCleanFileExcerpt(string fp, int maxChars = 9000)
-        {
-            if (string.IsNullOrEmpty(fp) || !File.Exists(fp)) return "";
-            try
-            {
-                var fi = new FileInfo(fp);
-                string ext = (fi.Extension ?? "").ToLowerInvariant();
-                if (ext == ".html" || ext == ".htm")
-                {
-                    int readBytes = (int)Math.Min(3 * 1024 * 1024, fi.Length);
-                    byte[] buf = new byte[readBytes];
-                    using (var fs = new FileStream(fp, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-                        fs.Read(buf, 0, readBytes);
-                    string html = Encoding.UTF8.GetString(buf);
-                    html = Regex.Replace(html, @"<script[\s\S]*?</script>", " ", RegexOptions.IgnoreCase);
-                    html = Regex.Replace(html, @"<style[\s\S]*?</style>", " ", RegexOptions.IgnoreCase);
-                    html = Regex.Replace(html, @"<svg[\s\S]*?</svg>", " ", RegexOptions.IgnoreCase);
-                    html = Regex.Replace(html, @"data:image/[^""'\)\s]+", "", RegexOptions.IgnoreCase);
-                    html = Regex.Replace(html, @"<[^>]+>", " ");
-                    html = System.Net.WebUtility.HtmlDecode(html);
-                    html = Regex.Replace(html, @"\s+", " ").Trim();
-                    return html.Length > maxChars ? html.Substring(0, maxChars) + "..." : html;
-                }
-                if (ext == ".txt" || ext == ".md" || ext == ".r" || ext == ".py" || ext == ".sh" || ext == ".csv" || ext == ".tsv" || ext == ".json")
-                {
-                    int readBytes = (int)Math.Min(65536, fi.Length);
-                    byte[] buf = new byte[readBytes];
-                    using (var fs = new FileStream(fp, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-                        fs.Read(buf, 0, readBytes);
-                    string s;
-                    try { s = new UTF8Encoding(false, true).GetString(buf); }
-                    catch { try { s = Encoding.GetEncoding(936).GetString(buf); } catch { s = Encoding.UTF8.GetString(buf); } }
-                    return s.Length > maxChars ? s.Substring(0, maxChars) + "..." : s;
-                }
-                return string.Format("[二进制文件：{0}，大小：{1:F2} MB，最后修改：{2:yyyy-MM-dd HH:mm}]", fi.Name, fi.Length / 1048576.0, fi.LastWriteTime);
-            }
-            catch { return ""; }
-        }
-    }
-
     public class StudioWindow : Window
     {
         [DllImport("user32.dll")]
@@ -1441,6 +1145,16 @@ namespace ModelOutputHub
             _appLocalDataDir = appLocalDataDir;
             _thumbsDir = Path.Combine(appLocalDataDir, "thumbs");
             Directory.CreateDirectory(_thumbsDir);
+            try
+            {
+                foreach (string oldThumb in Directory.GetFiles(_thumbsDir, "*.png"))
+                {
+                    string fn = Path.GetFileName(oldThumb);
+                    if (!fn.StartsWith("v3_", StringComparison.OrdinalIgnoreCase))
+                        File.Delete(oldThumb);
+                }
+            }
+            catch { }
             _previewOutDir = previewOutDir;
             BindRootDirectory(rootDir, false);
 
@@ -1957,9 +1671,11 @@ namespace ModelOutputHub
             return dict;
         }
 
-        private bool TryRenderPdfViaFitzWorker(string pdfPath, string outPngPath)
+        private bool TryRenderPdfViaFitzWorker(string pdfPath, string outPngPath, int targetWidth = 560)
         {
             string workerPy = Path.Combine(_hubAppDir, "thumb_worker.py");
+            if (!File.Exists(workerPy))
+                workerPy = Path.Combine(_appLocalDataDir, "thumb_worker.py");
             if (string.IsNullOrEmpty(_pythonExe) || !File.Exists(_pythonExe) || !File.Exists(workerPy))
                 return false;
 
@@ -1982,7 +1698,7 @@ namespace ModelOutputHub
                     }
                     if (_thumbWorkerProc == null) return false;
 
-                    byte[] lineBytes = s_utf8NoBom.GetBytes(pdfPath + "\t" + outPngPath + "\n");
+                    byte[] lineBytes = s_utf8NoBom.GetBytes(pdfPath + "\t" + outPngPath + "\t" + targetWidth + "\n");
                     _thumbWorkerProc.StandardInput.BaseStream.Write(lineBytes, 0, lineBytes.Length);
                     _thumbWorkerProc.StandardInput.BaseStream.Flush();
 
@@ -1998,7 +1714,37 @@ namespace ModelOutputHub
             }
         }
 
-        private string GetOrCreateThumbnailPng(string filePath)
+        private static string FindCompanionPreviewImage(string pdfPath)
+        {
+            try
+            {
+                string dir = Path.GetDirectoryName(pdfPath);
+                string stem = Path.GetFileNameWithoutExtension(pdfPath);
+                if (string.IsNullOrEmpty(dir) || string.IsNullOrEmpty(stem)) return null;
+
+                string[] exts = new[] { ".png", ".jpg", ".jpeg" };
+                string[] suffixes = new[] { "", "_preview", "_page1", "-1" };
+                string[] subDirs = new[] { "", "preview", "figs_preview", "figures", "figs" };
+
+                foreach (string sub in subDirs)
+                {
+                    string checkDir = string.IsNullOrEmpty(sub) ? dir : Path.Combine(dir, sub);
+                    if (!Directory.Exists(checkDir)) continue;
+                    foreach (string sfx in suffixes)
+                    {
+                        foreach (string ext in exts)
+                        {
+                            string cand = Path.Combine(checkDir, stem + sfx + ext);
+                            if (File.Exists(cand)) return cand;
+                        }
+                    }
+                }
+            }
+            catch { }
+            return null;
+        }
+
+        private string GetOrCreateThumbnailPng(string filePath, bool hiRes = false)
         {
             if (string.IsNullOrEmpty(filePath) || !File.Exists(filePath)) return null;
             FileInfo fi;
@@ -2014,35 +1760,51 @@ namespace ModelOutputHub
                 hashHex = sb.ToString();
             }
 
-            string outPng = Path.Combine(_thumbsDir, hashHex + ".png");
+            int targetPx = hiRes ? 960 : 560;
+            string outPng = Path.Combine(_thumbsDir, "v3_" + (hiRes ? "hi_" : "") + hashHex + ".png");
             if (File.Exists(outPng) && new FileInfo(outPng).Length > 64)
                 return outPng;
 
             string ext = (fi.Extension ?? "").ToLowerInvariant();
             if (ext == ".png" || ext == ".jpg" || ext == ".jpeg" || ext == ".bmp")
             {
-                if (fi.Length <= 380 * 1024 && ext == ".png")
+                if ((hiRes || fi.Length <= 520 * 1024) && ext == ".png")
                     return filePath;
-                if (ShellThumbnailHelper.TrySaveGdiImageThumbnailPng(filePath, outPng, 420))
+                if (ShellThumbnailHelper.TrySaveGdiImageThumbnailPng(filePath, outPng, targetPx))
                     return outPng;
                 return filePath;
             }
 
             if (ext == ".pdf")
             {
-                if (TryRenderPdfViaFitzWorker(filePath, outPng))
+                if (TryRenderPdfViaFitzWorker(filePath, outPng, targetPx))
                     return outPng;
-                if (ShellThumbnailHelper.TrySaveShellThumbnailPng(filePath, outPng, 420))
+                string compImg = FindCompanionPreviewImage(filePath);
+                if (!string.IsNullOrEmpty(compImg))
+                {
+                    if (ShellThumbnailHelper.TrySaveGdiImageThumbnailPng(compImg, outPng, targetPx))
+                        return outPng;
+                    return compImg;
+                }
+                if (ShellThumbnailHelper.TrySaveShellThumbnailPng(filePath, outPng, targetPx))
                     return outPng;
                 return null;
             }
 
             if (ext == ".pptx" || ext == ".ppt" || ext == ".docx" || ext == ".xlsx")
             {
-                if (ShellThumbnailHelper.TrySaveShellThumbnailPng(filePath, outPng, 420))
+                if (ShellThumbnailHelper.TrySaveShellThumbnailPng(filePath, outPng, targetPx))
                     return outPng;
             }
             return null;
+        }
+
+        private static string StripHtmlTagsClean(string rawHtml)
+        {
+            if (string.IsNullOrEmpty(rawHtml)) return "";
+            string s = Regex.Replace(rawHtml, @"<[^>]+>", " ");
+            s = System.Net.WebUtility.HtmlDecode(s);
+            return Regex.Replace(s, @"\s+", " ").Trim();
         }
 
         private static string ReadTextPreviewSmart(string fp, int maxBytes, out bool truncated)
@@ -2092,32 +1854,122 @@ namespace ModelOutputHub
                 { "date", fi.LastWriteTime.ToString("yyyy-MM-dd HH:mm:ss") }
             };
 
-            // Sibling deliverable files in the same folder (huge UX helper!)
+            // Sibling deliverable files in the same folder
             var siblings = new List<Dictionary<string, object>>();
+            var visualSiblings = new List<Dictionary<string, object>>();
             try
             {
                 if (!string.IsNullOrEmpty(fi.DirectoryName) && Directory.Exists(fi.DirectoryName))
                 {
-                    foreach (var sfi in new DirectoryInfo(fi.DirectoryName).GetFiles()
-                        .Where(x => !x.Name.StartsWith("~$") && !x.FullName.Equals(fp, StringComparison.OrdinalIgnoreCase))
+                    var dirFiles = new DirectoryInfo(fi.DirectoryName).GetFiles()
+                        .Where(x => !x.Name.StartsWith("~$") &&
+                                    !x.FullName.Equals(fp, StringComparison.OrdinalIgnoreCase) &&
+                                    !x.Name.Equals("模型输出管家.exe", StringComparison.OrdinalIgnoreCase) &&
+                                    !x.Name.Equals("ModelOutputHub.exe", StringComparison.OrdinalIgnoreCase))
                         .OrderByDescending(x => x.LastWriteTimeUtc)
-                        .Take(12))
+                        .ToList();
+
+                    foreach (var sfi in dirFiles.Take(12))
                     {
+                        string sext = (sfi.Extension ?? "").ToLowerInvariant();
                         siblings.Add(new Dictionary<string, object>
                         {
                             { "name", sfi.Name },
                             { "path", sfi.FullName },
-                            { "ext", (sfi.Extension ?? "").ToLowerInvariant() },
+                            { "ext", sext },
                             { "size_mb", Math.Round(sfi.Length / 1048576.0, 2) },
                             { "date", sfi.LastWriteTime.ToString("MM-dd HH:mm") }
                         });
+                    }
+
+                    foreach (var vfi in dirFiles.Where(x =>
+                    {
+                        string ve = (x.Extension ?? "").ToLowerInvariant();
+                        return ve == ".pdf" || ve == ".png" || ve == ".jpg" || ve == ".jpeg";
+                    }).Take(6))
+                    {
+                        visualSiblings.Add(new Dictionary<string, object>
+                        {
+                            { "name", vfi.Name },
+                            { "path", vfi.FullName },
+                            { "ext", (vfi.Extension ?? "").ToLowerInvariant() }
+                        });
+                    }
+
+                    if (visualSiblings.Count < 4)
+                    {
+                        foreach (string sub in new[] { "figures", "figs", "v6_已过检PDF矢量拼图", "preview" })
+                        {
+                            string subDir = Path.Combine(fi.DirectoryName, sub);
+                            if (!Directory.Exists(subDir)) continue;
+                            foreach (var vfi in new DirectoryInfo(subDir).GetFiles()
+                                .Where(x => { string ve = (x.Extension ?? "").ToLowerInvariant(); return ve == ".pdf" || ve == ".png"; })
+                                .OrderByDescending(x => x.LastWriteTimeUtc)
+                                .Take(6 - visualSiblings.Count))
+                            {
+                                visualSiblings.Add(new Dictionary<string, object>
+                                {
+                                    { "name", vfi.Name },
+                                    { "path", vfi.FullName },
+                                    { "ext", (vfi.Extension ?? "").ToLowerInvariant() }
+                                });
+                            }
+                            if (visualSiblings.Count >= 4) break;
+                        }
                     }
                 }
             }
             catch { }
             res["siblings"] = siblings;
+            res["visual_siblings"] = visualSiblings;
 
-            if (ext == ".csv" || ext == ".tsv")
+            if (ext == ".html" || ext == ".htm")
+            {
+                res["mode"] = "html_dossier";
+                string htmlTitle = fi.Name;
+                var headings = new List<string>();
+                string excerpt = "";
+                try
+                {
+                    bool trunc;
+                    string raw = ReadTextPreviewSmart(fp, 262144, out trunc);
+                    string noScript = Regex.Replace(raw, @"<(script|style)\b[^>]*>[\s\S]*?</\1>", " ", RegexOptions.IgnoreCase);
+                    noScript = Regex.Replace(noScript, @"data:image/[a-zA-Z0-9.+-]+;base64,[A-Za-z0-9+/=]+", "", RegexOptions.IgnoreCase);
+
+                    var tm = Regex.Match(noScript, @"<title[^>]*>([\s\S]*?)</title>", RegexOptions.IgnoreCase);
+                    if (tm.Success)
+                    {
+                        string tClean = StripHtmlTagsClean(tm.Groups[1].Value);
+                        if (!string.IsNullOrEmpty(tClean)) htmlTitle = tClean;
+                    }
+
+                    var seenH = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                    foreach (Match hm in Regex.Matches(noScript, @"<h([1-3])\b[^>]*>([\s\S]{1,240}?)</h\1>", RegexOptions.IgnoreCase))
+                    {
+                        string hc = StripHtmlTagsClean(hm.Groups[2].Value);
+                        if (hc.Length >= 2 && hc.Length <= 90 && !hc.Equals(htmlTitle, StringComparison.OrdinalIgnoreCase) && seenH.Add(hc))
+                        {
+                            headings.Add(hc);
+                            if (headings.Count >= 8) break;
+                        }
+                    }
+
+                    foreach (Match pm in Regex.Matches(noScript, @"<p\b[^>]*>([\s\S]{24,600}?)</p>", RegexOptions.IgnoreCase))
+                    {
+                        string pc = StripHtmlTagsClean(pm.Groups[1].Value);
+                        if (pc.Length >= 24)
+                        {
+                            excerpt = pc.Length > 220 ? pc.Substring(0, 220) + "…" : pc;
+                            break;
+                        }
+                    }
+                }
+                catch { }
+                res["html_title"] = htmlTitle;
+                res["headings"] = headings;
+                res["excerpt"] = excerpt;
+            }
+            else if (ext == ".csv" || ext == ".tsv")
             {
                 bool trunc;
                 string txt = ReadTextPreviewSmart(fp, 49152, out trunc);
@@ -2175,7 +2027,7 @@ namespace ModelOutputHub
             }
             else
             {
-                string th = GetOrCreateThumbnailPng(fp);
+                string th = GetOrCreateThumbnailPng(fp, false);
                 res["has_thumb"] = !string.IsNullOrEmpty(th);
                 res["mode"] = "binary";
             }
@@ -2326,7 +2178,9 @@ namespace ModelOutputHub
             {
                 foreach (var di in new DirectoryInfo(dir).GetDirectories().OrderByDescending(d => d.LastWriteTimeUtc))
                 {
-                    if (di.Name.Equals("wv2_profile", StringComparison.OrdinalIgnoreCase) || di.Name.StartsWith(".")) continue;
+                    if (di.Name.Equals("wv2_profile", StringComparison.OrdinalIgnoreCase) ||
+                        di.Name.Equals("_hub_app", StringComparison.OrdinalIgnoreCase) ||
+                        di.Name.StartsWith(".")) continue;
                     dirs.Add(new Dictionary<string, object>
                     {
                         { "name", di.Name },
@@ -2336,7 +2190,13 @@ namespace ModelOutputHub
                     });
                 }
 
-                foreach (var fi in new DirectoryInfo(dir).GetFiles().Where(f => !f.Name.StartsWith("~$")).OrderByDescending(f => f.LastWriteTimeUtc))
+                foreach (var fi in new DirectoryInfo(dir).GetFiles()
+                    .Where(f => !f.Name.StartsWith("~$") &&
+                                !f.Name.Equals("模型输出管家.exe", StringComparison.OrdinalIgnoreCase) &&
+                                !f.Name.Equals("ModelOutputHub.exe", StringComparison.OrdinalIgnoreCase) &&
+                                !f.Name.Equals("desktop.ini", StringComparison.OrdinalIgnoreCase) &&
+                                !f.Name.Equals("Thumbs.db", StringComparison.OrdinalIgnoreCase))
+                    .OrderByDescending(f => f.LastWriteTimeUtc))
                 {
                     string ext = (fi.Extension ?? "").ToLowerInvariant();
                     string figGroup, figPanel;
@@ -2367,12 +2227,34 @@ namespace ModelOutputHub
             }
             catch { }
 
+            var rootDirs = new List<Dictionary<string, object>>();
+            try
+            {
+                if (Directory.Exists(_rootDir))
+                {
+                    foreach (var rdi in new DirectoryInfo(_rootDir).GetDirectories().OrderByDescending(d => d.LastWriteTimeUtc))
+                    {
+                        if (rdi.Name.Equals("wv2_profile", StringComparison.OrdinalIgnoreCase) ||
+                            rdi.Name.Equals("_hub_app", StringComparison.OrdinalIgnoreCase) ||
+                            rdi.Name.StartsWith("."))
+                            continue;
+                        rootDirs.Add(new Dictionary<string, object>
+                        {
+                            { "name", rdi.Name },
+                            { "path", rdi.FullName }
+                        });
+                    }
+                }
+            }
+            catch { }
+
             return _json.Serialize(new Dictionary<string, object>
             {
                 { "ok", true },
                 { "path", dir },
                 { "parent", parentDir },
                 { "is_root", dir.TrimEnd('\\', '/').Equals(_rootDir.TrimEnd('\\', '/'), StringComparison.OrdinalIgnoreCase) },
+                { "root_dirs", rootDirs },
                 { "dirs", dirs },
                 { "files", files }
             });
@@ -2461,7 +2343,9 @@ namespace ModelOutputHub
                     string fp;
                     if (qp.TryGetValue("path", out fp))
                     {
-                        string thumbPng = GetOrCreateThumbnailPng(fp);
+                        string hiVal;
+                        bool hiRes = qp.TryGetValue("hi", out hiVal) && hiVal == "1";
+                        string thumbPng = GetOrCreateThumbnailPng(fp, hiRes);
                         if (!string.IsNullOrEmpty(thumbPng) && File.Exists(thumbPng))
                         {
                             var ms = new MemoryStream(File.ReadAllBytes(thumbPng));
@@ -2527,13 +2411,6 @@ namespace ModelOutputHub
                     }
                     e.Response = _webView.CoreWebView2.Environment.CreateWebResourceResponse(
                         new MemoryStream(), 404, "Not Found", "Content-Type: text/plain");
-                    return;
-                }
-                else if (pathOnly.Equals("/api/ai-config", StringComparison.OrdinalIgnoreCase))
-                {
-                    byte[] body = s_utf8NoBom.GetBytes(LlmGateway.GetPublicConfigJson(_appLocalDataDir));
-                    e.Response = _webView.CoreWebView2.Environment.CreateWebResourceResponse(
-                        new MemoryStream(body), 200, "OK", "Content-Type: application/json; charset=utf-8\r\nCache-Control: no-store");
                     return;
                 }
             }
@@ -2629,7 +2506,7 @@ namespace ModelOutputHub
                         break;
 
                     case "savePrefs":
-                        MergeAndSaveUserMeta(msg, new[] { "ui_paradigm", "ui_scale", "ui_font", "finder_layout", "finder_dedup" });
+                        MergeAndSaveUserMeta(msg, new[] { "ui_paradigm", "ui_scale", "ui_font", "finder_layout", "finder_dedup", "finder_curated" });
                         break;
 
                     case "runRefresh":
@@ -2639,135 +2516,9 @@ namespace ModelOutputHub
                     case "runTidy":
                         RunScanBackendAsync(true);
                         break;
-
-                    case "saveAiConfig":
-                        LlmGateway.SaveConfig(
-                            _appLocalDataDir,
-                            msg.ContainsKey("provider") ? Convert.ToString(msg["provider"]) : "custom",
-                            msg.ContainsKey("base_url") ? Convert.ToString(msg["base_url"]) : "",
-                            msg.ContainsKey("model") ? Convert.ToString(msg["model"]) : "",
-                            msg.ContainsKey("api_key") ? Convert.ToString(msg["api_key"]) : "",
-                            msg.ContainsKey("clear_key") && Convert.ToBoolean(msg["clear_key"]));
-                        SendJsonCallbackToJs("__onAiConfigSaved", LlmGateway.GetPublicConfigJson(_appLocalDataDir));
-                        break;
-
-                    case "testAiConnection":
-                        HandleTestAiConnectionAsync(msg);
-                        break;
-
-                    case "askAiAssistant":
-                        HandleAskAiAssistantAsync(msg);
-                        break;
                 }
             }
             catch { }
-        }
-
-
-        private void SendJsonCallbackToJs(string fnName, string rawJsonArg)
-        {
-            Dispatcher.BeginInvoke(new Action(async () =>
-            {
-                try
-                {
-                    if (_webView != null && _webView.CoreWebView2 != null)
-                        await _webView.CoreWebView2.ExecuteScriptAsync("if(window." + fnName + ")window." + fnName + "(" + rawJsonArg + ");");
-                }
-                catch { }
-            }));
-        }
-
-        private void HandleTestAiConnectionAsync(Dictionary<string, object> msg)
-        {
-            Task.Run(() =>
-            {
-                var sw = Stopwatch.StartNew();
-                var saved = LlmGateway.LoadConfigRaw(_appLocalDataDir);
-                string prov = msg.ContainsKey("provider") ? Convert.ToString(msg["provider"]) : saved["provider"];
-                string burl = msg.ContainsKey("base_url") ? Convert.ToString(msg["base_url"]) : saved["base_url"];
-                string mod  = msg.ContainsKey("model") ? Convert.ToString(msg["model"]) : saved["model"];
-                string keyIn = msg.ContainsKey("api_key") ? Convert.ToString(msg["api_key"]) : "";
-                string useKey = (!string.IsNullOrEmpty(keyIn) && !keyIn.Contains("••••")) ? keyIn.Trim() : saved["api_key"];
-
-                string err;
-                string reply = LlmGateway.CallLlmChat(prov, burl, useKey, mod, "Reply concisely.", "请只回复 OK 两个字母。", 24, out err);
-                sw.Stop();
-                string payload = _json.Serialize(new Dictionary<string, object>
-                {
-                    { "ok", reply != null },
-                    { "ms", (int)sw.ElapsedMilliseconds },
-                    { "reply", reply ?? "" },
-                    { "error", err ?? "" }
-                });
-                SendJsonCallbackToJs("__onAiTestResult", payload);
-            });
-        }
-
-        private void HandleAskAiAssistantAsync(Dictionary<string, object> msg)
-        {
-            Task.Run(() =>
-            {
-                var sw = Stopwatch.StartNew();
-                var cfg = LlmGateway.LoadConfigRaw(_appLocalDataDir);
-                string mode = msg.ContainsKey("mode") ? Convert.ToString(msg["mode"]) : "find";
-                string userPrompt = msg.ContainsKey("prompt") ? Convert.ToString(msg["prompt"]) : "";
-                string curFile = msg.ContainsKey("current_file") ? Convert.ToString(msg["current_file"]) : "";
-                string candsText = msg.ContainsKey("candidates_text") ? Convert.ToString(msg["candidates_text"]) : "";
-
-                string sysPrompt =
-                    "你是内置在桌面软件「模型输出管家」中的本地文件查找与科研文档助手。请始终用清晰精炼的中文回答。\n" +
-                    "当用户让你找文件、或者你的回答涉及候选清单中的具体文件时，除了用中文简要说明每个推荐文件是什么，还必须在回答最后单独另起一行写出命中的候选编号，格式严格为：\n" +
-                    "MATCHED_IDS: F0, F2, F5\n" +
-                    "（如果没有涉及特定候选编号则不要写这一行；严禁编造候选清单以外的路径。）";
-
-                var fullUser = new StringBuilder();
-                if (!string.IsNullOrEmpty(curFile) && (mode == "summarize" || userPrompt.Contains("当前") || userPrompt.Contains("这份") || userPrompt.Contains("这个文件")))
-                {
-                    string excerpt = LlmGateway.ExtractCleanFileExcerpt(curFile, 9000);
-                    if (!string.IsNullOrEmpty(excerpt))
-                    {
-                        fullUser.AppendLine("【当前右侧正在预览的文件】：" + curFile);
-                        fullUser.AppendLine("【文件正文摘录】：");
-                        fullUser.AppendLine(excerpt);
-                        fullUser.AppendLine();
-                    }
-                }
-                if (!string.IsNullOrEmpty(candsText))
-                {
-                    fullUser.AppendLine("【本地候选文件索引（编号 | 类型 | 课题 | 目录 | 文件名/标题 | 更新时间）】：");
-                    fullUser.AppendLine(candsText);
-                    fullUser.AppendLine();
-                }
-                fullUser.AppendLine("【用户需求】：" + userPrompt);
-
-                string err;
-                string answer = LlmGateway.CallLlmChat(cfg["provider"], cfg["base_url"], cfg["api_key"], cfg["model"], sysPrompt, fullUser.ToString(), 1100, out err);
-                sw.Stop();
-
-                var matchedIds = new List<string>();
-                string cleanAnswer = answer ?? "";
-                if (!string.IsNullOrEmpty(cleanAnswer))
-                {
-                    Match m = Regex.Match(cleanAnswer, @"MATCHED_IDS\s*:\s*([^\r\n]+)", RegexOptions.IgnoreCase);
-                    if (m.Success)
-                    {
-                        foreach (Match idm in Regex.Matches(m.Groups[1].Value, @"F\d+", RegexOptions.IgnoreCase))
-                            matchedIds.Add(idm.Value.ToUpperInvariant());
-                        cleanAnswer = cleanAnswer.Remove(m.Index, m.Length).Trim();
-                    }
-                }
-
-                string payload = _json.Serialize(new Dictionary<string, object>
-                {
-                    { "ok", answer != null },
-                    { "ms", (int)sw.ElapsedMilliseconds },
-                    { "model", cfg["model"] },
-                    { "answer", cleanAnswer },
-                    { "matched_ids", matchedIds },
-                    { "error", err ?? "" }
-                });
-                SendJsonCallbackToJs("__onAiReply", payload);
-            });
         }
 
         private void MergeAndSaveUserMeta(Dictionary<string, object> incoming, string[] keys)
@@ -2805,10 +2556,18 @@ namespace ModelOutputHub
         private async Task RunPreviewCaptureSequenceAsync(string outDir)
         {
             Directory.CreateDirectory(outDir);
+            string collectJsPath = Path.Combine(outDir, "_collect_js.txt");
+            string collectJs = File.Exists(collectJsPath) ? File.ReadAllText(collectJsPath, Encoding.UTF8) : null;
+
             var shots = new[]
             {
-                new { Name = "v2-finder-home", Url = "https://hub.local/app?paradigm=takram&view=finder" },
-                new { Name = "v2-finder-thumbs", Url = "https://hub.local/app?paradigm=takram&view=finder&ftype=a4&layout=grid" }
+                new { Name = "v3-takram-chronicle",   Url = "https://hub.local/app?paradigm=takram&view=finder&layout=editorial" },
+                new { Name = "v3-pentagram-chronicle", Url = "https://hub.local/app?paradigm=pentagram&view=finder&layout=editorial" },
+                new { Name = "v3-sugiura-chronicle",  Url = "https://hub.local/app?paradigm=sugiura&view=finder&layout=editorial" },
+                new { Name = "v3-takram-topic",       Url = "https://hub.local/app?paradigm=takram&view=finder&autotopic=1" },
+                new { Name = "v3-takram-figures",     Url = "https://hub.local/app?paradigm=takram&view=figures" },
+                new { Name = "v3-takram-folders",     Url = "https://hub.local/app?paradigm=takram&view=finder&rail=folder" },
+                new { Name = "v3-takram-overview",    Url = "https://hub.local/app?paradigm=takram&view=overview" }
             };
 
             foreach (var s in shots)
@@ -2824,18 +2583,43 @@ namespace ModelOutputHub
                 _webView.CoreWebView2.Navigate(s.Url);
                 await tcs.Task;
 
-                for (int w = 0; w < 30; w++)
+                for (int w = 0; w < 40; w++)
                 {
                     string rdy = await _webView.CoreWebView2.ExecuteScriptAsync("Boolean(window.__DESIGN_READY)");
                     if (rdy == "true") break;
                     await Task.Delay(100);
                 }
-                await Task.Delay(450);
+                for (int w = 0; w < 45; w++)
+                {
+                    string imgsOk = await _webView.CoreWebView2.ExecuteScriptAsync(
+                        "Array.from(document.images).filter(im=>im.offsetParent!==null).every(im=>im.complete)");
+                    if (imgsOk == "true") break;
+                    await Task.Delay(120);
+                }
+                await Task.Delay(350);
 
                 string pngPath = Path.Combine(outDir, s.Name + ".png");
                 using (var fs = new FileStream(pngPath, FileMode.Create, FileAccess.Write))
                 {
                     await _webView.CoreWebView2.CapturePreviewAsync(CoreWebView2CapturePreviewImageFormat.Png, fs);
+                }
+
+                if (!string.IsNullOrEmpty(collectJs))
+                {
+                    try
+                    {
+                        string rawFacts = await _webView.CoreWebView2.ExecuteScriptAsync(
+                            "window.__MIN_BODY=14;window.__MIN_LABEL=12;JSON.stringify((" + collectJs + ")())");
+                        if (!string.IsNullOrEmpty(rawFacts) && rawFacts != "null")
+                        {
+                            string unwrapped = _json.Deserialize<string>(rawFacts);
+                            File.WriteAllText(Path.Combine(outDir, s.Name + ".facts.json"), unwrapped, s_utf8NoBom);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        File.WriteAllText(Path.Combine(outDir, s.Name + ".facts.err.txt"), ex.ToString(), s_utf8NoBom);
+                    }
                 }
             }
             ExitCode = 0;

@@ -1,17 +1,18 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-build.py — Zero-VisualStudio Portable Builder for 模型输出管家 (Model Output Hub)
-================================================================================
-Compiles `模型输出管家.exe` using the built-in Windows .NET Framework x64 compiler (`csc.exe`)
-and automatically fetches the official Microsoft.Web.WebView2 NuGet package if needed.
+build.py — Zero-VisualStudio Portable Builder for 模型输出管家 (Model Output Hub v3.0)
+======================================================================================
+Compiles standalone single-file `模型输出管家.exe` using the built-in Windows .NET Framework x64
+compiler (`csc.exe`) and embeds official Microsoft.Web.WebView2 SDK DLLs + UI + fitz worker.
 
 Output:
   dist/ModelOutputHub/
-    ├── 模型输出管家.exe
+    ├── 模型输出管家.exe          (1.1 MB true standalone single-file executable, MOTW-immune)
     ├── README.md
     └── _hub_app/
           ├── topic_rules.py
+          ├── thumb_worker.py
           ├── tidy_outputs.py
           ├── custom_topics.example.json
           ├── app.ico
@@ -49,7 +50,7 @@ def ensure_webview2_libs(local_fallback_dir: pathlib.Path = None) -> None:
         return
 
     print("[Download] Fetching official Microsoft.Web.WebView2 package from NuGet...")
-    req = urllib.request.Request(NUGET_WV2_URL, headers={"User-Agent": "ModelOutputHub-Builder/1.0"})
+    req = urllib.request.Request(NUGET_WV2_URL, headers={"User-Agent": "ModelOutputHub-Builder/3.0"})
     raw = urllib.request.urlopen(req, timeout=30).read()
     with zipfile.ZipFile(io.BytesIO(raw)) as zf:
         mapping = {
@@ -63,14 +64,14 @@ def ensure_webview2_libs(local_fallback_dir: pathlib.Path = None) -> None:
     print("[OK] Extracted official WebView2 SDK DLLs.")
 
 
-def build_portable_package(local_lib_fallback: pathlib.Path = None) -> pathlib.Path:
+def build_portable_package(local_lib_fallback: pathlib.Path = None) -> tuple[pathlib.Path, pathlib.Path]:
     if DIST_APP.exists():
         shutil.rmtree(DIST_APP)
     HUB_DIR.mkdir(parents=True, exist_ok=True)
 
     ensure_webview2_libs(local_lib_fallback)
 
-    for fn in ("topic_rules.py", "tidy_outputs.py", "custom_topics.example.json", "app.ico"):
+    for fn in ("topic_rules.py", "thumb_worker.py", "tidy_outputs.py", "custom_topics.example.json", "app.ico"):
         shutil.copy2(SRC_DIR / fn, HUB_DIR / fn)
     if (REPO_ROOT / "README.md").is_file():
         shutil.copy2(REPO_ROOT / "README.md", DIST_APP / "README.md")
@@ -85,6 +86,7 @@ def build_portable_package(local_lib_fallback: pathlib.Path = None) -> pathlib.P
         csc, "/nologo", "/target:winexe", "/platform:x64", "/optimize+", "/utf8output",
         f"/win32icon:{SRC_DIR / 'app.ico'}",
         f"/resource:{SRC_DIR / 'studio_ui.dat'},ModelOutputHub.StudioUI",
+        f"/resource:{SRC_DIR / 'thumb_worker.py'},ModelOutputHub.ThumbWorker",
         f"/resource:{LIB_DIR / 'Microsoft.Web.WebView2.Core.dll'},ModelOutputHub.Wv2Core",
         f"/resource:{LIB_DIR / 'Microsoft.Web.WebView2.Wpf.dll'},ModelOutputHub.Wv2Wpf",
         f"/resource:{LIB_DIR / 'WebView2Loader.dll'},ModelOutputHub.Wv2Loader",
@@ -98,7 +100,6 @@ def build_portable_package(local_lib_fallback: pathlib.Path = None) -> pathlib.P
         "/r:System.Drawing.dll",
         "/r:System.Windows.Forms.dll",
         "/r:System.Web.Extensions.dll",
-        "/r:System.Security.dll",
         "/r:System.IO.Compression.dll",
         "/r:System.IO.Compression.FileSystem.dll",
         str(SRC_DIR / "ModelOutputHubApp.cs"),
@@ -113,13 +114,21 @@ def build_portable_package(local_lib_fallback: pathlib.Path = None) -> pathlib.P
     if r_self.returncode != 0:
         raise RuntimeError(f"SelfTest failed: {r_self.stderr}")
 
-    zip_path = REPO_ROOT / "dist" / "ModelOutputHub-v1.0.0-win-x64.zip"
-    with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zf:
+    full_zip = REPO_ROOT / "dist" / "ModelOutputHub-v3.0.0-win-x64.zip"
+    with zipfile.ZipFile(full_zip, "w", zipfile.ZIP_DEFLATED) as zf:
         for fp in sorted(DIST_APP.rglob("*")):
             if fp.is_file():
                 zf.write(fp, fp.relative_to(DIST_APP))
-    print(f"[Done] Portable bundle created: {zip_path} ({zip_path.stat().st_size / 1024:.1f} KB)")
-    return zip_path
+
+    single_zip = REPO_ROOT / "dist" / "ModelOutputHub-v3.0.0-SingleFile-win-x64.zip"
+    with zipfile.ZipFile(single_zip, "w", zipfile.ZIP_DEFLATED) as zf:
+        zf.write(exe_out, "模型输出管家.exe")
+        if (REPO_ROOT / "README.md").is_file():
+            zf.write(REPO_ROOT / "README.md", "README.md")
+
+    print(f"[Done] Full bundle:       {full_zip} ({full_zip.stat().st_size / 1024:.1f} KB)")
+    print(f"[Done] SingleFile bundle: {single_zip} ({single_zip.stat().st_size / 1024:.1f} KB)")
+    return full_zip, single_zip
 
 
 if __name__ == "__main__":
