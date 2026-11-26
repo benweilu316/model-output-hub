@@ -13,3 +13,4 @@ _整理迁移台账_*.tsv
 dist/
 *.nupkg
 nuget_cache/
+pdf_dim_cache.json
