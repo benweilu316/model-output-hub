@@ -1,0 +1,2976 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>模型输出管家</title>
+<style>
+  @font-face {
+    font-family: "HubWenKaiBold";
+    src: local("LXGWWenKaiMonoBold"), local("霞鹜文楷等宽粗体"), url("https://hub.local/fonts/wenkai-bold.ttf") format("truetype");
+    font-weight: 400 700;
+    font-display: block;
+  }
+  @font-face {
+    font-family: "HubWenKaiXBold";
+    src: local("LXGWWenKaiMonoXBold"), local("霞鹜文楷等宽特粗"), url("https://hub.local/fonts/wenkai-xbold.ttf") format("truetype");
+    font-weight: 400 900;
+    font-display: block;
+  }
+  @font-face {
+    font-family: "HubWenKaiReg";
+    src: local("LXGW WenKai"), local("霞鹜文楷"), url("https://hub.local/fonts/wenkai-reg.ttf") format("truetype");
+    font-weight: 400;
+    font-display: block;
+  }
+
+  :root {
+    --font-serif: "Noto Serif SC", "Georgia", "Cambria", "SimSun", serif;
+    --font-sans: "Noto Sans SC", "Microsoft YaHei UI", "Segoe UI", sans-serif;
+    --font-wenkai: "LXGW WenKai", "Noto Serif SC", serif;
+    --font-mono: "Consolas", "Cascadia Mono", monospace;
+    --fs-body: 15px;
+    --fs-sub: 14.5px;
+    --fs-tag: 13px;
+    --fs-h3: 18px;
+    --fs-h2: 26px;
+    --fs-hero: 56px;
+
+    /* Default Paradigm: Takram Speculative Atlas (观星纸本) */
+    --bg-canvas: #F1F3EE;
+    --bg-surface: #FAFAF7;
+    --bg-elevated: #E6EAE2;
+    --bg-hover: #E0E5DB;
+    --ink-1: #18211D;
+    --ink-2: #3F4D46;
+    --ink-3: #516059;
+    --line-soft: #D2D8CD;
+    --line-strong: #9AA696;
+    --accent: #1E513F;
+    --accent-ink: #FFFFFF;
+    --accent-soft: #DCE7E1;
+    --warm: #7A5614;
+    --warm-soft: #EFE6D2;
+    --danger: #9E2E22;
+    --danger-soft: #F3DFDC;
+    --info: #234B6E;
+    --info-soft: #DCE6F0;
+    --radius-lg: 14px;
+    --radius-md: 8px;
+    --radius-sm: 5px;
+    --border-w: 1px;
+    --display-font: var(--font-serif);
+  }
+
+  /* Paradigm 2: Pentagram Swiss Editorial Grid (瑞士年鉴) */
+  body[data-paradigm="pentagram"] {
+    --bg-canvas: #FFFFFF;
+    --bg-surface: #F6F7F8;
+    --bg-elevated: #ECEEF0;
+    --bg-hover: #EFEFEF;
+    --ink-1: #0D0F12;
+    --ink-2: #363B40;
+    --ink-3: #545B62;
+    --line-soft: #D8DCE0;
+    --line-strong: #0D0F12;
+    --accent: #C92525;
+    --accent-ink: #FFFFFF;
+    --accent-soft: #FCE8E8;
+    --warm: #184999;
+    --warm-soft: #E5EEFA;
+    --danger: #B81D1D;
+    --danger-soft: #FDE8E8;
+    --info: #0D0F12;
+    --info-soft: #EAECEF;
+    --radius-lg: 0px;
+    --radius-md: 0px;
+    --radius-sm: 0px;
+    --border-w: 2px;
+    --display-font: "Georgia", "Noto Serif SC", serif;
+  }
+
+  /* Paradigm 3: Sugiura Night Observatory (夜观星象) */
+  body[data-paradigm="sugiura"] {
+    --bg-canvas: #121110;
+    --bg-surface: #1B1917;
+    --bg-elevated: #25221F;
+    --bg-hover: #2C2925;
+    --ink-1: #F0E9DC;
+    --ink-2: #C7BFA9;
+    --ink-3: #9F9784;
+    --line-soft: #2E2B26;
+    --line-strong: #5E5649;
+    --accent: #E2AE48;
+    --accent-ink: #121110;
+    --accent-soft: #2E2616;
+    --warm: #EC7258;
+    --warm-soft: #331D19;
+    --danger: #F07158;
+    --danger-soft: #361C18;
+    --info: #7CB3D9;
+    --info-soft: #192733;
+    --radius-lg: 10px;
+    --radius-md: 6px;
+    --radius-sm: 4px;
+    --border-w: 1px;
+    --display-font: var(--font-wenkai);
+  }
+
+  body[data-scale="large"] {
+    --fs-body: 16.5px;
+    --fs-sub: 15px;
+    --fs-tag: 13.5px;
+    --fs-h3: 19.5px;
+    --fs-h2: 28px;
+  }
+
+  /* User Selectable Font Families (Overrides Paradigm Default Fonts when not 'default') */
+  body[data-font="yahei"] {
+    --display-font: "Microsoft YaHei UI", "Microsoft YaHei", "微软雅黑", sans-serif;
+    --font-sans: "Microsoft YaHei UI", "Microsoft YaHei", "微软雅黑", sans-serif;
+  }
+  body[data-font="wenkai_bold"] {
+    --display-font: "HubWenKaiXBold", "HubWenKaiBold", "LXGWWenKaiMonoBold", "LXGW WenKai", serif;
+    --font-sans: "HubWenKaiBold", "LXGWWenKaiMonoBold", "霞鹜文楷等宽粗体", "LXGW WenKai", serif;
+  }
+  body[data-font="wenkai_xbold"] {
+    --display-font: "HubWenKaiXBold", "LXGWWenKaiMonoXBold", "霞鹜文楷等宽特粗", serif;
+    --font-sans: "HubWenKaiXBold", "LXGWWenKaiMonoXBold", "HubWenKaiBold", serif;
+  }
+  body[data-font="wenkai_reg"] {
+    --display-font: "HubWenKaiReg", "LXGW WenKai", "霞鹜文楷", serif;
+    --font-sans: "HubWenKaiReg", "LXGW WenKai", "霞鹜文楷", serif;
+  }
+  body[data-font="kaiti"] {
+    --display-font: "KaiTi", "楷体", "STKaiti", serif;
+    --font-sans: "KaiTi", "楷体", "STKaiti", serif;
+  }
+  body[data-font="stkaiti"] {
+    --display-font: "STKaiti", "华文楷体", "KaiTi", serif;
+    --font-sans: "STKaiti", "华文楷体", "KaiTi", serif;
+  }
+  body[data-font="notoserif"] {
+    --display-font: "Noto Serif SC", "STSong", "Georgia", serif;
+    --font-sans: "Noto Serif SC", "STSong", "SimSun", serif;
+  }
+  body[data-font="dengxian"] {
+    --display-font: "DengXian", "等线", "Noto Sans SC", sans-serif;
+    --font-sans: "DengXian", "等线", "Noto Sans SC", sans-serif;
+  }
+
+  body[data-font="wenkai_reg"] *,
+  body[data-font="kaiti"] *,
+  body[data-font="stkaiti"] * {
+    font-synthesis: weight;
+  }
+
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-synthesis: none;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: var(--bg-canvas);
+    color: var(--ink-1);
+    font-family: var(--font-sans);
+    font-size: var(--fs-body);
+    line-height: 1.55;
+    user-select: none;
+  }
+
+  .num {
+    font-variant-numeric: tabular-nums;
+  }
+
+  button, input, textarea, select {
+    font-family: inherit;
+    color: inherit;
+  }
+
+  /* Custom Scrollbar */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--line-soft); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--line-strong); }
+
+  /* App Shell */
+  .app-shell {
+    display: flex;
+    flex-direction: column;
+    width: 100vw;
+    height: 100vh;
+    border: 1px solid var(--line-soft);
+  }
+  body[data-paradigm="pentagram"] .app-shell {
+    border: 2px solid var(--ink-1);
+  }
+
+  /* Custom Native Titlebar */
+  .titlebar {
+    height: 54px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px 0 24px;
+    border-bottom: var(--border-w) solid var(--line-soft);
+    background: var(--bg-canvas);
+    position: relative;
+    z-index: 30;
+  }
+  body[data-paradigm="pentagram"] .titlebar {
+    border-bottom: 2px solid var(--ink-1);
+  }
+
+  .brand-cluster {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    pointer-events: none;
+    flex-shrink: 0;
+  }
+  .brand-mark {
+    width: 26px;
+    height: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--accent);
+    flex-shrink: 0;
+  }
+  .brand-title {
+    font-family: var(--display-font);
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--ink-1);
+    white-space: nowrap;
+  }
+  .brand-sub {
+    font-size: 12.5px;
+    color: var(--ink-3);
+    padding-left: 10px;
+    border-left: 1px solid var(--line-soft);
+    white-space: nowrap;
+  }
+  @media (max-width: 1580px) {
+    .brand-sub { display: none; }
+  }
+
+  /* Primary Navigation Tabs */
+  .nav-tabs {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    background: var(--bg-elevated);
+    padding: 4px;
+    border-radius: var(--radius-md);
+    flex-shrink: 0;
+  }
+  body[data-paradigm="pentagram"] .nav-tabs {
+    background: transparent;
+    border: 1.5px solid var(--ink-1);
+    padding: 2px;
+  }
+  .nav-tab {
+    border: none;
+    background: transparent;
+    padding: 6px 13px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--ink-2);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: background 0.16s, color 0.16s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .nav-tab:hover {
+    color: var(--ink-1);
+  }
+  .nav-tab.active {
+    background: var(--bg-surface);
+    color: var(--ink-1);
+    font-weight: 600;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  }
+  body[data-paradigm="pentagram"] .nav-tab.active {
+    background: var(--ink-1);
+    color: #FFFFFF;
+    box-shadow: none;
+  }
+  body[data-paradigm="sugiura"] .nav-tab.active {
+    background: var(--accent);
+    color: var(--accent-ink);
+  }
+
+  /* Right Controls in Titlebar */
+  .toolbar-right {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    flex-shrink: 0;
+  }
+
+  .cmd-trigger {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 34px;
+    padding: 0 11px;
+    background: var(--bg-surface);
+    border: 1px solid var(--line-soft);
+    border-radius: var(--radius-md);
+    color: var(--ink-3);
+    font-size: 13.5px;
+    cursor: pointer;
+    min-width: 172px;
+    justify-content: space-between;
+    transition: border-color 0.16s;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  body[data-paradigm="pentagram"] .cmd-trigger {
+    border: 1.5px solid var(--ink-1);
+  }
+  .cmd-trigger:hover {
+    border-color: var(--accent);
+    color: var(--ink-1);
+  }
+  .kbd-pill {
+    font-size: 12px;
+    padding: 1px 6px;
+    border-radius: 4px;
+    background: var(--bg-elevated);
+    color: var(--ink-2);
+    font-weight: 500;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .icon-btn {
+    height: 34px;
+    padding: 0 10px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--line-soft);
+    background: var(--bg-surface);
+    color: var(--ink-2);
+    font-size: 13px;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  body[data-paradigm="pentagram"] .icon-btn {
+    border: 1.5px solid var(--ink-1);
+  }
+  .icon-btn:hover {
+    border-color: var(--accent);
+    color: var(--ink-1);
+    background: var(--bg-hover);
+  }
+
+  /* Native Window Controls */
+  .win-controls {
+    display: flex;
+    align-items: center;
+    margin-left: 6px;
+    padding-left: 8px;
+    border-left: 1px solid var(--line-soft);
+  }
+  .win-btn {
+    width: 34px;
+    height: 32px;
+    border: none;
+    background: transparent;
+    color: var(--ink-2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: background 0.14s, color 0.14s;
+  }
+  .win-btn:hover {
+    background: var(--bg-elevated);
+    color: var(--ink-1);
+  }
+  .win-btn.close:hover {
+    background: #D93025;
+    color: #FFFFFF;
+  }
+
+  /* Main Stage Container */
+  .stage-wrap {
+    flex: 1;
+    min-height: 0;
+    position: relative;
+    display: flex;
+    overflow: hidden;
+  }
+
+  .view-page {
+    display: none;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+  }
+  .view-page.active {
+    display: flex;
+  }
+
+  /* =========================================================
+     VIEW 1: OVERVIEW (Distinct Skeletons per Paradigm!)
+     ========================================================= */
+  .overview-root {
+    width: 100%;
+    height: 100%;
+    display: grid;
+    grid-template-columns: 52% 48%;
+  }
+
+  /* Pentagram switches skeleton: Full-width poster masthead on top + 38%/62% Swiss asymmetric ledger below */
+  body[data-paradigm="pentagram"] .overview-root {
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Sugiura switches skeleton: 58% Dark Observatory Star Map on right + 42% Vertical Chronicle on left */
+  body[data-paradigm="sugiura"] .overview-root {
+    grid-template-columns: 44% 56%;
+  }
+  body[data-paradigm="sugiura"] .ov-visual-pane {
+    order: 2;
+    border-right: none;
+    border-left: 1px solid var(--line-soft);
+  }
+  body[data-paradigm="sugiura"] .ov-editorial-pane {
+    order: 1;
+  }
+
+  .ov-visual-pane {
+    position: relative;
+    border-right: var(--border-w) solid var(--line-soft);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: var(--bg-canvas);
+  }
+
+  .ov-editorial-pane {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 28px 34px 32px;
+    background: var(--bg-surface);
+  }
+
+  /* Pentagram Masthead Mode: Authentic Bold Ink Poster Banner */
+  .pentagram-masthead {
+    display: none;
+  }
+  body[data-paradigm="pentagram"] .pentagram-masthead {
+    display: grid;
+    grid-template-columns: 300px 1fr auto;
+    align-items: center;
+    padding: 24px 36px;
+    border-bottom: 2px solid var(--ink-1);
+    background: #0D0F12;
+    color: #FFFFFF;
+    gap: 32px;
+    flex-shrink: 0;
+  }
+  body[data-paradigm="pentagram"] .ov-split-pentagram {
+    flex: 1;
+    min-height: 0;
+    display: grid;
+    grid-template-columns: 42% 58%;
+    overflow: hidden;
+  }
+  body:not([data-paradigm="pentagram"]) .ov-split-pentagram {
+    display: contents;
+  }
+
+  .pg-giant-num {
+    font-family: var(--display-font);
+    font-size: 84px;
+    font-weight: 700;
+    line-height: 0.86;
+    letter-spacing: -0.04em;
+    color: #EF3B3B;
+  }
+  .pg-giant-caption {
+    font-size: 14px;
+    font-weight: 600;
+    color: #E2E6EA;
+    margin-top: 8px;
+  }
+  .pg-headline {
+    font-family: var(--display-font);
+    font-size: 29px;
+    font-weight: 700;
+    line-height: 1.24;
+    color: #FFFFFF;
+  }
+  .pg-subline {
+    font-size: var(--fs-body);
+    color: #C9CFD6;
+    margin-top: 6px;
+  }
+
+  /* Left Atlas Header (Takram & Sugiura) */
+  .atlas-header {
+    padding: 24px 30px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    z-index: 2;
+  }
+  body[data-paradigm="pentagram"] .atlas-header {
+    padding: 18px 28px 12px;
+    border-bottom: 1px solid var(--line-soft);
+  }
+  .atlas-kicker {
+    font-size: var(--fs-tag);
+    font-weight: 600;
+    color: var(--accent);
+    margin-bottom: 4px;
+  }
+  .atlas-title {
+    font-family: var(--display-font);
+    font-size: 28px;
+    font-weight: 600;
+    line-height: 1.24;
+    letter-spacing: -0.02em;
+    color: var(--ink-1);
+  }
+  body[data-paradigm="pentagram"] .atlas-title {
+    font-size: 20px;
+  }
+
+  .atlas-legend {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    font-size: var(--fs-tag);
+    color: var(--ink-3);
+    padding-top: 6px;
+  }
+  .legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .dot-live {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--danger);
+    box-shadow: 0 0 0 3px var(--danger-soft);
+  }
+  .dot-normal {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+
+  /* Radial Mandala Canvas (Takram & Sugiura) */
+  .mandala-stage {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    padding: 8px 16px;
+  }
+  body[data-paradigm="pentagram"] .mandala-stage {
+    display: none;
+  }
+
+  /* Pentagram Horizontal Density Bars (Replaces Circle in Swiss Grid Mode!) */
+  .swiss-bars-stage {
+    display: none;
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px 0;
+  }
+  body[data-paradigm="pentagram"] .swiss-bars-stage {
+    display: block;
+  }
+  .swiss-topic-row {
+    display: grid;
+    grid-template-columns: 1fr 120px 58px;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 28px;
+    border-bottom: 1px solid var(--line-soft);
+    cursor: pointer;
+    transition: background 0.12s;
+  }
+  .swiss-topic-row:hover {
+    background: var(--bg-surface);
+  }
+  .swiss-topic-row.selected {
+    background: var(--accent-soft);
+    border-left: 4px solid var(--accent);
+    padding-left: 24px;
+  }
+  .swiss-topic-name {
+    font-size: var(--fs-body);
+    font-weight: 600;
+    color: var(--ink-1);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .swiss-bar-track {
+    height: 8px;
+    background: var(--bg-elevated);
+    position: relative;
+    overflow: hidden;
+  }
+  .swiss-bar-fill {
+    height: 100%;
+    background: var(--ink-1);
+  }
+  .swiss-topic-row.selected .swiss-bar-fill {
+    background: var(--accent);
+  }
+  .swiss-topic-cnt {
+    text-align: right;
+    font-weight: 700;
+    font-size: var(--fs-body);
+    color: var(--ink-1);
+  }
+
+  /* Atlas Bottom Live Guard Strip */
+  .live-guard-bar {
+    padding: 12px 28px;
+    border-top: 1px solid var(--line-soft);
+    background: var(--bg-surface);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-shrink: 0;
+  }
+  body[data-paradigm="pentagram"] .live-guard-bar {
+    border-top: 2px solid var(--ink-1);
+  }
+  .guard-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: var(--fs-sub);
+    color: var(--ink-2);
+    min-width: 0;
+    flex: 1;
+    overflow: hidden;
+  }
+  #guardSummaryText {
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .guard-pill-list {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    overflow: hidden;
+    padding-bottom: 1px;
+  }
+  .agent-chip {
+    font-size: var(--fs-tag);
+    padding: 2px 9px;
+    border-radius: 99px;
+    background: var(--danger-soft);
+    color: var(--danger);
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  body[data-paradigm="pentagram"] .agent-chip {
+    border-radius: 0;
+  }
+
+  /* Editorial Right Column */
+  .ed-masthead {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    padding-bottom: 18px;
+    border-bottom: var(--border-w) solid var(--line-strong);
+    gap: 16px;
+  }
+  body[data-paradigm="pentagram"] .ed-masthead {
+    padding-bottom: 12px;
+  }
+  .ed-hero-metric {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+  }
+  .ed-big-num {
+    font-family: var(--display-font);
+    font-size: var(--fs-hero);
+    font-weight: 600;
+    line-height: 0.95;
+    letter-spacing: -0.03em;
+    color: var(--ink-1);
+  }
+  body[data-paradigm="pentagram"] .ed-big-num {
+    font-size: 40px;
+  }
+  .ed-topic-heading {
+    font-family: var(--display-font);
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--ink-1);
+    line-height: 1.25;
+  }
+  .ed-topic-desc {
+    font-size: var(--fs-sub);
+    color: var(--ink-3);
+    margin-top: 4px;
+  }
+
+  .ed-stats-strip {
+    display: flex;
+    align-items: center;
+    gap: 22px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--line-soft);
+    flex-wrap: wrap;
+  }
+  .stat-cell {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+  }
+  .stat-val {
+    font-size: 19px;
+    font-weight: 700;
+    color: var(--ink-1);
+  }
+  .stat-lbl {
+    font-size: var(--fs-tag);
+    color: var(--ink-3);
+  }
+
+  /* Featured Latest Deliverable Hero Box (Only 1 spotlight box, not a card wall!) */
+  .spotlight-box {
+    margin-top: 20px;
+    padding: 20px 22px;
+    background: var(--bg-canvas);
+    border: var(--border-w) solid var(--line-soft);
+    border-radius: var(--radius-lg);
+    position: relative;
+  }
+  body[data-paradigm="pentagram"] .spotlight-box {
+    border: 2px solid var(--ink-1);
+    background: #FFFFFF;
+  }
+  .spot-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+  .spot-badge {
+    font-size: var(--fs-tag);
+    font-weight: 600;
+    color: var(--accent);
+    background: var(--accent-soft);
+    padding: 2px 10px;
+    border-radius: var(--radius-sm);
+  }
+  .spot-time {
+    font-size: var(--fs-tag);
+    color: var(--ink-3);
+  }
+  .spot-title {
+    font-family: var(--display-font);
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--ink-1);
+    line-height: 1.35;
+    cursor: pointer;
+  }
+  .spot-title:hover {
+    color: var(--accent);
+  }
+  .spot-branch {
+    font-size: var(--fs-sub);
+    color: var(--ink-2);
+    margin-top: 4px;
+  }
+  .spot-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 14px;
+  }
+
+  /* Action Pills for Deliverables */
+  .deliv-btn {
+    height: 32px;
+    padding: 0 13px;
+    border-radius: var(--radius-sm);
+    font-size: var(--fs-tag);
+    font-weight: 600;
+    border: 1px solid transparent;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: transform 0.12s, opacity 0.12s, background 0.15s;
+  }
+  .deliv-btn:active { transform: scale(0.98); }
+  .deliv-btn.primary-html {
+    background: var(--accent);
+    color: var(--accent-ink);
+  }
+  .deliv-btn.primary-html:hover { opacity: 0.92; }
+  .deliv-btn.sec-pptx {
+    background: var(--warm-soft);
+    color: var(--warm);
+    border-color: transparent;
+  }
+  .deliv-btn.sec-pptx:hover { border-color: var(--warm); }
+  .deliv-btn.sec-pdf {
+    background: var(--info-soft);
+    color: var(--info);
+  }
+  .deliv-btn.sec-pdf:hover { border-color: var(--info); }
+  .deliv-btn.ghost {
+    background: transparent;
+    border-color: var(--line-soft);
+    color: var(--ink-2);
+  }
+  .deliv-btn.ghost:hover {
+    border-color: var(--ink-1);
+    color: var(--ink-1);
+  }
+
+  /* Hairline Editorial Stream Rows */
+  .stream-section-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 22px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--line-soft);
+  }
+  .stream-section-title {
+    font-size: var(--fs-sub);
+    font-weight: 600;
+    color: var(--ink-2);
+  }
+  .link-btn {
+    border: none;
+    background: transparent;
+    color: var(--accent);
+    font-size: var(--fs-sub);
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .link-btn:hover { text-decoration: underline; }
+
+  .hairline-list {
+    display: flex;
+    flex-direction: column;
+  }
+  .hairline-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 14px;
+    align-items: center;
+    padding: 13px 4px;
+    border-bottom: 1px solid var(--line-soft);
+    cursor: pointer;
+    transition: background 0.12s, padding-left 0.12s;
+  }
+  .hairline-row:hover {
+    background: var(--bg-hover);
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+  .hr-main {
+    min-width: 0;
+  }
+  .hr-title-line {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .hr-name {
+    font-size: var(--fs-body);
+    font-weight: 600;
+    color: var(--ink-1);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .plat-tag {
+    font-size: 12.5px;
+    font-weight: 600;
+    padding: 1px 7px;
+    border-radius: 4px;
+    background: var(--bg-elevated);
+    color: var(--ink-2);
+    flex-shrink: 0;
+  }
+  .lock-tag {
+    font-size: 12.5px;
+    font-weight: 600;
+    padding: 1px 7px;
+    border-radius: 4px;
+    background: var(--danger-soft);
+    color: var(--danger);
+    flex-shrink: 0;
+  }
+  .hr-meta {
+    font-size: var(--fs-tag);
+    color: var(--ink-3);
+    margin-top: 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .hr-pills {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+  .mini-open {
+    height: 28px;
+    padding: 0 9px;
+    border-radius: var(--radius-sm);
+    font-size: 12.5px;
+    font-weight: 600;
+    border: 1px solid var(--line-soft);
+    background: var(--bg-surface);
+    color: var(--ink-1);
+    cursor: pointer;
+  }
+  .mini-open:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .mini-open.html-accent {
+    background: var(--accent-soft);
+    color: var(--accent);
+    border-color: transparent;
+  }
+  .mini-open.html-accent:hover {
+    background: var(--accent);
+    color: var(--accent-ink);
+  }
+
+  /* =========================================================
+     VIEW 2: FOCUSED LINEAGE MIND-MAP (100% Crisp Scale!)
+     ========================================================= */
+  .lineage-layout {
+    width: 100%;
+    height: 100%;
+    display: grid;
+    grid-template-columns: 256px 1fr;
+    overflow: hidden;
+  }
+  .topic-rail {
+    border-right: var(--border-w) solid var(--line-soft);
+    background: var(--bg-surface);
+    overflow-y: auto;
+    padding: 16px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+  .rail-head {
+    font-size: var(--fs-tag);
+    font-weight: 600;
+    color: var(--ink-3);
+    padding: 4px 10px 10px;
+  }
+  .rail-item {
+    border: none;
+    background: transparent;
+    text-align: left;
+    padding: 9px 12px;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    color: var(--ink-2);
+    font-size: var(--fs-sub);
+    transition: background 0.12s, color 0.12s;
+  }
+  .rail-item:hover {
+    background: var(--bg-hover);
+    color: var(--ink-1);
+  }
+  .rail-item.active {
+    background: var(--accent-soft);
+    color: var(--accent);
+    font-weight: 600;
+  }
+  body[data-paradigm="pentagram"] .rail-item.active {
+    background: var(--ink-1);
+    color: #FFFFFF;
+  }
+  .rail-cnt {
+    font-size: 12.5px;
+    color: var(--ink-3);
+  }
+  .rail-item.active .rail-cnt {
+    color: inherit;
+  }
+
+  .mindmap-viewport {
+    position: relative;
+    overflow: auto;
+    background: var(--bg-canvas);
+    padding: 28px 36px 48px;
+  }
+  .mindmap-top-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+    position: relative;
+    z-index: 3;
+  }
+  .mm-heading {
+    font-family: var(--display-font);
+    font-size: 26px;
+    font-weight: 600;
+    color: var(--ink-1);
+  }
+  .mm-sub {
+    font-size: var(--fs-sub);
+    color: var(--ink-3);
+    margin-top: 2px;
+  }
+  .mm-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .mindmap-canvas {
+    position: relative;
+    display: grid;
+    grid-template-columns: 230px 260px minmax(380px, 1fr);
+    gap: 56px;
+    align-items: start;
+    min-width: 940px;
+  }
+  .mm-svg-wires {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+  }
+  .mm-col {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+  .mm-root-node {
+    padding: 22px 20px;
+    background: var(--accent);
+    color: var(--accent-ink);
+    border-radius: var(--radius-lg);
+    margin-top: 84px;
+    box-shadow: 0 10px 28px rgba(0,0,0,0.08);
+  }
+  .mm-root-title {
+    font-family: var(--display-font);
+    font-size: 21px;
+    font-weight: 600;
+    line-height: 1.3;
+  }
+  .mm-root-meta {
+    font-size: var(--fs-tag);
+    opacity: 0.9;
+    margin-top: 8px;
+  }
+
+  .mm-branch-group {
+    display: contents;
+  }
+  .mm-branch-card {
+    padding: 14px 16px;
+    background: var(--bg-surface);
+    border: var(--border-w) solid var(--line-strong);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: border-color 0.14s, background 0.14s;
+  }
+  .mm-branch-card.selected {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+  }
+  .mm-branch-title {
+    font-size: var(--fs-body);
+    font-weight: 600;
+    color: var(--ink-1);
+    line-height: 1.35;
+  }
+  .mm-branch-sub {
+    font-size: var(--fs-tag);
+    color: var(--ink-3);
+    margin-top: 4px;
+  }
+
+  .mm-leaf-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding-bottom: 14px;
+    border-bottom: 1px dashed var(--line-soft);
+  }
+  .mm-leaf-node {
+    padding: 13px 16px;
+    background: var(--bg-surface);
+    border: 1px solid var(--line-soft);
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    cursor: pointer;
+    transition: border-color 0.14s, transform 0.12s;
+  }
+  body[data-paradigm="pentagram"] .mm-leaf-node {
+    border: 1.5px solid var(--ink-1);
+  }
+  .mm-leaf-node:hover {
+    border-color: var(--accent);
+    transform: translateX(2px);
+  }
+  .mm-leaf-info {
+    min-width: 0;
+  }
+  .mm-leaf-name {
+    font-size: var(--fs-body);
+    font-weight: 600;
+    color: var(--ink-1);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .mm-leaf-meta {
+    font-size: var(--fs-tag);
+    color: var(--ink-3);
+    margin-top: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .mm-expand-btn {
+    align-self: flex-start;
+    padding: 6px 12px;
+    border-radius: var(--radius-sm);
+    border: 1px dashed var(--line-strong);
+    background: transparent;
+    color: var(--ink-2);
+    font-size: var(--fs-tag);
+    font-weight: 500;
+    cursor: pointer;
+  }
+  .mm-expand-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  /* =========================================================
+     VIEW 3: FULL LEDGER (Swiss Filter Table)
+     ========================================================= */
+  .ledger-page {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    background: var(--bg-surface);
+  }
+  .filter-ribbon {
+    padding: 16px 32px;
+    border-bottom: var(--border-w) solid var(--line-soft);
+    background: var(--bg-canvas);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .filter-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .filter-chip {
+    height: 31px;
+    padding: 0 12px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--line-soft);
+    background: var(--bg-surface);
+    color: var(--ink-2);
+    font-size: var(--fs-tag);
+    font-weight: 500;
+    cursor: pointer;
+  }
+  .filter-chip.active {
+    background: var(--accent);
+    color: var(--accent-ink);
+    border-color: var(--accent);
+    font-weight: 600;
+  }
+  .ledger-search {
+    height: 34px;
+    width: 280px;
+    padding: 0 12px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--line-strong);
+    background: var(--bg-surface);
+    font-size: var(--fs-sub);
+    outline: none;
+  }
+  .ledger-search:focus {
+    border-color: var(--accent);
+  }
+
+  .ledger-table-wrap {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0 32px 32px;
+  }
+  .ledger-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  .ledger-table th {
+    position: sticky;
+    top: 0;
+    background: var(--bg-surface);
+    text-align: left;
+    padding: 12px 10px;
+    font-size: var(--fs-tag);
+    font-weight: 600;
+    color: var(--ink-3);
+    border-bottom: var(--border-w) solid var(--line-strong);
+    z-index: 2;
+  }
+  .ledger-table td {
+    padding: 12px 10px;
+    border-bottom: 1px solid var(--line-soft);
+    font-size: var(--fs-sub);
+    vertical-align: middle;
+  }
+  .ledger-table tr {
+    cursor: pointer;
+    transition: background 0.1s;
+  }
+  .ledger-table tbody tr:hover {
+    background: var(--bg-hover);
+  }
+
+  /* =========================================================
+     VIEW 4: STORAGE & SAVING PROTOCOL GUIDE
+     ========================================================= */
+  .guide-page {
+    width: 100%;
+    height: 100%;
+    overflow-y: auto;
+    padding: 36px 56px 56px;
+    background: var(--bg-canvas);
+  }
+  .guide-container {
+    max-width: 1120px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1.15fr 0.85fr;
+    gap: 40px;
+  }
+  .guide-h1 {
+    font-family: var(--display-font);
+    font-size: 34px;
+    font-weight: 600;
+    color: var(--ink-1);
+    margin-bottom: 10px;
+  }
+  .guide-lead {
+    font-size: var(--fs-body);
+    color: var(--ink-2);
+    margin-bottom: 26px;
+  }
+  .rule-block {
+    padding: 20px 24px;
+    background: var(--bg-surface);
+    border: var(--border-w) solid var(--line-soft);
+    border-radius: var(--radius-md);
+    margin-bottom: 16px;
+  }
+  .rule-title {
+    font-size: var(--fs-h3);
+    font-weight: 600;
+    color: var(--ink-1);
+    margin-bottom: 8px;
+  }
+  .rule-p {
+    font-size: var(--fs-body);
+    color: var(--ink-2);
+    line-height: 1.65;
+  }
+  .code-line {
+    margin-top: 10px;
+    padding: 10px 14px;
+    background: var(--bg-elevated);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    font-size: 14.5px;
+    color: var(--ink-1);
+    user-select: text;
+    word-break: break-all;
+  }
+
+  /* =========================================================
+     SLIDE-OVER INSPECTOR DRAWER
+     ========================================================= */
+  .drawer-backdrop {
+    display: none;
+    position: fixed;
+    inset: 54px 0 0 0;
+    background: rgba(0, 0, 0, 0.24);
+    z-index: 45;
+  }
+  .drawer-backdrop.open { display: block; }
+  .inspector-drawer {
+    position: fixed;
+    top: 54px;
+    right: 0;
+    bottom: 0;
+    width: 520px;
+    max-width: 92vw;
+    background: var(--bg-surface);
+    border-left: var(--border-w) solid var(--line-strong);
+    z-index: 50;
+    transform: translateX(102%);
+    transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+    display: flex;
+    flex-direction: column;
+    box-shadow: -12px 0 36px rgba(0,0,0,0.12);
+  }
+  .inspector-drawer.open {
+    transform: translateX(0);
+  }
+  .drawer-head {
+    padding: 20px 24px 16px;
+    border-bottom: 1px solid var(--line-soft);
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .drawer-title {
+    font-family: var(--display-font);
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--ink-1);
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+  }
+  .drawer-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 18px 24px 28px;
+  }
+  .drawer-sec {
+    margin-bottom: 22px;
+  }
+  .drawer-sec-title {
+    font-size: var(--fs-sub);
+    font-weight: 600;
+    color: var(--ink-2);
+    margin-bottom: 10px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--line-soft);
+  }
+  .file-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 9px 10px;
+    border-radius: var(--radius-sm);
+    border-bottom: 1px solid var(--line-soft);
+  }
+  .file-item:hover {
+    background: var(--bg-hover);
+  }
+  .file-item-name {
+    font-size: var(--fs-sub);
+    font-weight: 500;
+    color: var(--ink-1);
+    overflow-wrap: anywhere;
+    word-break: normal;
+  }
+  .file-item-sub {
+    font-size: 13px;
+    color: var(--ink-3);
+    overflow-wrap: anywhere;
+  }
+  .note-input {
+    width: 100%;
+    min-height: 68px;
+    padding: 10px 12px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--line-strong);
+    background: var(--bg-canvas);
+    font-size: var(--fs-sub);
+    resize: vertical;
+  }
+
+  /* =========================================================
+     COMMAND PALETTE (Ctrl+K) & TWEAKS POPOVER
+     ========================================================= */
+  .cmd-modal-bg {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(12, 15, 14, 0.42);
+    z-index: 80;
+    align-items: flex-start;
+    justify-content: center;
+    padding-top: 11vh;
+  }
+  .cmd-modal-bg.open { display: flex; }
+  .cmd-dialog {
+    width: 660px;
+    max-width: 92vw;
+    background: var(--bg-surface);
+    border: var(--border-w) solid var(--line-strong);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 24px 64px rgba(0,0,0,0.26);
+    overflow: hidden;
+  }
+  .cmd-input-row {
+    display: flex;
+    align-items: center;
+    padding: 0 18px;
+    border-bottom: 1px solid var(--line-soft);
+  }
+  .cmd-input {
+    flex: 1;
+    height: 52px;
+    border: none;
+    background: transparent;
+    font-size: 16px;
+    outline: none;
+    padding: 0 12px;
+  }
+  .cmd-results {
+    max-height: 410px;
+    overflow-y: auto;
+    padding: 8px;
+  }
+  .cmd-row {
+    padding: 10px 14px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    cursor: pointer;
+  }
+  .cmd-row.selected, .cmd-row:hover {
+    background: var(--accent-soft);
+  }
+
+  /* Tweaks Floating Panel */
+  .tweaks-pop {
+    display: none;
+    position: fixed;
+    top: 60px;
+    right: 20px;
+    width: 308px;
+    background: var(--bg-surface);
+    border: var(--border-w) solid var(--line-strong);
+    border-radius: var(--radius-lg);
+    padding: 16px 18px;
+    z-index: 70;
+    box-shadow: 0 16px 42px rgba(0,0,0,0.18);
+  }
+  .tweaks-pop.open { display: block; }
+  .tweak-option {
+    width: 100%;
+    text-align: left;
+    padding: 10px 12px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--line-soft);
+    background: var(--bg-canvas);
+    margin-top: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .tweak-option.active {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+  }
+  .tweak-opt-name {
+    font-size: var(--fs-sub);
+    font-weight: 600;
+    color: var(--ink-1);
+  }
+  .tweak-opt-desc {
+    font-size: 12.5px;
+    color: var(--ink-3);
+  }
+
+  /* Font Selector Popover */
+  .font-pop {
+    display: none;
+    position: fixed;
+    top: 60px;
+    right: 118px;
+    width: 416px;
+    max-width: 94vw;
+    background: var(--bg-surface);
+    border: var(--border-w) solid var(--line-strong);
+    border-radius: var(--radius-lg);
+    padding: 16px 18px;
+    z-index: 72;
+    box-shadow: 0 16px 42px rgba(0,0,0,0.18);
+  }
+  .font-pop.open { display: block; }
+  .font-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 10px;
+  }
+  .font-card {
+    text-align: left;
+    padding: 10px 12px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--line-soft);
+    background: var(--bg-canvas);
+    cursor: pointer;
+    transition: border-color 0.14s, background 0.14s;
+  }
+  .font-card:hover {
+    border-color: var(--accent);
+  }
+  .font-card.active {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+  }
+  .font-card.span-two {
+    grid-column: span 2;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .fc-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--ink-1);
+    line-height: 1.3;
+  }
+  .fc-sample {
+    font-size: 12.5px;
+    color: var(--ink-3);
+    margin-top: 3px;
+  }
+
+  /* Toast Notification */
+  .toast {
+    position: fixed;
+    bottom: 22px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--ink-1);
+    color: var(--bg-canvas);
+    padding: 9px 18px;
+    border-radius: 99px;
+    font-size: var(--fs-sub);
+    font-weight: 500;
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.2s;
+    z-index: 100;
+  }
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+</style>
+</head>
+<body data-paradigm="takram" data-scale="normal">
+
+<div class="app-shell">
+  <!-- Custom Frameless Window Titlebar -->
+  <header class="titlebar" id="titlebarDrag">
+    <div class="brand-cluster">
+      <div class="brand-mark">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <circle cx="12" cy="12" r="9.5"/>
+          <circle cx="12" cy="12" r="3.2" fill="currentColor"/>
+          <line x1="12" y1="2.5" x2="12" y2="6"/>
+          <line x1="12" y1="18" x2="12" y2="21.5"/>
+          <line x1="2.5" y1="12" x2="6" y2="12"/>
+          <line x1="18" y1="12" x2="21.5" y2="12"/>
+        </svg>
+      </div>
+      <span class="brand-title">模型输出管家</span>
+      <span class="brand-sub meta-caption" id="brandStatSub">科研课题归整与谱系直达台</span>
+    </div>
+
+    <nav class="nav-tabs" data-no-drag="1">
+      <button class="nav-tab active" data-view="overview" onclick="switchView('overview')">课题星盘与精选</button>
+      <button class="nav-tab" data-view="lineage" onclick="switchView('lineage')">聚焦谱系脑图</button>
+      <button class="nav-tab" data-view="ledger" onclick="switchView('ledger')">全库检索台账</button>
+      <button class="nav-tab" data-view="guide" onclick="switchView('guide')">保存规范与维护</button>
+    </nav>
+
+    <div class="toolbar-right" data-no-drag="1">
+      <button class="cmd-trigger" onclick="openCmdPalette()">
+        <span style="display:flex;align-items:center;gap:6px;white-space:nowrap;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7.5"/><line x1="16.65" y1="16.65" x2="21" y2="21"/></svg>
+          <span>搜课题或报告...</span>
+        </span>
+        <span class="kbd-pill">Ctrl K</span>
+      </button>
+
+      <button class="icon-btn" onclick="triggerRefresh()" id="btnRefresh" title="重新扫描目录与活跃会话">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><polyline points="21 3 21 9 15 9"/></svg>
+        <span>刷新</span>
+      </button>
+
+      <button class="icon-btn" onclick="toggleFontPop(event)" id="btnFontPicker" title="切换界面字体（微软雅黑 / 楷体 / 霞鹜文楷加粗等）">
+        <span style="font-weight:700;font-size:13.5px;letter-spacing:-0.03em;">Aa</span>
+        <span id="currentFontLabel">原装混排</span>
+      </button>
+
+      <button class="icon-btn" onclick="toggleTweaks(event)" id="btnTweaks">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9c.26.6.85 1 1.51 1H21a2 2 0 1 1 0 4h-.09c-.66 0-1.25.4-1.51 1z"/></svg>
+        <span id="currentParadigmLabel">观星纸本</span>
+      </button>
+
+      <div class="win-controls" data-lint-skip="1">
+        <button class="win-btn" onclick="nativeCall('minWindow')" title="最小化">
+          <svg width="12" height="12" viewBox="0 0 12 12"><line x1="2" y1="6" x2="10" y2="6" stroke="currentColor" stroke-width="1.4"/></svg>
+        </button>
+        <button class="win-btn" onclick="nativeCall('maxWindow')" title="最大化 / 还原">
+          <svg width="12" height="12" viewBox="0 0 12 12"><rect x="2" y="2" width="8" height="8" fill="none" stroke="currentColor" stroke-width="1.3"/></svg>
+        </button>
+        <button class="win-btn close" onclick="nativeCall('closeWindow')" title="最小化到系统托盘（右键托盘图标可退出）">
+          <svg width="12" height="12" viewBox="0 0 12 12"><line x1="2.2" y1="2.2" x2="9.8" y2="9.8" stroke="currentColor" stroke-width="1.4"/><line x1="9.8" y1="2.2" x2="2.2" y2="9.8" stroke="currentColor" stroke-width="1.4"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Stage Area -->
+  <main class="stage-wrap">
+    <!-- VIEW 1: OVERVIEW -->
+    <section class="view-page active" id="view-overview">
+      <div class="overview-root">
+        <!-- Pentagram Exclusive Poster Masthead -->
+        <div class="pentagram-masthead">
+          <div>
+            <div class="pg-giant-num num" id="pgTotalNum">267</div>
+            <div class="pg-giant-caption">本地多平台科研课题归档总数</div>
+          </div>
+          <div>
+            <h1 class="pg-headline">全部交互报告、组图演示与拼版定稿一屏直达</h1>
+            <p class="pg-subline" id="pgSummaryLine">横跨八大 Agent 输出目录，实时识别活跃写入锁，零干扰安全巡航。</p>
+          </div>
+          <div>
+            <button class="deliv-btn primary-html" onclick="openFolderShortcut('00_按课题总览')">打开按课题总览文件夹</button>
+          </div>
+        </div>
+
+        <div class="ov-split-pentagram">
+          <!-- Visual Centerpiece Pane -->
+          <div class="ov-visual-pane">
+            <div class="atlas-header">
+              <div>
+                <div class="atlas-kicker" id="atlasKickerText">核心课题主线分布图谱</div>
+                <h1 class="atlas-title" id="atlasMainTitle">点击任一课题星轨，右侧同步展开最新定稿</h1>
+              </div>
+              <div class="atlas-legend">
+                <span class="legend-item"><span class="dot-live"></span>后台运行中</span>
+                <span class="legend-item"><span class="dot-normal"></span>已归档课题</span>
+              </div>
+            </div>
+
+            <!-- Takram & Sugiura: Interactive Radial Mandala -->
+            <div class="mandala-stage" id="mandalaContainer"></div>
+
+            <!-- Pentagram: Swiss Proportional Density Index -->
+            <div class="swiss-bars-stage" id="swissBarsContainer"></div>
+
+            <!-- Bottom Active Agent Protection Strip -->
+            <div class="live-guard-bar">
+              <div class="guard-left">
+                <span class="dot-live"></span>
+                <span id="guardSummaryText">活跃会话实时保护中</span>
+                <div class="guard-pill-list" id="guardPillList"></div>
+              </div>
+              <button class="link-btn" onclick="switchView('lineage')">进入谱系脑图</button>
+            </div>
+          </div>
+
+          <!-- Right Editorial Stream Pane -->
+          <div class="ov-editorial-pane" id="editorialPane">
+            <div class="ed-masthead">
+              <div class="ed-hero-metric">
+                <div class="ed-big-num num" id="edBigCount">267</div>
+                <div>
+                  <h2 class="ed-topic-heading" id="edTopicTitle">全部科研课题总览</h2>
+                  <p class="ed-topic-desc" id="edTopicSubtitle">按最后修改时间倒序排列，优先呈现可直接打开的定稿产物</p>
+                </div>
+              </div>
+              <button class="icon-btn" id="btnResetTopic" style="display:none;" onclick="selectTopic('ALL')">查看全部课题</button>
+            </div>
+
+            <div class="ed-stats-strip" id="edStatsStrip"></div>
+
+            <div id="spotlightContainer"></div>
+
+            <div class="stream-section-head">
+              <span class="stream-section-title" id="streamListHeading">最近活跃与定稿演进序列</span>
+              <button class="link-btn" onclick="switchView('ledger')">在全库台账中筛选全部</button>
+            </div>
+            <div class="hairline-list" id="editorialList"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 2: FOCUSED LINEAGE MIND-MAP -->
+    <section class="view-page" id="view-lineage">
+      <div class="lineage-layout">
+        <aside class="topic-rail" id="lineageRail"></aside>
+        <div class="mindmap-viewport" id="mindmapViewport">
+          <div class="mindmap-top-bar">
+            <div>
+              <h2 class="mm-heading" id="mmTopicTitle">课题演进谱系树</h2>
+              <p class="mm-sub" id="mmTopicDesc">聚焦单课题演进树：100% 原大字号呈现，点击末端胶囊直接打开报告或组图</p>
+            </div>
+            <div class="mm-controls">
+              <button class="icon-btn" onclick="openSelectedTopicFolder()">打开该课题归整目录</button>
+              <button class="icon-btn" onclick="toggleAllBranchesExpand()" id="btnExpandAllMm">展开全部历史版本</button>
+            </div>
+          </div>
+          <div class="mindmap-canvas" id="mindmapCanvas">
+            <svg class="mm-svg-wires" id="mmSvgWires"></svg>
+            <div class="mm-col" id="mmColRoot"></div>
+            <div class="mm-col" id="mmColBranches"></div>
+            <div class="mm-col" id="mmColLeaves"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 3: FULL LEDGER -->
+    <section class="view-page" id="view-ledger">
+      <div class="ledger-page">
+        <div class="filter-ribbon">
+          <div class="filter-group" id="platformFilters"></div>
+          <div class="filter-group" id="typeFilters"></div>
+          <input type="text" class="ledger-search" id="ledgerSearchInput" placeholder="输入关键词过滤课题、分支或文件名..." oninput="renderLedgerTable()">
+        </div>
+        <div class="ledger-table-wrap">
+          <table class="ledger-table">
+            <thead>
+              <tr>
+                <th style="width:34%;">课题目录名称</th>
+                <th style="width:18%;">所属领域与子分支</th>
+                <th style="width:8%;">来源</th>
+                <th style="width:13%;">最新更新时间</th>
+                <th style="width:9%;">体积</th>
+                <th style="width:18%;">一键直达核心产物</th>
+              </tr>
+            </thead>
+            <tbody id="ledgerTbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 4: GUIDE & MAINTENANCE -->
+    <section class="view-page" id="view-guide">
+      <div class="guide-page">
+        <div class="guide-container">
+          <div>
+            <h2 class="guide-h1">未来免乱保存规范与零干扰架构</h2>
+            <p class="guide-lead">所有自动化脚本与多平台 Agent 保持原路径零改动写入，管家通过非侵入索引层替你自动归类。</p>
+
+            <div class="rule-block">
+              <div class="rule-title">一、各平台 Agent 照常写入各自专属目录（零迁移风险）</div>
+              <p class="rule-p">正在工作的会话、跨会话交接单与自动质检闸均绑定原始绝对路径。日常跑任务时无需手动挪动文件夹，继续按项目建子目录保存在对应平台输出区内：</p>
+              <div class="code-line" id="guidePathRuleLine">&lt;模型输出根目录&gt;\&lt;平台名&gt;输出\&lt;课题名_日期或版本号&gt;\</div>
+            </div>
+
+            <div class="rule-block">
+              <div class="rule-title">二、推荐课题文件夹命名三段式（自动归入精确谱系）</div>
+              <p class="rule-p">新建任务时采用「研究主体_子问题_版本或日期」命名，管家会自动将其挂载到对应的主课题与版本演进链末端：</p>
+              <div class="code-line">多模态图谱分析_空间生态位重构_v4_20261126</div>
+            </div>
+
+            <div class="rule-block">
+              <div class="rule-title">三、常驻系统托盘与双入口秒找</div>
+              <p class="rule-p">点击右上角关闭按钮默认最小化到右下角系统托盘常驻守护（单击托盘图标秒唤起，右键托盘图标可彻底退出）；根目录下的「00_按课题总览」亦同步维护原生快捷方式树。</p>
+            </div>
+          </div>
+
+          <div>
+            <div class="rule-block">
+              <div class="rule-title">磁盘空间分布与无损整理控制台</div>
+              <p class="rule-p" id="storageDetailText">正在读取实时存储统计...</p>
+              <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:16px;">
+                <button class="deliv-btn primary-html" onclick="triggerSafeTidy()" id="btnRunTidy">增量更新快捷方式与归整新散件</button>
+                <button class="deliv-btn ghost" onclick="openFolderShortcut('_归档与杂项')">查看已隔离散件与重复副本</button>
+                <button class="deliv-btn ghost" onclick="openReadmeFile()">打开完整 README 文档</button>
+              </div>
+            </div>
+
+            <div class="rule-block">
+              <div class="rule-title">当前后台活跃写入保护清单</div>
+              <p class="rule-p">以下会话或最近 2 小时内有写入的目录已被自动锁定保护，增量整理绝对不会移动或触碰它们：</p>
+              <div id="guideLiveList" style="margin-top:12px;display:flex;flex-direction:column;gap:8px;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- Slide-over Project Inspector Drawer -->
+<div class="drawer-backdrop" id="drawerBackdrop" onclick="closeInspector()"></div>
+<aside class="inspector-drawer" id="inspectorDrawer">
+  <div class="drawer-head">
+    <div style="min-width:0;flex:1;">
+      <div id="drawerBadges" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px;"></div>
+      <h3 class="drawer-title" id="drawerTitle">课题详情</h3>
+    </div>
+    <button class="icon-btn" onclick="closeInspector()">关闭</button>
+  </div>
+  <div class="drawer-body" id="drawerBody"></div>
+</aside>
+
+<!-- Global Command Palette (Ctrl + K) -->
+<div class="cmd-modal-bg" id="cmdModalBg" onclick="if(event.target===this)closeCmdPalette()">
+  <div class="cmd-dialog">
+    <div class="cmd-input-row">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7.5"/><line x1="16.65" y1="16.65" x2="21" y2="21"/></svg>
+      <input type="text" class="cmd-input" id="cmdInput" placeholder="输入任意课题名、关键词、版本号（如 v4、SOP、报告）回车直开..." oninput="renderCmdResults()" onkeydown="handleCmdKey(event)">
+      <span class="kbd-pill">ESC</span>
+    </div>
+    <div class="cmd-results" id="cmdResults"></div>
+  </div>
+</div>
+
+<!-- Font Family Popover -->
+<div class="font-pop" id="fontPop">
+  <div style="display:flex;align-items:baseline;justify-content:space-between;">
+    <span style="font-size:var(--fs-sub);font-weight:600;color:var(--ink-1);">全局字体与字重切换</span>
+    <span style="font-size:12.5px;color:var(--ink-3);">实时切换并自动记忆</span>
+  </div>
+  <div class="font-grid">
+    <button class="font-card span-two active" data-f="default" onclick="setFontFamily('default')">
+      <div class="fc-title" style="font-family:'Noto Serif SC',serif;">原装杂志混排（思源宋标题 + 思源黑正文）</div>
+      <div class="fc-sample" style="margin-top:0;">默认推荐</div>
+    </button>
+
+    <button class="font-card" data-f="wenkai_bold" onclick="setFontFamily('wenkai_bold')">
+      <div class="fc-title" style="font-family:'HubWenKaiBold','LXGWWenKaiMonoBold',serif;">霞鹜文楷 · 加粗</div>
+      <div class="fc-sample" style="font-family:'HubWenKaiBold','LXGWWenKaiMonoBold',serif;">饱满温润定制粗体</div>
+    </button>
+
+    <button class="font-card" data-f="wenkai_xbold" onclick="setFontFamily('wenkai_xbold')">
+      <div class="fc-title" style="font-family:'HubWenKaiXBold','LXGWWenKaiMonoXBold',serif;">霞鹜文楷 · 特粗</div>
+      <div class="fc-sample" style="font-family:'HubWenKaiXBold','LXGWWenKaiMonoXBold',serif;">浓墨重笔大屏醒目</div>
+    </button>
+
+    <button class="font-card" data-f="yahei" onclick="setFontFamily('yahei')">
+      <div class="fc-title" style="font-family:'Microsoft YaHei UI','Microsoft YaHei',sans-serif;">微软雅黑</div>
+      <div class="fc-sample" style="font-family:'Microsoft YaHei UI','Microsoft YaHei',sans-serif;">现代清晰屏显标准</div>
+    </button>
+
+    <button class="font-card" data-f="kaiti" onclick="setFontFamily('kaiti')">
+      <div class="fc-title" style="font-family:'KaiTi','楷体',serif;font-synthesis:weight;">标准楷体</div>
+      <div class="fc-sample" style="font-family:'KaiTi','楷体',serif;">端庄正楷传统书韵</div>
+    </button>
+
+    <button class="font-card" data-f="stkaiti" onclick="setFontFamily('stkaiti')">
+      <div class="fc-title" style="font-family:'STKaiti','华文楷体',serif;font-synthesis:weight;">华文楷体</div>
+      <div class="fc-sample" style="font-family:'STKaiti','华文楷体',serif;">舒展碑帖书法笔意</div>
+    </button>
+
+    <button class="font-card" data-f="wenkai_reg" onclick="setFontFamily('wenkai_reg')">
+      <div class="fc-title" style="font-family:'HubWenKaiReg','LXGW WenKai',serif;font-synthesis:weight;">霞鹜文楷 · 常规</div>
+      <div class="fc-sample" style="font-family:'HubWenKaiReg','LXGW WenKai',serif;">清隽轻盈手写书卷</div>
+    </button>
+
+    <button class="font-card" data-f="notoserif" onclick="setFontFamily('notoserif')">
+      <div class="fc-title" style="font-family:'Noto Serif SC',serif;">思源宋体</div>
+      <div class="fc-sample" style="font-family:'Noto Serif SC',serif;">典雅学术期刊衬线</div>
+    </button>
+
+    <button class="font-card" data-f="dengxian" onclick="setFontFamily('dengxian')">
+      <div class="fc-title" style="font-family:'DengXian','等线',sans-serif;">现代等线</div>
+      <div class="fc-sample" style="font-family:'DengXian','等线',sans-serif;">修长简净几何黑体</div>
+    </button>
+  </div>
+</div>
+
+<!-- Studio Tweaks Popover -->
+<div class="tweaks-pop" id="tweaksPop">
+  <div style="font-size:var(--fs-sub);font-weight:600;color:var(--ink-1);">工作室视觉范式切换</div>
+  <div style="font-size:12.5px;color:var(--ink-3);margin-top:2px;">三套独立骨架与色谱，自动记忆你的阅读偏好</div>
+
+  <button class="tweak-option active" data-p="takram" onclick="setParadigm('takram')">
+    <div>
+      <div class="tweak-opt-name">观星纸本</div>
+      <div class="tweak-opt-desc">植物灰宣纸底与同心刻度星盘</div>
+    </div>
+    <span style="width:18px;height:18px;border-radius:50%;background:#1E513F;border:3px solid #DCE7E1;"></span>
+  </button>
+
+  <button class="tweak-option" data-p="pentagram" onclick="setParadigm('pentagram')">
+    <div>
+      <div class="tweak-opt-name">瑞士年鉴</div>
+      <div class="tweak-opt-desc">纯白美术馆刊头与建筑黑线网格</div>
+    </div>
+    <span style="width:18px;height:18px;background:#C92525;border:2px solid #0D0F12;"></span>
+  </button>
+
+  <button class="tweak-option" data-p="sugiura" onclick="setParadigm('sugiura')">
+    <div>
+      <div class="tweak-opt-name">夜观星象</div>
+      <div class="tweak-opt-desc">黑曜墨底与鎏金朱砂天文星轨</div>
+    </div>
+    <span style="width:18px;height:18px;border-radius:50%;background:#E2AE48;border:3px solid #2E2616;"></span>
+  </button>
+
+  <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--line-soft);display:flex;align-items:center;justify-content:space-between;">
+    <span style="font-size:var(--fs-sub);font-weight:600;">字号舒适度</span>
+    <div style="display:flex;gap:6px;">
+      <button class="filter-chip active" id="scaleNormalBtn" onclick="setFontScale('normal')">标准 15px</button>
+      <button class="filter-chip" id="scaleLargeBtn" onclick="setFontScale('large')">舒朗 16.5px</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toastMsg">已执行</div>
+
+<script>
+  let HUB = null;
+  let USER_META = { starred: [], notes: {}, topic_overrides: {}, ui_paradigm: 'takram', ui_scale: 'normal', ui_font: 'default' };
+  let STATE = {
+    view: 'overview',
+    selectedTopicId: 'ALL',
+    lineageTopicId: '01_brca_bacteria',
+    expandedBranches: {},
+    expandAllMm: false,
+    ledgerPlatform: 'ALL',
+    ledgerType: 'ALL',
+    inspectorKey: null,
+    cmdIndex: 0,
+    cmdList: []
+  };
+
+  const PARADIGM_NAMES = {
+    takram: '观星纸本',
+    pentagram: '瑞士年鉴',
+    sugiura: '夜观星象'
+  };
+
+  const FONT_NAMES = {
+    default: '原装混排',
+    wenkai_bold: '文楷加粗',
+    wenkai_xbold: '文楷特粗',
+    wenkai_reg: '文楷常规',
+    yahei: '微软雅黑',
+    kaiti: '标准楷体',
+    stkaiti: '华文楷体',
+    notoserif: '思源宋体',
+    dengxian: '现代等线'
+  };
+
+  function cleanLabel(s) {
+    return String(s || '').replace(/\s*·\s*/g, ' / ');
+  }
+
+  function esc(s) {
+    const d = document.createElement('div');
+    d.textContent = s == null ? '' : String(s);
+    return d.innerHTML;
+  }
+
+  function showToast(msg) {
+    const el = document.getElementById('toastMsg');
+    el.textContent = msg;
+    el.classList.add('show');
+    clearTimeout(window.__toastTimer);
+    window.__toastTimer = setTimeout(() => el.classList.remove('show'), 2200);
+  }
+
+  function nativeCall(action, payload = {}) {
+    const msg = Object.assign({ action }, payload);
+    if (window.chrome && window.chrome.webview) {
+      window.chrome.webview.postMessage(JSON.stringify(msg));
+    } else {
+      console.log('NativeCall:', msg);
+    }
+  }
+
+  // Titlebar native dragging
+  document.getElementById('titlebarDrag').addEventListener('mousedown', (e) => {
+    if (e.button !== 0) return;
+    if (e.target.closest('[data-no-drag], button, input')) return;
+    if (e.detail === 2) {
+      nativeCall('maxWindow');
+    } else {
+      nativeCall('dragWindow');
+    }
+  });
+
+  // Global keyboard shortcuts
+  document.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+      e.preventDefault();
+      openCmdPalette();
+    } else if (e.key === 'Escape') {
+      closeCmdPalette();
+      closeInspector();
+      document.getElementById('tweaksPop').classList.remove('open');
+      document.getElementById('fontPop').classList.remove('open');
+    }
+  });
+
+  document.addEventListener('click', (e) => {
+    const pop = document.getElementById('tweaksPop');
+    const btn = document.getElementById('btnTweaks');
+    if (pop.classList.contains('open') && !pop.contains(e.target) && !btn.contains(e.target)) {
+      pop.classList.remove('open');
+    }
+    const fpop = document.getElementById('fontPop');
+    const fbtn = document.getElementById('btnFontPicker');
+    if (fpop.classList.contains('open') && !fpop.contains(e.target) && !fbtn.contains(e.target)) {
+      fpop.classList.remove('open');
+    }
+  });
+
+  function toggleTweaks(e) {
+    e.stopPropagation();
+    document.getElementById('fontPop').classList.remove('open');
+    document.getElementById('tweaksPop').classList.toggle('open');
+  }
+
+  function toggleFontPop(e) {
+    e.stopPropagation();
+    document.getElementById('tweaksPop').classList.remove('open');
+    document.getElementById('fontPop').classList.toggle('open');
+  }
+
+  function persistUiPrefs() {
+    nativeCall('savePrefs', {
+      ui_paradigm: USER_META.ui_paradigm || 'takram',
+      ui_scale: USER_META.ui_scale || 'normal',
+      ui_font: USER_META.ui_font || 'default'
+    });
+  }
+
+  function setFontFamily(f, skipSave) {
+    if (!FONT_NAMES[f]) f = 'default';
+    document.body.setAttribute('data-font', f);
+    document.getElementById('currentFontLabel').textContent = FONT_NAMES[f];
+    document.querySelectorAll('.font-card').forEach(b => {
+      b.classList.toggle('active', b.getAttribute('data-f') === f);
+    });
+    USER_META.ui_font = f;
+    if (!skipSave) {
+      persistUiPrefs();
+      showToast('已切换字体：' + FONT_NAMES[f]);
+    }
+    if (HUB) {
+      if (STATE.view === 'overview') renderMandala();
+      if (STATE.view === 'lineage') setTimeout(drawMindmapWires, 30);
+    }
+  }
+
+  function setParadigm(p, skipSave) {
+    if (!PARADIGM_NAMES[p]) p = 'takram';
+    document.body.setAttribute('data-paradigm', p);
+    document.getElementById('currentParadigmLabel').textContent = PARADIGM_NAMES[p];
+    document.querySelectorAll('.tweak-option').forEach(b => {
+      b.classList.toggle('active', b.getAttribute('data-p') === p);
+    });
+    USER_META.ui_paradigm = p;
+    if (!skipSave) {
+      persistUiPrefs();
+    }
+    if (HUB) {
+      renderOverview();
+      if (STATE.view === 'lineage') setTimeout(drawMindmapWires, 30);
+    }
+  }
+
+  function setFontScale(sc, skipSave) {
+    sc = sc === 'large' ? 'large' : 'normal';
+    document.body.setAttribute('data-scale', sc);
+    document.getElementById('scaleNormalBtn').classList.toggle('active', sc === 'normal');
+    document.getElementById('scaleLargeBtn').classList.toggle('active', sc === 'large');
+    USER_META.ui_scale = sc;
+    if (!skipSave) {
+      persistUiPrefs();
+    }
+    if (HUB && STATE.view === 'lineage') setTimeout(drawMindmapWires, 30);
+  }
+
+  function switchView(v) {
+    STATE.view = v;
+    document.querySelectorAll('.nav-tab').forEach(t => t.classList.toggle('active', t.getAttribute('data-view') === v));
+    document.querySelectorAll('.view-page').forEach(p => p.classList.toggle('active', p.id === 'view-' + v));
+    if (v === 'lineage') {
+      renderLineage();
+      setTimeout(drawMindmapWires, 40);
+    } else if (v === 'ledger') {
+      renderLedgerFilters();
+      renderLedgerTable();
+    } else if (v === 'guide') {
+      renderGuide();
+    } else {
+      renderOverview();
+    }
+  }
+
+  function applyUserMetaToProjects() {
+    if (!HUB) return;
+    const starSet = new Set(USER_META.starred || []);
+    const notes = USER_META.notes || {};
+    HUB.projects.forEach(p => {
+      p.starred = starSet.has(p.key);
+      p.note = notes[p.key] || p.note || '';
+    });
+  }
+
+  function getTopicMap() {
+    const m = {};
+    (HUB.topics || []).forEach(t => { m[t.id] = t; });
+    return m;
+  }
+
+  function selectTopic(topicId) {
+    STATE.selectedTopicId = topicId;
+    if (topicId !== 'ALL') {
+      STATE.lineageTopicId = topicId;
+    }
+    renderOverview();
+  }
+
+  // =========================================================
+  // RENDER VIEW 1: OVERVIEW (Mandala + Swiss Index + Editorial)
+  // =========================================================
+  function renderOverview() {
+    if (!HUB) return;
+    const s = HUB.summary;
+    const paradigm = document.body.getAttribute('data-paradigm') || 'takram';
+    const workingAgents = (HUB.herdr_agents || []).filter(a => a.status === 'working' || a.status === 'blocked');
+
+    document.getElementById('brandStatSub').textContent =
+      `${s.total_projects} 个课题 / ${s.total_html} 份报告 / ${s.total_pdf} 张组图`;
+    document.getElementById('pgTotalNum').textContent = s.total_projects;
+    document.getElementById('pgSummaryLine').textContent =
+      `已索引 ${s.total_html} 份交互报告、${s.total_pptx} 套 PPTX 演示与 ${s.total_pdf} 份矢量 PDF，当前 ${workingAgents.length} 个后台会话受实时写保护。`;
+
+    document.getElementById('atlasKickerText').textContent =
+      `${(HUB.topics || []).length} 大课题主线分布图谱`;
+    document.getElementById('atlasMainTitle').textContent =
+      paradigm === 'pentagram' ? '点击任一主线密度条，右侧同步筛选定稿动态' : '点击任一课题星轨，右侧同步展开最新定稿';
+
+    // Guard Bar
+    const maxChips = paradigm === 'pentagram' ? 3 : 5;
+    document.getElementById('guardSummaryText').textContent =
+      workingAgents.length > 0 ? `${workingAgents.length} 个活跃窗口保护中` : `${s.locked_projects} 个近期活跃目录受保护`;
+    const pillHtml = workingAgents.slice(0, maxChips).map(a =>
+      `<span class="agent-chip">${esc(a.name || a.pane)}</span>`
+    ).join('');
+    document.getElementById('guardPillList').innerHTML = pillHtml;
+
+    renderMandala();
+    renderSwissBars();
+    renderEditorialStream();
+  }
+
+  function renderMandala() {
+    const box = document.getElementById('mandalaContainer');
+    if (!box || !HUB) return;
+    const topics = HUB.topics || [];
+    const W = 760, H = 540;
+    const cx = W / 2, cy = H / 2;
+    const rInner = 64, rArc = 102, rNode = 140, rLabel = 168;
+    const totalProj = Math.max(1, HUB.summary.total_projects);
+    const paradigm = document.body.getAttribute('data-paradigm') || 'takram';
+
+    const ringStroke = paradigm === 'sugiura' ? '#3B362E' : '#CFD6CA';
+    const spokeStroke = paradigm === 'sugiura' ? '#2D2923' : '#DCE2D7';
+    const activeStroke = paradigm === 'sugiura' ? '#E2AE48' : '#1E513F';
+    const liveColor = paradigm === 'sugiura' ? '#F07158' : '#9E2E22';
+    const centerFill = paradigm === 'sugiura' ? '#1B1917' : '#FAFAF7';
+    const inkMain = paradigm === 'sugiura' ? '#F0E9DC' : '#18211D';
+    const inkSub = paradigm === 'sugiura' ? '#C7BFA9' : '#4A5851';
+
+    // Degree ticks like astronomical observatory dial
+    let ticks = '';
+    for (let i = 0; i < 72; i++) {
+      const a = (i * 5) * Math.PI / 180;
+      const r1 = i % 6 === 0 ? rArc - 14 : rArc - 9;
+      const r2 = rArc - 4;
+      const x1 = (cx + r1 * Math.cos(a)).toFixed(1);
+      const y1 = (cy + r1 * Math.sin(a)).toFixed(1);
+      const x2 = (cx + r2 * Math.cos(a)).toFixed(1);
+      const y2 = (cy + r2 * Math.sin(a)).toFixed(1);
+      ticks += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${ringStroke}" stroke-width="${i % 6 === 0 ? 1.3 : 0.8}"/>`;
+    }
+
+    // Proportional arcs + 12 radial nodes
+    let curAng = -Math.PI / 2;
+    let arcs = '';
+    let nodes = '';
+
+    topics.forEach((t, idx) => {
+      const share = Math.max(0.035, t.project_count / totalProj);
+      const span = share * Math.PI * 1.72;
+      const a1 = curAng + 0.02;
+      const a2 = curAng + span - 0.02;
+      curAng += (Math.PI * 2) / Math.max(1, topics.length);
+
+      // Evenly spaced angle for clear label layout without any collision!
+      const nodeAng = -Math.PI / 2 + (idx * 2 * Math.PI / topics.length);
+      const nx = cx + rNode * Math.cos(nodeAng);
+      const ny = cy + rNode * Math.sin(nodeAng);
+      const lx = cx + rLabel * Math.cos(nodeAng);
+      const ly = cy + rLabel * Math.sin(nodeAng);
+
+      // Arc segment on rArc around nodeAng proportional to project_count
+      const halfSpan = Math.min(0.24, Math.max(0.06, (t.project_count / 85) * 0.24));
+      const sa1 = nodeAng - halfSpan;
+      const sa2 = nodeAng + halfSpan;
+      const ax1 = (cx + rArc * Math.cos(sa1)).toFixed(1);
+      const ay1 = (cy + rArc * Math.sin(sa1)).toFixed(1);
+      const ax2 = (cx + rArc * Math.cos(sa2)).toFixed(1);
+      const ay2 = (cy + rArc * Math.sin(sa2)).toFixed(1);
+
+      const isSel = STATE.selectedTopicId === t.id;
+      const isLive = t.locked_count > 0;
+      const arcCol = isSel ? activeStroke : (isLive ? liveColor : activeStroke);
+      const arcOp = isSel ? '1' : (STATE.selectedTopicId === 'ALL' ? '0.78' : '0.32');
+
+      arcs += `<path d="M ${ax1} ${ay1} A ${rArc} ${rArc} 0 0 1 ${ax2} ${ay2}" fill="none" stroke="${arcCol}" stroke-width="${isSel ? 7 : 4.5}" stroke-linecap="round" opacity="${arcOp}"/>`;
+
+      const ix = (cx + rInner * Math.cos(nodeAng)).toFixed(1);
+      const iy = (cy + rInner * Math.sin(nodeAng)).toFixed(1);
+      arcs += `<line x1="${ix}" y1="${iy}" x2="${nx.toFixed(1)}" y2="${ny.toFixed(1)}" stroke="${isSel ? activeStroke : spokeStroke}" stroke-width="${isSel ? 1.8 : 1}"/>`;
+
+      const cosV = Math.cos(nodeAng);
+      const sinV = Math.sin(nodeAng);
+      const anchor = Math.abs(cosV) < 0.22 ? 'middle' : (cosV > 0 ? 'start' : 'end');
+      const dx = anchor === 'start' ? 8 : (anchor === 'end' ? -8 : 0);
+      const dy = sinV < -0.75 ? -12 : (sinV > 0.75 ? 10 : 0);
+      const labelText = cleanLabel(t.short);
+      const rDot = Math.min(13, Math.max(6.5, 5.5 + Math.sqrt(t.project_count) * 0.9));
+
+      nodes += `
+        <g style="cursor:pointer;" onclick="selectTopic('${t.id}')" ondblclick="STATE.lineageTopicId='${t.id}';switchView('lineage')">
+          ${isLive ? `<circle cx="${nx.toFixed(1)}" cy="${ny.toFixed(1)}" r="${(rDot + 5).toFixed(1)}" fill="none" stroke="${liveColor}" stroke-width="1.3" opacity="0.65"/>` : ''}
+          <circle cx="${nx.toFixed(1)}" cy="${ny.toFixed(1)}" r="${rDot.toFixed(1)}" fill="${isSel ? activeStroke : (isLive ? liveColor : centerFill)}" stroke="${isLive ? liveColor : activeStroke}" stroke-width="2"/>
+          <text x="${(lx + dx).toFixed(1)}" y="${(ly + dy - 2).toFixed(1)}" text-anchor="${anchor}" fill="${inkMain}" font-size="14" font-weight="${isSel ? '700' : '600'}">${esc(labelText)}</text>
+          <text x="${(lx + dx).toFixed(1)}" y="${(ly + dy + 15).toFixed(1)}" text-anchor="${anchor}" fill="${inkSub}" font-size="12.5">${t.project_count} 课题 / ${t.html_count + t.pdf_count} 产物</text>
+        </g>
+      `;
+    });
+
+    const centerSelected = STATE.selectedTopicId === 'ALL';
+    const selTopic = topics.find(x => x.id === STATE.selectedTopicId);
+    const centerNum = selTopic ? selTopic.project_count : HUB.summary.total_projects;
+    const centerCaption = selTopic ? cleanLabel(selTopic.short).slice(0, 8) : '全部课题总库';
+
+    box.innerHTML = `
+      <svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" style="max-width:100%;max-height:100%;">
+        <circle cx="${cx}" cy="${cy}" r="${rNode}" fill="none" stroke="${ringStroke}" stroke-width="1" stroke-dasharray="3 4"/>
+        <circle cx="${cx}" cy="${cy}" r="${rArc}" fill="none" stroke="${ringStroke}" stroke-width="1"/>
+        ${ticks}
+        ${arcs}
+        ${nodes}
+        <g style="cursor:pointer;" onclick="selectTopic('ALL')">
+          <circle cx="${cx}" cy="${cy}" r="${rInner}" fill="${centerFill}" stroke="${centerSelected ? activeStroke : ringStroke}" stroke-width="2"/>
+          <text x="${cx}" y="${cy - 4}" text-anchor="middle" fill="${inkMain}" style="font-family:var(--display-font);" font-size="30" font-weight="700">${centerNum}</text>
+          <text x="${cx}" y="${cy + 19}" text-anchor="middle" fill="${inkSub}" style="font-family:var(--font-sans);" font-size="12.5" font-weight="500">${esc(centerCaption)}</text>
+        </g>
+      </svg>
+    `;
+  }
+
+  function renderSwissBars() {
+    const box = document.getElementById('swissBarsContainer');
+    if (!box || !HUB) return;
+    const maxCnt = Math.max(1, ...HUB.topics.map(t => t.project_count));
+    box.innerHTML = HUB.topics.map(t => {
+      const pct = Math.max(6, Math.round((t.project_count / maxCnt) * 100));
+      const isSel = STATE.selectedTopicId === t.id;
+      return `
+        <div class="swiss-topic-row ${isSel ? 'selected' : ''}" onclick="selectTopic('${t.id}')">
+          <div class="swiss-topic-name">
+            <span>${esc(cleanLabel(t.short))}</span>
+            ${t.locked_count > 0 ? `<span class="lock-tag">运行中 ${t.locked_count}</span>` : ''}
+          </div>
+          <div class="swiss-bar-track">
+            <div class="swiss-bar-fill" style="width:${pct}%;"></div>
+          </div>
+          <div class="swiss-topic-cnt num">${t.project_count}</div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function renderEditorialStream() {
+    const topicsMap = getTopicMap();
+    const selTopic = STATE.selectedTopicId === 'ALL' ? null : topicsMap[STATE.selectedTopicId];
+    const resetBtn = document.getElementById('btnResetTopic');
+    resetBtn.style.display = selTopic ? 'inline-flex' : 'none';
+
+    let list = HUB.projects.slice();
+    if (selTopic) {
+      list = list.filter(p => p.topic_id === selTopic.id);
+      document.getElementById('edBigCount').textContent = selTopic.project_count;
+      document.getElementById('edTopicTitle').textContent = cleanLabel(selTopic.short);
+      document.getElementById('edTopicSubtitle').textContent = selTopic.title;
+      document.getElementById('edStatsStrip').innerHTML = `
+        <div class="stat-cell"><span class="stat-val num">${selTopic.html_count}</span><span class="stat-lbl">份交互报告</span></div>
+        <div class="stat-cell"><span class="stat-val num">${selTopic.pptx_count}</span><span class="stat-lbl">套演示文稿</span></div>
+        <div class="stat-cell"><span class="stat-val num">${selTopic.pdf_count}</span><span class="stat-lbl">张矢量组图</span></div>
+        <div class="stat-cell"><span class="stat-val num">${(selTopic.size_mb / 1024).toFixed(2)} GB</span><span class="stat-lbl">占用体积</span></div>
+        <button class="deliv-btn ghost" style="margin-left:auto;" onclick="STATE.lineageTopicId='${selTopic.id}';switchView('lineage')">查看该课题脑图谱系</button>
+      `;
+    } else {
+      const s = HUB.summary;
+      document.getElementById('edBigCount').textContent = s.total_projects;
+      document.getElementById('edTopicTitle').textContent = '全部科研课题精选动态';
+      document.getElementById('edTopicSubtitle').textContent = '点击左侧星盘任一主线可按学科聚焦，下方优先展示具备完整报告的最新定稿';
+      document.getElementById('edStatsStrip').innerHTML = `
+        <div class="stat-cell"><span class="stat-val num">${s.total_html}</span><span class="stat-lbl">份交互报告</span></div>
+        <div class="stat-cell"><span class="stat-val num">${s.total_pptx}</span><span class="stat-lbl">套演示文稿</span></div>
+        <div class="stat-cell"><span class="stat-val num">${s.total_pdf}</span><span class="stat-lbl">张矢量组图</span></div>
+        <div class="stat-cell"><span class="stat-val num">${s.total_size_gb.toFixed(1)} GB</span><span class="stat-lbl">总库体积</span></div>
+      `;
+    }
+
+    // Sort: starred first, then recent mtime
+    list.sort((a, b) => (Number(b.starred) - Number(a.starred)) || (b.mtime - a.mtime));
+
+    // Pick #1 Spotlight deliverable project (prefer one that has at least 1 HTML/PPTX/PDF)
+    const spotProj = list.find(p => (p.htmls && p.htmls.length) || (p.pptxs && p.pptxs.length) || (p.pdfs && p.pdfs.length)) || list[0];
+    const spotBox = document.getElementById('spotlightContainer');
+
+    if (spotProj) {
+      const topHtml = spotProj.htmls && spotProj.htmls[0];
+      const topPptx = spotProj.pptxs && spotProj.pptxs[0];
+      const topPdf = spotProj.pdfs && spotProj.pdfs[0];
+      const displayHeadline = (topHtml && topHtml.title) ? topHtml.title : spotProj.name;
+
+      spotBox.innerHTML = `
+        <div class="spotlight-box">
+          <div class="spot-top">
+            <span class="spot-badge">${spotProj.locked ? '最新活跃焦点' : '最新定稿焦点'} / ${esc(spotProj.platform)}</span>
+            <span class="spot-time num">${esc(spotProj.datetime)}</span>
+          </div>
+          <div class="spot-title" onclick="openInspector('${escAttr(spotProj.key)}')">${esc(displayHeadline)}</div>
+          <div class="spot-branch">归属目录：${esc(spotProj.name)}（${esc(spotProj.sub_branch)}）</div>
+          <div class="spot-actions">
+            ${topHtml ? `<button class="deliv-btn primary-html" onclick="openDeliverable('${escAttr(topHtml.path)}')">打开最新 HTML 报告</button>` : ''}
+            ${topPptx ? `<button class="deliv-btn sec-pptx" onclick="openDeliverable('${escAttr(topPptx.path)}')">打开最新 PPTX (${spotProj.pptxs.length})</button>` : ''}
+            ${topPdf ? `<button class="deliv-btn sec-pdf" onclick="openDeliverable('${escAttr(topPdf.path)}')">打开最新 PDF 拼图 (${spotProj.pdfs.length})</button>` : ''}
+            <button class="deliv-btn ghost" onclick="openInspector('${escAttr(spotProj.key)}')">查看全部文件明细</button>
+          </div>
+        </div>
+      `;
+    } else {
+      spotBox.innerHTML = '';
+    }
+
+    const rest = list.filter(p => !spotProj || p.key !== spotProj.key).slice(0, 18);
+    document.getElementById('editorialList').innerHTML = rest.map(p => renderHairlineRow(p, topicsMap)).join('');
+  }
+
+  function escAttr(s) {
+    return String(s || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+  }
+
+  function renderHairlineRow(p, topicsMap) {
+    const topHtml = p.htmls && p.htmls[0];
+    const topPptx = p.pptxs && p.pptxs[0];
+    const topPdf = p.pdfs && p.pdfs[0];
+    const tShort = topicsMap[p.topic_id] ? cleanLabel(topicsMap[p.topic_id].short) : '';
+
+    return `
+      <div class="hairline-row" onclick="openInspector('${escAttr(p.key)}')">
+        <div class="hr-main">
+          <div class="hr-title-line">
+            ${p.starred ? `<span class="spot-badge" style="padding:1px 6px;">已置顶</span>` : ''}
+            <span class="hr-name">${esc(p.name)}</span>
+            <span class="plat-tag">${esc(p.platform)}</span>
+            ${p.locked ? `<span class="lock-tag">保护锁</span>` : ''}
+          </div>
+          <div class="hr-meta meta-caption num">${esc(tShort)} / ${esc(p.sub_branch)} / 更新于 ${esc(p.datetime)} / ${p.size_mb.toFixed(1)} MB</div>
+        </div>
+        <div class="hr-pills" onclick="event.stopPropagation()">
+          ${topHtml ? `<button class="mini-open html-accent" onclick="openDeliverable('${escAttr(topHtml.path)}')">HTML (${p.htmls.length})</button>` : ''}
+          ${topPptx ? `<button class="mini-open" onclick="openDeliverable('${escAttr(topPptx.path)}')">PPTX (${p.pptxs.length})</button>` : ''}
+          ${topPdf ? `<button class="mini-open" onclick="openDeliverable('${escAttr(topPdf.path)}')">PDF (${p.pdfs.length})</button>` : ''}
+          ${(!topHtml && !topPptx && !topPdf) ? `<button class="mini-open" onclick="revealInExplorer('${escAttr(p.path)}')">文件夹</button>` : ''}
+        </div>
+      </div>
+    `;
+  }
+
+  // =========================================================
+  // RENDER VIEW 2: FOCUSED LINEAGE MIND-MAP (100% Readable!)
+  // =========================================================
+  function renderLineage() {
+    if (!HUB) return;
+    const rail = document.getElementById('lineageRail');
+    const curTopic = HUB.topics.find(t => t.id === STATE.lineageTopicId) || HUB.topics[0];
+    STATE.lineageTopicId = curTopic.id;
+
+    rail.innerHTML = `<div class="rail-head">选择要展开谱系的课题主线</div>` + HUB.topics.map(t => `
+      <button class="rail-item ${t.id === curTopic.id ? 'active' : ''}" onclick="STATE.lineageTopicId='${t.id}';renderLineage();setTimeout(drawMindmapWires,30);">
+        <span>${esc(cleanLabel(t.short))}</span>
+        <span class="rail-cnt num">${t.project_count}</span>
+      </button>
+    `).join('');
+
+    document.getElementById('mmTopicTitle').textContent = `${cleanLabel(curTopic.short)}（共 ${curTopic.project_count} 个项目）`;
+    document.getElementById('mmTopicDesc').textContent = curTopic.title;
+    document.getElementById('btnExpandAllMm').textContent = STATE.expandAllMm ? '收起早期历史版本' : '展开全部历史版本';
+
+    // Root Column
+    document.getElementById('mmColRoot').innerHTML = `
+      <div class="mm-root-node" id="mmRootCard">
+        <div class="mm-root-title">${esc(cleanLabel(curTopic.short))}</div>
+        <div class="mm-root-meta num">${curTopic.branches.length} 条子研究脉络 / ${curTopic.html_count} 报告 / ${curTopic.pdf_count} 组图</div>
+      </div>
+    `;
+
+    // Branches & Leaves Columns
+    const bHtml = [];
+    const lHtml = [];
+
+    curTopic.branches.forEach((b, bIdx) => {
+      const bId = `mm_branch_${bIdx}`;
+      const gId = `mm_group_${bIdx}`;
+      const isExp = STATE.expandAllMm || STATE.expandedBranches[curTopic.id + ':' + b.name];
+      const sortedProjs = (b.projects || []).slice().sort((x, y) => y.mtime - x.mtime);
+      const limit = isExp ? sortedProjs.length : Math.min(3, sortedProjs.length);
+      const shown = sortedProjs.slice(0, limit);
+      const hiddenCnt = sortedProjs.length - limit;
+
+      bHtml.push(`
+        <div class="mm-branch-card" id="${bId}">
+          <div class="mm-branch-title">${esc(b.name)}</div>
+          <div class="mm-branch-sub num">${b.count} 个迭代目录 ${b.locked_count ? ` / ${b.locked_count} 运行中` : ''}</div>
+        </div>
+      `);
+
+      const leavesInner = shown.map((p, pIdx) => {
+        const topHtml = p.htmls && p.htmls[0];
+        const topPptx = p.pptxs && p.pptxs[0];
+        const topPdf = p.pdfs && p.pdfs[0];
+        const subHint = p.parent_group ? `${p.platform} (${p.parent_group})` : p.platform;
+        const rawTitle = (topHtml && topHtml.title && topHtml.title !== p.name) ? cleanLabel(topHtml.title) : '';
+        const extraTitle = rawTitle ? ` / ${rawTitle}` : '';
+        return `
+          <div class="mm-leaf-node" id="${bId}_leaf_${pIdx}" onclick="openInspector('${escAttr(p.key)}')">
+            <div class="mm-leaf-info">
+              <div class="mm-leaf-name">${esc(p.name)}</div>
+              <div class="mm-leaf-meta meta-caption num">${esc(subHint)} / ${esc(p.date)}${p.locked ? ' / 后台保护中' : ''}${esc(extraTitle)}</div>
+            </div>
+            <div class="hr-pills" onclick="event.stopPropagation()">
+              ${topHtml ? `<button class="mini-open html-accent" onclick="openDeliverable('${escAttr(topHtml.path)}')">HTML</button>` : ''}
+              ${topPptx ? `<button class="mini-open" onclick="openDeliverable('${escAttr(topPptx.path)}')">PPTX</button>` : ''}
+              ${topPdf ? `<button class="mini-open" onclick="openDeliverable('${escAttr(topPdf.path)}')">PDF</button>` : ''}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      const moreBtn = hiddenCnt > 0
+        ? `<button class="mm-expand-btn" onclick="toggleBranchExpand('${escAttr(curTopic.id + ':' + b.name)}')">展开其余 ${hiddenCnt} 个早期版本</button>`
+        : (sortedProjs.length > 3 && !STATE.expandAllMm
+          ? `<button class="mm-expand-btn" onclick="toggleBranchExpand('${escAttr(curTopic.id + ':' + b.name)}')">收起早期版本</button>` : '');
+
+      lHtml.push(`<div class="mm-leaf-stack" id="${gId}" data-branch="${bId}">${leavesInner}${moreBtn}</div>`);
+    });
+
+    document.getElementById('mmColBranches').innerHTML = bHtml.join('');
+    document.getElementById('mmColLeaves').innerHTML = lHtml.join('');
+  }
+
+  function toggleBranchExpand(key) {
+    STATE.expandedBranches[key] = !STATE.expandedBranches[key];
+    renderLineage();
+    setTimeout(drawMindmapWires, 30);
+  }
+
+  function toggleAllBranchesExpand() {
+    STATE.expandAllMm = !STATE.expandAllMm;
+    renderLineage();
+    setTimeout(drawMindmapWires, 30);
+  }
+
+  function drawMindmapWires() {
+    const canvas = document.getElementById('mindmapCanvas');
+    const svg = document.getElementById('mmSvgWires');
+    const rootEl = document.getElementById('mmRootCard');
+    if (!canvas || !svg || !rootEl || STATE.view !== 'lineage') return;
+
+    // Align each branch card vertically to the top of its corresponding leaf stack
+    const branchCards = canvas.querySelectorAll('.mm-branch-card');
+    const leafStacks = canvas.querySelectorAll('.mm-leaf-stack');
+    branchCards.forEach(c => { c.style.marginTop = '0px'; });
+
+    const cRect = canvas.getBoundingClientRect();
+    leafStacks.forEach((st, i) => {
+      const bc = branchCards[i];
+      if (!bc) return;
+      const stTop = st.getBoundingClientRect().top - cRect.top;
+      const bcTop = bc.getBoundingClientRect().top - cRect.top;
+      const diff = stTop - bcTop;
+      if (diff > 2) bc.style.marginTop = diff + 'px';
+    });
+
+    const newCRect = canvas.getBoundingClientRect();
+    svg.setAttribute('width', canvas.scrollWidth);
+    svg.setAttribute('height', canvas.scrollHeight);
+
+    const paradigm = document.body.getAttribute('data-paradigm') || 'takram';
+    const wireCol = paradigm === 'sugiura' ? '#6D5C39' : (paradigm === 'pentagram' ? '#0D0F12' : '#8FA395');
+
+    const rBox = rootEl.getBoundingClientRect();
+    const rx = rBox.right - newCRect.left;
+    const ry = rBox.top - newCRect.top + rBox.height / 2;
+
+    let paths = '';
+    branchCards.forEach((bc, i) => {
+      const bBox = bc.getBoundingClientRect();
+      const bxL = bBox.left - newCRect.left;
+      const bxR = bBox.right - newCRect.left;
+      const by = bBox.top - newCRect.top + bBox.height / 2;
+      const c1 = (rx + bxL) / 2;
+      paths += `<path d="M ${rx} ${ry} C ${c1} ${ry}, ${c1} ${by}, ${bxL} ${by}" fill="none" stroke="${wireCol}" stroke-width="1.6"/>`;
+
+      const st = leafStacks[i];
+      if (st) {
+        st.querySelectorAll('.mm-leaf-node').forEach(lf => {
+          const lBox = lf.getBoundingClientRect();
+          const lx = lBox.left - newCRect.left;
+          const ly = lBox.top - newCRect.top + lBox.height / 2;
+          const c2 = (bxR + lx) / 2;
+          paths += `<path d="M ${bxR} ${by} C ${c2} ${by}, ${c2} ${ly}, ${lx} ${ly}" fill="none" stroke="${wireCol}" stroke-width="1.2" opacity="0.8"/>`;
+        });
+      }
+    });
+    svg.innerHTML = paths;
+  }
+
+  window.addEventListener('resize', () => {
+    if (STATE.view === 'lineage') drawMindmapWires();
+  });
+
+  // =========================================================
+  // RENDER VIEW 3: FULL LEDGER
+  // =========================================================
+  function renderLedgerFilters() {
+    if (!HUB) return;
+    const plats = ['ALL', 'Claude', 'AGY', 'Grok', 'ZCode', 'Alma'];
+    document.getElementById('platformFilters').innerHTML = plats.map(p => `
+      <button class="filter-chip ${STATE.ledgerPlatform === p ? 'active' : ''}" onclick="STATE.ledgerPlatform='${p}';renderLedgerFilters();renderLedgerTable();">
+        ${p === 'ALL' ? '全部平台' : p}
+      </button>
+    `).join('');
+
+    const types = [
+      { id: 'ALL', label: '全部课题' },
+      { id: 'HTML', label: '含 HTML 报告' },
+      { id: 'PPTX', label: '含 PPTX 演示' },
+      { id: 'PDF', label: '含 PDF 组图' },
+      { id: 'STAR', label: '已置顶收藏' },
+      { id: 'LOCK', label: '活跃保护中' }
+    ];
+    document.getElementById('typeFilters').innerHTML = types.map(t => `
+      <button class="filter-chip ${STATE.ledgerType === t.id ? 'active' : ''}" onclick="STATE.ledgerType='${t.id}';renderLedgerFilters();renderLedgerTable();">
+        ${t.label}
+      </button>
+    `).join('');
+  }
+
+  function renderLedgerTable() {
+    if (!HUB) return;
+    const q = (document.getElementById('ledgerSearchInput').value || '').trim().toLowerCase();
+    const tMap = getTopicMap();
+    let rows = HUB.projects.filter(p => {
+      if (STATE.ledgerPlatform !== 'ALL' && p.platform !== STATE.ledgerPlatform) return false;
+      if (STATE.ledgerType === 'HTML' && !(p.htmls && p.htmls.length)) return false;
+      if (STATE.ledgerType === 'PPTX' && !(p.pptxs && p.pptxs.length)) return false;
+      if (STATE.ledgerType === 'PDF' && !(p.pdfs && p.pdfs.length)) return false;
+      if (STATE.ledgerType === 'STAR' && !p.starred) return false;
+      if (STATE.ledgerType === 'LOCK' && !p.locked) return false;
+      if (q) {
+        const hay = (p.name + ' ' + p.sub_branch + ' ' + p.platform + ' ' + (p.note || '')).toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+      return true;
+    });
+
+    rows.sort((a, b) => (Number(b.starred) - Number(a.starred)) || (b.mtime - a.mtime));
+
+    document.getElementById('ledgerTbody').innerHTML = rows.slice(0, 160).map(p => {
+      const topHtml = p.htmls && p.htmls[0];
+      const topPptx = p.pptxs && p.pptxs[0];
+      const topPdf = p.pdfs && p.pdfs[0];
+      const tName = tMap[p.topic_id] ? cleanLabel(tMap[p.topic_id].short) : p.topic_id;
+      return `
+        <tr onclick="openInspector('${escAttr(p.key)}')">
+          <td>
+            <div style="font-weight:600;font-size:var(--fs-body);color:var(--ink-1);display:flex;align-items:center;gap:6px;">
+              ${p.starred ? `<span class="spot-badge" style="padding:0 6px;">置顶</span>` : ''}
+              <span>${esc(p.name)}</span>
+              ${p.locked ? `<span class="lock-tag">保护</span>` : ''}
+            </div>
+          </td>
+          <td style="color:var(--ink-2);">${esc(tName)}<div class="meta-caption" style="font-size:13px;color:var(--ink-3);">${esc(p.sub_branch)}</div></td>
+          <td><span class="plat-tag">${esc(p.platform)}</span></td>
+          <td class="num" style="color:var(--ink-2);">${esc(p.datetime)}</td>
+          <td class="num" style="color:var(--ink-2);">${p.size_mb.toFixed(1)} MB</td>
+          <td onclick="event.stopPropagation()">
+            <div style="display:flex;gap:6px;flex-wrap:wrap;">
+              ${topHtml ? `<button class="mini-open html-accent" onclick="openDeliverable('${escAttr(topHtml.path)}')">HTML (${p.htmls.length})</button>` : ''}
+              ${topPptx ? `<button class="mini-open" onclick="openDeliverable('${escAttr(topPptx.path)}')">PPTX (${p.pptxs.length})</button>` : ''}
+              ${topPdf ? `<button class="mini-open" onclick="openDeliverable('${escAttr(topPdf.path)}')">PDF (${p.pdfs.length})</button>` : ''}
+            </div>
+          </td>
+        </tr>
+      `;
+    }).join('');
+  }
+
+  // =========================================================
+  // RENDER VIEW 4: GUIDE & STORAGE
+  // =========================================================
+  function renderGuide() {
+    if (!HUB) return;
+    const s = HUB.summary;
+    const ruleLine = document.getElementById('guidePathRuleLine');
+    if (ruleLine && HUB.root_path) {
+      ruleLine.textContent = HUB.root_path + '\\<平台名>输出\\<课题名_日期或版本号>\\';
+    }
+    document.getElementById('storageDetailText').textContent =
+      `当前共纳管 ${s.total_projects} 个课题目录，总占用 ${s.total_size_gb.toFixed(2)} GB（其中 R/Python 临时过程缓存约 ${s.total_cache_gb.toFixed(2)} GB；已无损移入「待确认重复副本」隔离区的字节级重复文件夹共 ${(s.dup_size_mb / 1024).toFixed(2)} GB）。`;
+
+    const lockedProjs = HUB.projects.filter(p => p.locked).slice(0, 10);
+    document.getElementById('guideLiveList').innerHTML = lockedProjs.map(p => `
+      <div style="padding:9px 12px;background:var(--bg-canvas);border-radius:var(--radius-sm);border-left:3px solid var(--danger);">
+        <div style="font-weight:600;font-size:var(--fs-sub);">${esc(p.name)}（${esc(p.platform)}）</div>
+        <div style="font-size:12.5px;color:var(--ink-3);margin-top:2px;">${esc((p.lock_reasons || []).join('；'))}</div>
+      </div>
+    `).join('');
+  }
+
+  // =========================================================
+  // INSPECTOR DRAWER & ACTIONS
+  // =========================================================
+  function openInspector(key) {
+    if (!HUB) return;
+    const p = HUB.projects.find(x => x.key === key);
+    if (!p) return;
+    STATE.inspectorKey = key;
+
+    document.getElementById('drawerBadges').innerHTML = `
+      <span class="plat-tag">${esc(p.platform)}</span>
+      <span class="plat-tag">${esc(p.sub_branch)}</span>
+      ${p.locked ? `<span class="lock-tag">后台写入保护中</span>` : ''}
+    `;
+    document.getElementById('drawerTitle').textContent = p.name;
+
+    const renderFiles = (arr, btnLabel) => {
+      if (!arr || !arr.length) return `<div style="font-size:var(--fs-sub);color:var(--ink-3);">暂无此类交付物</div>`;
+      return arr.slice(0, 25).map(f => `
+        <div class="file-item">
+          <div style="min-width:0;flex:1;">
+            <div class="file-item-name">${esc(f.title || f.name)}</div>
+            <div class="file-item-sub meta-caption num">${esc(f.rel)} / ${f.size_mb.toFixed(2)} MB / ${esc(f.date)}</div>
+          </div>
+          <div style="display:flex;gap:6px;flex-shrink:0;">
+            <button class="mini-open html-accent" onclick="openDeliverable('${escAttr(f.path)}')">${btnLabel}</button>
+            <button class="mini-open" onclick="revealInExplorer('${escAttr(f.path)}')">定位</button>
+          </div>
+        </div>
+      `).join('');
+    };
+
+    const resumePrompt = `请继续推进课题「${p.name}」，本地产物目录为 \`${p.path}\`，请先核对目录内最新报告与图面定稿后再继续。`;
+
+    document.getElementById('drawerBody').innerHTML = `
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px;">
+        <button class="deliv-btn ${p.starred ? 'primary-html' : 'ghost'}" onclick="toggleStar('${escAttr(p.key)}')">
+          ${p.starred ? '已置顶收藏（点击取消）' : '置顶收藏该课题'}
+        </button>
+        <button class="deliv-btn ghost" onclick="revealInExplorer('${escAttr(p.path)}')">在资源管理器中打开目录</button>
+        <button class="deliv-btn ghost" onclick="copyText('${escAttr(p.path)}', '已复制完整目录路径')">复制绝对路径</button>
+        <button class="deliv-btn ghost" onclick="copyText('${escAttr(resumePrompt)}', '已复制跨会话续写话术')">复制续写开场话术</button>
+      </div>
+
+      <div class="code-line" style="margin-bottom:20px;">${esc(p.path)}</div>
+
+      <div class="drawer-sec">
+        <div class="drawer-sec-title">交互式解读报告 HTML (${(p.htmls || []).length})</div>
+        ${renderFiles(p.htmls, '打开报告')}
+      </div>
+
+      <div class="drawer-sec">
+        <div class="drawer-sec-title">组图演示汇报 PPTX (${(p.pptxs || []).length})</div>
+        ${renderFiles(p.pptxs, '打开 PPT')}
+      </div>
+
+      <div class="drawer-sec">
+        <div class="drawer-sec-title">出版级矢量拼图 PDF (${(p.pdfs || []).length})</div>
+        ${renderFiles(p.pdfs, '打开 PDF')}
+      </div>
+
+      <div class="drawer-sec">
+        <div class="drawer-sec-title">个人课题备注（自动保存）</div>
+        <textarea class="note-input" id="drawerNoteInput" placeholder="记录这版改了哪张图、投稿进度或待返修点..." onblur="saveNote('${escAttr(p.key)}')">${esc(p.note || '')}</textarea>
+      </div>
+    `;
+
+    document.getElementById('drawerBackdrop').classList.add('open');
+    document.getElementById('inspectorDrawer').classList.add('open');
+  }
+
+  function closeInspector() {
+    document.getElementById('drawerBackdrop').classList.remove('open');
+    document.getElementById('inspectorDrawer').classList.remove('open');
+  }
+
+  function toggleStar(key) {
+    const arr = new Set(USER_META.starred || []);
+    if (arr.has(key)) arr.delete(key); else arr.add(key);
+    USER_META.starred = Array.from(arr);
+    applyUserMetaToProjects();
+    nativeCall('saveMeta', { starred: USER_META.starred, notes: USER_META.notes || {} });
+    openInspector(key);
+    renderOverview();
+    if (STATE.view === 'ledger') renderLedgerTable();
+  }
+
+  function saveNote(key) {
+    const val = document.getElementById('drawerNoteInput').value || '';
+    USER_META.notes = USER_META.notes || {};
+    USER_META.notes[key] = val;
+    applyUserMetaToProjects();
+    nativeCall('saveMeta', { starred: USER_META.starred || [], notes: USER_META.notes });
+    showToast('备注已保存');
+  }
+
+  function openDeliverable(fullPath) {
+    nativeCall('openFile', { path: fullPath });
+    showToast('正在打开文件...');
+  }
+
+  function revealInExplorer(fullPath) {
+    nativeCall('revealPath', { path: fullPath });
+  }
+
+  function openFolderShortcut(subName) {
+    if (!HUB) return;
+    nativeCall('openFolder', { path: HUB.root_path + '\\' + subName });
+  }
+
+  function openSelectedTopicFolder() {
+    if (!HUB) return;
+    const t = HUB.topics.find(x => x.id === STATE.lineageTopicId);
+    if (t) nativeCall('openFolder', { path: HUB.root_path + '\\00_按课题总览\\' + t.folder });
+  }
+
+  function openReadmeFile() {
+    if (!HUB) return;
+    nativeCall('openFile', { path: HUB.root_path + '\\README.md' });
+  }
+
+  function copyText(txt, toastText) {
+    nativeCall('copyText', { text: txt });
+    showToast(toastText || '已复制到剪贴板');
+  }
+
+  function triggerRefresh() {
+    document.getElementById('btnRefresh').querySelector('span').textContent = '扫描中...';
+    nativeCall('runRefresh');
+  }
+
+  function triggerSafeTidy() {
+    document.getElementById('btnRunTidy').textContent = '正在无损更新索引...';
+    nativeCall('runTidy');
+  }
+
+  // =========================================================
+  // COMMAND PALETTE (Ctrl + K)
+  // =========================================================
+  function openCmdPalette() {
+    document.getElementById('cmdModalBg').classList.add('open');
+    const inp = document.getElementById('cmdInput');
+    inp.value = '';
+    STATE.cmdIndex = 0;
+    renderCmdResults();
+    setTimeout(() => inp.focus(), 20);
+  }
+
+  function closeCmdPalette() {
+    document.getElementById('cmdModalBg').classList.remove('open');
+  }
+
+  function renderCmdResults() {
+    if (!HUB) return;
+    const q = (document.getElementById('cmdInput').value || '').trim().toLowerCase();
+    const items = [];
+
+    HUB.projects.forEach(p => {
+      if (!q || (p.name + ' ' + p.sub_branch + ' ' + p.platform).toLowerCase().includes(q)) {
+        items.push({ kind: '课题目录', title: p.name, sub: `${p.platform} / ${p.sub_branch}`, key: p.key, path: null });
+      }
+      if (q) {
+        (p.htmls || []).concat(p.pptxs || []).concat(p.pdfs || []).forEach(f => {
+          if (((f.title || '') + ' ' + f.name).toLowerCase().includes(q)) {
+            items.push({ kind: '直开文件', title: f.title || f.name, sub: `${p.name} / ${f.date}`, key: p.key, path: f.path });
+          }
+        });
+      }
+    });
+
+    STATE.cmdList = items.slice(0, 24);
+    if (STATE.cmdIndex >= STATE.cmdList.length) STATE.cmdIndex = 0;
+
+    document.getElementById('cmdResults').innerHTML = STATE.cmdList.map((it, idx) => `
+      <div class="cmd-row ${idx === STATE.cmdIndex ? 'selected' : ''}" onclick="execCmdItem(${idx})">
+        <div style="min-width:0;flex:1;">
+          <div style="font-weight:600;font-size:var(--fs-body);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(it.title)}</div>
+          <div style="font-size:12.5px;color:var(--ink-3);">${esc(it.sub)}</div>
+        </div>
+        <span class="plat-tag">${it.kind}</span>
+      </div>
+    `).join('') || `<div style="padding:20px;text-align:center;color:var(--ink-3);">未找到匹配项</div>`;
+  }
+
+  function handleCmdKey(e) {
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      STATE.cmdIndex = Math.min(STATE.cmdList.length - 1, STATE.cmdIndex + 1);
+      renderCmdResults();
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      STATE.cmdIndex = Math.max(0, STATE.cmdIndex - 1);
+      renderCmdResults();
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      execCmdItem(STATE.cmdIndex);
+    }
+  }
+
+  function execCmdItem(idx) {
+    const it = STATE.cmdList[idx];
+    if (!it) return;
+    closeCmdPalette();
+    if (it.path) {
+      openDeliverable(it.path);
+    } else {
+      openInspector(it.key);
+    }
+  }
+
+  // Receive async updates from C# host
+  window.__onHostDataUpdated = function(payload) {
+    if (payload.hub) HUB = payload.hub;
+    if (payload.meta) USER_META = Object.assign(USER_META, payload.meta);
+    applyUserMetaToProjects();
+    document.getElementById('btnRefresh').querySelector('span').textContent = '刷新';
+    const tidyBtn = document.getElementById('btnRunTidy');
+    if (tidyBtn) tidyBtn.textContent = '增量更新快捷方式与归整新散件';
+    switchView(STATE.view);
+    if (payload.toast) showToast(payload.toast);
+  };
+
+  // Bootstrap
+  async function boot() {
+    try {
+      const res = await fetch('https://hub.local/api/state');
+      const payload = await res.json();
+      HUB = payload.hub;
+      if (payload.meta) USER_META = Object.assign(USER_META, payload.meta);
+    } catch (err) {
+      if (window.__INJECTED_STATE) {
+        HUB = window.__INJECTED_STATE.hub;
+        USER_META = Object.assign(USER_META, window.__INJECTED_STATE.meta || {});
+      }
+    }
+    applyUserMetaToProjects();
+
+    const params = new URLSearchParams(location.search);
+    const initParadigm = params.get('paradigm') || USER_META.ui_paradigm || 'takram';
+    const initScale = params.get('scale') || USER_META.ui_scale || 'normal';
+    const initFont = params.get('font') || USER_META.ui_font || 'default';
+    const initView = params.get('view') || 'overview';
+
+    setParadigm(initParadigm, true);
+    setFontScale(initScale, true);
+    setFontFamily(initFont, true);
+    switchView(initView);
+    window.__DESIGN_READY = true;
+  }
+
+  boot();
+</script>
+</body>
+</html>

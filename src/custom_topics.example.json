@@ -1,0 +1,58 @@
+{
+  "topics": [
+    {
+      "id": "01_research_survey",
+      "folder": "01_深度调研与文献综述",
+      "short": "深度调研 / 文献综述",
+      "title": "领域调研报告、论文精读、技术选型对比与知识蒸馏",
+      "color": "#2E5B88"
+    },
+    {
+      "id": "02_data_viz",
+      "folder": "02_数据分析与可视化组图",
+      "short": "数据分析 / 科学组图",
+      "title": "统计建模、数据清洗、出版级矢量图表与实验图谱",
+      "color": "#1E513F"
+    },
+    {
+      "id": "03_slides_docs",
+      "folder": "03_演示汇报与文档撰写",
+      "short": "演示汇报 / 讲义文档",
+      "title": "PPTX 幻灯片、项目汇报、方案总结与长文手稿",
+      "color": "#8C5A32"
+    },
+    {
+      "id": "04_misc",
+      "folder": "04_其他独立项目",
+      "short": "独立探索 / 其他项目",
+      "title": "未归入固定主线的独立任务与实验",
+      "color": "#78716C"
+    }
+  ],
+  "rules": [
+    {
+      "any": ["调研", "综述", "论文", "文献", "survey", "review", "paper"],
+      "topic_id": "01_research_survey",
+      "branches": [
+        {"any": ["论文", "paper"], "name": "01_论文精读与复现"},
+        {"default": "02_专题调研报告"}
+      ]
+    },
+    {
+      "any": ["数据", "分析", "统计", "图", "plot", "fig", "chart"],
+      "topic_id": "02_data_viz",
+      "branches": [
+        {"default": "01_定量分析与组图迭代"}
+      ]
+    },
+    {
+      "any": ["ppt", "slide", "汇报", "演示", "report", "总结"],
+      "topic_id": "03_slides_docs",
+      "branches": [
+        {"default": "01_汇报幻灯片与文档"}
+      ]
+    }
+  ],
+  "fallback_topic_id": "04_misc",
+  "fallback_branch": "01_独立项目归档"
+}

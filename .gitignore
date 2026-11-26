@@ -1,0 +1,15 @@
+# Python & Runtime Caches
+__pycache__/
+*.py[cod]
+scan_cache.json
+user_meta.json
+private_profile.json
+hub_config.json
+wv2_profile/
+wv2_preview_profile/
+_整理迁移台账_*.tsv
+
+# Build Outputs
+dist/
+*.nupkg
+nuget_cache/
