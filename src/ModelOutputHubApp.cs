@@ -811,10 +811,8 @@ namespace ModelOutputHub
             Directory.CreateDirectory(outDir);
             var shots = new[]
             {
-                new { Name = "hero-takram-atlas", Url = "https://hub.local/app?paradigm=takram&font=wenkai_bold&view=overview", ExtraJs = "document.getElementById('fontPop').classList.add('open');" },
-                new { Name = "paradigm-pentagram-grid", Url = "https://hub.local/app?paradigm=pentagram&view=overview", ExtraJs = "" },
-                new { Name = "paradigm-sugiura-dark", Url = "https://hub.local/app?paradigm=sugiura&view=overview", ExtraJs = "" },
-                new { Name = "focused-lineage-mindmap", Url = "https://hub.local/app?paradigm=takram&view=lineage", ExtraJs = "" }
+                new { Name = "figures-gallery-view", Url = "https://hub.local/app?paradigm=takram&view=figures&topic=02_fungi_bonemet", ExtraJs = "" },
+                new { Name = "overview-split-pills", Url = "https://hub.local/app?paradigm=takram&view=overview&topic=02_fungi_bonemet", ExtraJs = "" }
             };
 
             foreach (var s in shots)
