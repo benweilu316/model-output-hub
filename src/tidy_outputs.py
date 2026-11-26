@@ -248,32 +248,65 @@ def build_overview_shortcuts(scan_data: dict) -> dict:
                 except Exception:
                     pass
 
-        best_delivs = []
+        # 2) 分别构建「00_最新报告与PPT直达」「01_A4整页组图_按Fig整理」「02_PDF独立单图_近期更新」三个专柜
+        best_reports = []
+        a4_figs = []
+        single_figs = []
         for br in t["branches"]:
             for p in br["projects"]:
-                for kind, arr in (("HTML报告", p["htmls"][:2]), ("PPT汇报", p["pptxs"][:2]), ("整页组图", p["pdfs"][:2])):
+                for kind, arr in (("HTML报告", p.get("htmls", [])[:2]), ("PPT汇报", p.get("pptxs", [])[:2])):
                     for d in arr:
-                        best_delivs.append((d["mtime"], kind, p["platform"], d))
-        best_delivs.sort(key=lambda x: x[0], reverse=True)
-        seen_paths = set()
-        star_dir = t_dir / "00_最新核心成品直达"
-        for mt, kind, plat, d in best_delivs:
-            if d["path"] in seen_paths:
-                continue
-            seen_paths.add(d["path"])
-            if len(seen_paths) > 10:
-                break
-            star_dir.mkdir(parents=True, exist_ok=True)
-            dt_short = d["date"][:10]
-            fn_lnk = _safe_filename(f"[{dt_short}][{plat}][{kind}] {d['name']}") + ".lnk"
-            try:
-                sc = shell.CreateShortcut(str(star_dir / fn_lnk))
-                sc.TargetPath = d["path"]
-                sc.Description = f"{kind} ({d['size_mb']} MB) — 原路径: {d['path']}"[:240]
-                sc.Save()
-                created_files += 1
-            except Exception:
-                pass
+                        best_reports.append((d["mtime"], kind, p["platform"], d))
+                for d in p.get("a4_pdfs", []):
+                    a4_figs.append((d.get("fig_order", 90), -d["mtime"], p["platform"], p["name"], d))
+                for d in p.get("single_pdfs", [])[:6]:
+                    single_figs.append((-d["mtime"], d.get("fig_order", 90), p["platform"], p["name"], d))
+
+        def write_lnk_folder(sub_dir: pathlib.Path, entries: list, max_items: int, mode: str) -> int:
+            cnt = 0
+            seen_p = set()
+            for item in entries:
+                d = item[-1]
+                if d["path"] in seen_p:
+                    continue
+                seen_p.add(d["path"])
+                if len(seen_p) > max_items:
+                    break
+                sub_dir.mkdir(parents=True, exist_ok=True)
+                dt_short = d["date"][:10]
+                if mode == "report":
+                    _, kind, plat, _ = item
+                    fn_lnk = _safe_filename(f"[{dt_short}][{plat}][{kind}] {d['name']}") + ".lnk"
+                    desc = f"{kind} ({d['size_mb']} MB)"
+                elif mode == "a4":
+                    _, _, plat, pname, _ = item
+                    ftag = d.get("fig_group") or "组图"
+                    dim = f" {d['dim_mm']}" if d.get("dim_mm") else ""
+                    fn_lnk = _safe_filename(f"[{ftag}][{dt_short}][{plat}] {d['name']} ({pname[:18]})") + ".lnk"
+                    desc = f"A4整页组图{dim} | 来源: {pname}"
+                else:
+                    _, _, plat, pname, _ = item
+                    ftag = (d.get("fig_group") or "单图") + (f"-{d['fig_panel']}" if d.get("fig_panel") else "")
+                    dim = f" {d['dim_mm']}" if d.get("dim_mm") else ""
+                    fn_lnk = _safe_filename(f"[{dt_short}][{ftag}][{plat}] {d['name']}") + ".lnk"
+                    desc = f"独立单图{dim} | 来源: {pname}"
+                try:
+                    sc = shell.CreateShortcut(str(sub_dir / fn_lnk))
+                    sc.TargetPath = d["path"]
+                    sc.Description = desc[:240]
+                    sc.Save()
+                    cnt += 1
+                except Exception:
+                    pass
+            return cnt
+
+        best_reports.sort(key=lambda x: x[0], reverse=True)
+        a4_figs.sort(key=lambda x: (x[0], x[1]))
+        single_figs.sort(key=lambda x: (x[0], x[1]))
+
+        created_files += write_lnk_folder(t_dir / "00_最新报告与PPT直达", best_reports, 12, "report")
+        created_files += write_lnk_folder(t_dir / "01_A4整页组图_按Fig整理", a4_figs, 40, "a4")
+        created_files += write_lnk_folder(t_dir / "02_PDF独立单图_近期更新", single_figs, 30, "single")
 
     return {"dir_shortcuts": created_dirs, "file_shortcuts": created_files}
 
