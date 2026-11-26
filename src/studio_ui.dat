@@ -986,6 +986,136 @@
     background: var(--accent);
     color: var(--accent-ink);
   }
+  .mini-open.a4-accent {
+    background: var(--info-soft);
+    color: var(--info);
+    border-color: transparent;
+  }
+  .mini-open.a4-accent:hover {
+    background: var(--info);
+    color: #FFFFFF;
+  }
+
+  /* =========================================================
+     VIEW: FIGURES GALLERY (A4 Full-Page vs Single PDF, By Fig / Date / Project)
+     ========================================================= */
+  .figs-layout {
+    width: 100%;
+    height: 100%;
+    display: grid;
+    grid-template-columns: 296px 1fr;
+    overflow: hidden;
+  }
+  .figs-main {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    background: var(--bg-canvas);
+  }
+  .figs-toolbar {
+    padding: 16px 28px;
+    background: var(--bg-surface);
+    border-bottom: var(--border-w) solid var(--line-soft);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    flex-wrap: wrap;
+    flex-shrink: 0;
+  }
+  .seg-box {
+    display: inline-flex;
+    align-items: center;
+    background: var(--bg-elevated);
+    padding: 3px;
+    border-radius: var(--radius-md);
+    gap: 3px;
+  }
+  body[data-paradigm="pentagram"] .seg-box {
+    background: transparent;
+    border: 1.5px solid var(--ink-1);
+  }
+  .seg-btn {
+    border: none;
+    background: transparent;
+    padding: 5px 12px;
+    border-radius: var(--radius-sm);
+    font-size: 13.5px;
+    font-weight: 500;
+    color: var(--ink-2);
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .seg-btn.active {
+    background: var(--accent);
+    color: var(--accent-ink);
+    font-weight: 600;
+  }
+  .figs-scroll {
+    flex: 1;
+    overflow-y: auto;
+    padding: 22px 28px 40px;
+  }
+  .fig-group-block {
+    margin-bottom: 22px;
+    background: var(--bg-surface);
+    border: var(--border-w) solid var(--line-soft);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+  }
+  body[data-paradigm="pentagram"] .fig-group-block {
+    border: 1.5px solid var(--ink-1);
+  }
+  .fig-group-head {
+    padding: 11px 18px;
+    background: var(--bg-elevated);
+    border-bottom: 1px solid var(--line-soft);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-weight: 600;
+    font-size: var(--fs-body);
+    color: var(--ink-1);
+  }
+  .fig-row {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 14px;
+    padding: 11px 18px;
+    border-bottom: 1px solid var(--line-soft);
+    transition: background 0.12s;
+  }
+  .fig-row:last-child { border-bottom: none; }
+  .fig-row:hover { background: var(--bg-hover); }
+  .fig-badge {
+    min-width: 74px;
+    text-align: center;
+    padding: 3px 9px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    font-weight: 700;
+    background: var(--info-soft);
+    color: var(--info);
+  }
+  .fig-badge.single {
+    background: var(--warm-soft);
+    color: var(--warm);
+  }
+  .dim-pill {
+    display: inline-block;
+    padding: 1px 7px;
+    border-radius: 4px;
+    font-size: 12.5px;
+    font-weight: 600;
+    background: var(--accent-soft);
+    color: var(--accent);
+    margin-left: 6px;
+  }
+  .dim-pill.single {
+    background: var(--bg-elevated);
+    color: var(--ink-2);
+  }
 
   /* =========================================================
      VIEW 2: FOCUSED LINEAGE MIND-MAP (100% Crisp Scale!)
@@ -1043,6 +1173,8 @@
   .rail-cnt {
     font-size: 12.5px;
     color: var(--ink-3);
+    white-space: nowrap;
+    flex-shrink: 0;
   }
   .rail-item.active .rail-cnt {
     color: inherit;
@@ -1656,10 +1788,11 @@
     </div>
 
     <nav class="nav-tabs" data-no-drag="1">
-      <button class="nav-tab active" data-view="overview" onclick="switchView('overview')">课题星盘与精选</button>
-      <button class="nav-tab" data-view="lineage" onclick="switchView('lineage')">聚焦谱系脑图</button>
-      <button class="nav-tab" data-view="ledger" onclick="switchView('ledger')">全库检索台账</button>
-      <button class="nav-tab" data-view="guide" onclick="switchView('guide')">保存规范与维护</button>
+      <button class="nav-tab active" data-view="overview" onclick="switchView('overview')">课题星盘</button>
+      <button class="nav-tab" data-view="lineage" onclick="switchView('lineage')">谱系脑图</button>
+      <button class="nav-tab" data-view="figures" onclick="switchView('figures')">组图与单图</button>
+      <button class="nav-tab" data-view="ledger" onclick="switchView('ledger')">全库台账</button>
+      <button class="nav-tab" data-view="guide" onclick="switchView('guide')">规范维护</button>
     </nav>
 
     <div class="toolbar-right" data-no-drag="1">
@@ -1799,6 +1932,31 @@
             <div class="mm-col" id="mmColBranches"></div>
             <div class="mm-col" id="mmColLeaves"></div>
           </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 2B: DEDICATED A4 ASSEMBLED vs SINGLE PDF GALLERY -->
+    <section class="view-page" id="view-figures">
+      <div class="figs-layout">
+        <aside class="topic-rail" id="figsTopicRail"></aside>
+        <div class="figs-main">
+          <div class="figs-toolbar">
+            <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+              <div class="seg-box" id="figKindSeg">
+                <button class="seg-btn active" data-k="a4" onclick="setFigKind('a4')">整页 A4 组图</button>
+                <button class="seg-btn" data-k="single" onclick="setFigKind('single')">独立 PDF 单图</button>
+                <button class="seg-btn" data-k="all" onclick="setFigKind('all')">合并查看</button>
+              </div>
+              <div class="seg-box" id="figGroupModeSeg">
+                <button class="seg-btn active" data-g="fig" onclick="setFigGroupMode('fig')">按 Fig 图号整理</button>
+                <button class="seg-btn" data-g="date" onclick="setFigGroupMode('date')">按修改日期整理</button>
+                <button class="seg-btn" data-g="project" onclick="setFigGroupMode('project')">按阶段目录整理</button>
+              </div>
+            </div>
+            <input type="text" class="ledger-search" style="width:240px;" id="figsSearchInput" placeholder="搜 FigS2、1B、卡通、目录名..." oninput="renderFiguresMain()">
+          </div>
+          <div class="figs-scroll" id="figsScrollArea"></div>
         </div>
       </div>
     </section>
@@ -2004,6 +2162,11 @@
     view: 'overview',
     selectedTopicId: 'ALL',
     lineageTopicId: '01_brca_bacteria',
+    figsTopicId: 'ALL',
+    figKind: 'a4',
+    figGroupMode: 'fig',
+    drawerSortMode: 'fig',
+    drawerExpandSingle: false,
     expandedBranches: {},
     expandAllMm: false,
     ledgerPlatform: 'ALL',
@@ -2169,6 +2332,8 @@
     if (v === 'lineage') {
       renderLineage();
       setTimeout(drawMindmapWires, 40);
+    } else if (v === 'figures') {
+      renderFiguresView();
     } else if (v === 'ledger') {
       renderLedgerFilters();
       renderLedgerTable();
@@ -2377,40 +2542,48 @@
     let list = HUB.projects.slice();
     if (selTopic) {
       list = list.filter(p => p.topic_id === selTopic.id);
+      const a4Cnt = selTopic.a4_pdf_count != null ? selTopic.a4_pdf_count : selTopic.pdf_count;
+      const sgCnt = selTopic.single_pdf_count || 0;
       document.getElementById('edBigCount').textContent = selTopic.project_count;
       document.getElementById('edTopicTitle').textContent = cleanLabel(selTopic.short);
       document.getElementById('edTopicSubtitle').textContent = selTopic.title;
       document.getElementById('edStatsStrip').innerHTML = `
-        <div class="stat-cell"><span class="stat-val num">${selTopic.html_count}</span><span class="stat-lbl">份交互报告</span></div>
-        <div class="stat-cell"><span class="stat-val num">${selTopic.pptx_count}</span><span class="stat-lbl">套演示文稿</span></div>
-        <div class="stat-cell"><span class="stat-val num">${selTopic.pdf_count}</span><span class="stat-lbl">张矢量组图</span></div>
-        <div class="stat-cell"><span class="stat-val num">${(selTopic.size_mb / 1024).toFixed(2)} GB</span><span class="stat-lbl">占用体积</span></div>
-        <button class="deliv-btn ghost" style="margin-left:auto;" onclick="STATE.lineageTopicId='${selTopic.id}';switchView('lineage')">查看该课题脑图谱系</button>
+        <div class="stat-cell"><span class="stat-val num">${selTopic.html_count}</span><span class="stat-lbl">份报告</span></div>
+        <div class="stat-cell"><span class="stat-val num">${selTopic.pptx_count}</span><span class="stat-lbl">套PPTX</span></div>
+        <div class="stat-cell" style="cursor:pointer;" onclick="STATE.figsTopicId='${selTopic.id}';STATE.figKind='a4';switchView('figures')"><span class="stat-val num" style="color:var(--accent);">${a4Cnt}</span><span class="stat-lbl">张A4组图</span></div>
+        <div class="stat-cell" style="cursor:pointer;" onclick="STATE.figsTopicId='${selTopic.id}';STATE.figKind='single';switchView('figures')"><span class="stat-val num">${sgCnt}</span><span class="stat-lbl">张独立单图</span></div>
+        <button class="deliv-btn ghost" style="margin-left:auto;" onclick="STATE.figsTopicId='${selTopic.id}';STATE.figKind='a4';switchView('figures')">按Fig查看本课题组图</button>
       `;
     } else {
       const s = HUB.summary;
+      const a4Total = s.total_a4_pdf != null ? s.total_a4_pdf : s.total_pdf;
+      const sgTotal = s.total_single_pdf || 0;
       document.getElementById('edBigCount').textContent = s.total_projects;
       document.getElementById('edTopicTitle').textContent = '全部科研课题精选动态';
-      document.getElementById('edTopicSubtitle').textContent = '点击左侧星盘任一主线可按学科聚焦，下方优先展示具备完整报告的最新定稿';
+      document.getElementById('edTopicSubtitle').textContent = '已按物理毫米尺寸严格区分「整页 A4 组图」与「局部 PDF 单图」，点击数字可直入组图库按 Fig 查看';
       document.getElementById('edStatsStrip').innerHTML = `
         <div class="stat-cell"><span class="stat-val num">${s.total_html}</span><span class="stat-lbl">份交互报告</span></div>
         <div class="stat-cell"><span class="stat-val num">${s.total_pptx}</span><span class="stat-lbl">套演示文稿</span></div>
-        <div class="stat-cell"><span class="stat-val num">${s.total_pdf}</span><span class="stat-lbl">张矢量组图</span></div>
-        <div class="stat-cell"><span class="stat-val num">${s.total_size_gb.toFixed(1)} GB</span><span class="stat-lbl">总库体积</span></div>
+        <div class="stat-cell" style="cursor:pointer;" onclick="STATE.figsTopicId='ALL';STATE.figKind='a4';switchView('figures')"><span class="stat-val num" style="color:var(--accent);">${a4Total}</span><span class="stat-lbl">张A4整页组图</span></div>
+        <div class="stat-cell" style="cursor:pointer;" onclick="STATE.figsTopicId='ALL';STATE.figKind='single';switchView('figures')"><span class="stat-val num">${sgTotal}</span><span class="stat-lbl">张PDF单图</span></div>
+        <div class="stat-cell"><span class="stat-val num">${s.total_size_gb.toFixed(1)} GB</span><span class="stat-lbl">总体积</span></div>
       `;
     }
 
     // Sort: starred first, then recent mtime
     list.sort((a, b) => (Number(b.starred) - Number(a.starred)) || (b.mtime - a.mtime));
 
-    // Pick #1 Spotlight deliverable project (prefer one that has at least 1 HTML/PPTX/PDF)
-    const spotProj = list.find(p => (p.htmls && p.htmls.length) || (p.pptxs && p.pptxs.length) || (p.pdfs && p.pdfs.length)) || list[0];
+    // Pick #1 Spotlight deliverable project
+    const spotProj = list.find(p => (p.htmls && p.htmls.length) || (p.pptxs && p.pptxs.length) || (p.a4_pdfs && p.a4_pdfs.length) || (p.pdfs && p.pdfs.length)) || list[0];
     const spotBox = document.getElementById('spotlightContainer');
 
     if (spotProj) {
       const topHtml = spotProj.htmls && spotProj.htmls[0];
       const topPptx = spotProj.pptxs && spotProj.pptxs[0];
-      const topPdf = spotProj.pdfs && spotProj.pdfs[0];
+      const a4Arr = spotProj.a4_pdfs || [];
+      const sgArr = spotProj.single_pdfs || [];
+      const topA4 = a4Arr[0];
+      const topSg = sgArr[0];
       const displayHeadline = (topHtml && topHtml.title) ? topHtml.title : spotProj.name;
 
       spotBox.innerHTML = `
@@ -2424,8 +2597,9 @@
           <div class="spot-actions">
             ${topHtml ? `<button class="deliv-btn primary-html" onclick="openDeliverable('${escAttr(topHtml.path)}')">打开最新 HTML 报告</button>` : ''}
             ${topPptx ? `<button class="deliv-btn sec-pptx" onclick="openDeliverable('${escAttr(topPptx.path)}')">打开最新 PPTX (${spotProj.pptxs.length})</button>` : ''}
-            ${topPdf ? `<button class="deliv-btn sec-pdf" onclick="openDeliverable('${escAttr(topPdf.path)}')">打开最新 PDF 拼图 (${spotProj.pdfs.length})</button>` : ''}
-            <button class="deliv-btn ghost" onclick="openInspector('${escAttr(spotProj.key)}')">查看全部文件明细</button>
+            ${topA4 ? `<button class="deliv-btn sec-pdf" onclick="openDeliverable('${escAttr(topA4.path)}')">打开 A4 整页组图 (${a4Arr.length})</button>` : ''}
+            ${topSg ? `<button class="deliv-btn ghost" onclick="openInspector('${escAttr(spotProj.key)}')">含 PDF 单图 (${sgArr.length})</button>` : ''}
+            <button class="deliv-btn ghost" onclick="openInspector('${escAttr(spotProj.key)}')">全部文件明细</button>
           </div>
         </div>
       `;
@@ -2444,7 +2618,10 @@
   function renderHairlineRow(p, topicsMap) {
     const topHtml = p.htmls && p.htmls[0];
     const topPptx = p.pptxs && p.pptxs[0];
-    const topPdf = p.pdfs && p.pdfs[0];
+    const a4Arr = p.a4_pdfs || [];
+    const sgArr = p.single_pdfs || [];
+    const topA4 = a4Arr[0];
+    const topSg = sgArr[0];
     const tShort = topicsMap[p.topic_id] ? cleanLabel(topicsMap[p.topic_id].short) : '';
 
     return `
@@ -2461,8 +2638,9 @@
         <div class="hr-pills" onclick="event.stopPropagation()">
           ${topHtml ? `<button class="mini-open html-accent" onclick="openDeliverable('${escAttr(topHtml.path)}')">HTML (${p.htmls.length})</button>` : ''}
           ${topPptx ? `<button class="mini-open" onclick="openDeliverable('${escAttr(topPptx.path)}')">PPTX (${p.pptxs.length})</button>` : ''}
-          ${topPdf ? `<button class="mini-open" onclick="openDeliverable('${escAttr(topPdf.path)}')">PDF (${p.pdfs.length})</button>` : ''}
-          ${(!topHtml && !topPptx && !topPdf) ? `<button class="mini-open" onclick="revealInExplorer('${escAttr(p.path)}')">文件夹</button>` : ''}
+          ${topA4 ? `<button class="mini-open a4-accent" onclick="openDeliverable('${escAttr(topA4.path)}')">A4组图 (${a4Arr.length})</button>` : ''}
+          ${topSg ? `<button class="mini-open" onclick="openInspector('${escAttr(p.key)}')">单图 (${sgArr.length})</button>` : ''}
+          ${(!topHtml && !topPptx && !topA4 && !topSg) ? `<button class="mini-open" onclick="revealInExplorer('${escAttr(p.path)}')">文件夹</button>` : ''}
         </div>
       </div>
     `;
@@ -2519,7 +2697,10 @@
       const leavesInner = shown.map((p, pIdx) => {
         const topHtml = p.htmls && p.htmls[0];
         const topPptx = p.pptxs && p.pptxs[0];
-        const topPdf = p.pdfs && p.pdfs[0];
+        const a4Arr = p.a4_pdfs || [];
+        const sgArr = p.single_pdfs || [];
+        const topA4 = a4Arr[0];
+        const topSg = sgArr[0];
         const subHint = p.parent_group ? `${p.platform} (${p.parent_group})` : p.platform;
         const rawTitle = (topHtml && topHtml.title && topHtml.title !== p.name) ? cleanLabel(topHtml.title) : '';
         const extraTitle = rawTitle ? ` / ${rawTitle}` : '';
@@ -2532,7 +2713,8 @@
             <div class="hr-pills" onclick="event.stopPropagation()">
               ${topHtml ? `<button class="mini-open html-accent" onclick="openDeliverable('${escAttr(topHtml.path)}')">HTML</button>` : ''}
               ${topPptx ? `<button class="mini-open" onclick="openDeliverable('${escAttr(topPptx.path)}')">PPTX</button>` : ''}
-              ${topPdf ? `<button class="mini-open" onclick="openDeliverable('${escAttr(topPdf.path)}')">PDF</button>` : ''}
+              ${topA4 ? `<button class="mini-open a4-accent" onclick="openDeliverable('${escAttr(topA4.path)}')">A4(${a4Arr.length})</button>` : ''}
+              ${topSg ? `<button class="mini-open" onclick="openInspector('${escAttr(p.key)}')">单图(${sgArr.length})</button>` : ''}
             </div>
           </div>
         `;
@@ -2622,6 +2804,163 @@
   });
 
   // =========================================================
+  // RENDER VIEW 2B: DEDICATED FIGURES GALLERY (A4 vs SINGLE, BY FIG / DATE / PROJECT)
+  // =========================================================
+  function setFigKind(k) {
+    STATE.figKind = k;
+    document.querySelectorAll('#figKindSeg .seg-btn').forEach(b => b.classList.toggle('active', b.getAttribute('data-k') === k));
+    renderFiguresMain();
+  }
+
+  function setFigGroupMode(g) {
+    STATE.figGroupMode = g;
+    document.querySelectorAll('#figGroupModeSeg .seg-btn').forEach(b => b.classList.toggle('active', b.getAttribute('data-g') === g));
+    renderFiguresMain();
+  }
+
+  function renderFiguresView() {
+    if (!HUB) return;
+    const rail = document.getElementById('figsTopicRail');
+    const s = HUB.summary;
+    const allA4 = s.total_a4_pdf != null ? s.total_a4_pdf : s.total_pdf;
+
+    rail.innerHTML = `<div class="rail-head">按课题筛选组图与单图</div>
+      <button class="rail-item ${STATE.figsTopicId === 'ALL' ? 'active' : ''}" onclick="STATE.figsTopicId='ALL';renderFiguresView();">
+        <span>全部课题汇总</span>
+        <span class="rail-cnt num">${allA4} A4</span>
+      </button>` + HUB.topics.map(t => {
+      const a4c = t.a4_pdf_count != null ? t.a4_pdf_count : t.pdf_count;
+      const sgc = t.single_pdf_count || 0;
+      return `
+        <button class="rail-item ${t.id === STATE.figsTopicId ? 'active' : ''}" onclick="STATE.figsTopicId='${t.id}';renderFiguresView();">
+          <span>${esc(cleanLabel(t.short))}</span>
+          <span class="rail-cnt num">${a4c} A4 / ${sgc} 单</span>
+        </button>
+      `;
+    }).join('');
+
+    renderFiguresMain();
+  }
+
+  function renderFiguresMain() {
+    if (!HUB) return;
+    const q = (document.getElementById('figsSearchInput').value || '').trim().toLowerCase();
+    const projs = STATE.figsTopicId === 'ALL'
+      ? HUB.projects
+      : HUB.projects.filter(p => p.topic_id === STATE.figsTopicId);
+
+    let allA4Count = 0, allSingleCount = 0;
+    const items = [];
+
+    projs.forEach(p => {
+      const a4s = p.a4_pdfs || [];
+      const sgs = p.single_pdfs || [];
+      allA4Count += a4s.length;
+      allSingleCount += sgs.length;
+
+      const pushList = (arr, kind) => {
+        arr.forEach(f => {
+          if (STATE.figKind !== 'all' && STATE.figKind !== kind) return;
+          if (q) {
+            const hay = `${f.fig_group || ''} ${f.fig_panel || ''} ${f.name} ${f.rel} ${p.name} ${p.platform}`.toLowerCase();
+            if (!hay.includes(q)) return;
+          }
+          items.push({
+            f,
+            kind,
+            projKey: p.key,
+            projName: p.name,
+            projMtime: p.mtime,
+            platform: p.platform,
+            figGroup: f.fig_group || '专题与汇总图',
+            figPanel: f.fig_panel || '',
+            figOrder: f.fig_order != null ? f.fig_order : 90,
+            dayStr: (f.date || '').slice(0, 10)
+          });
+        });
+      };
+      pushList(a4s, 'a4');
+      pushList(sgs, 'single');
+    });
+
+    // Update segment button counts live
+    const btns = document.querySelectorAll('#figKindSeg .seg-btn');
+    if (btns.length >= 3) {
+      btns[0].textContent = `整页 A4 组图 (${allA4Count})`;
+      btns[1].textContent = `独立 PDF 单图 (${allSingleCount})`;
+      btns[2].textContent = `合并查看 (${allA4Count + allSingleCount})`;
+    }
+
+    const box = document.getElementById('figsScrollArea');
+    if (!items.length) {
+      box.innerHTML = `<div style="padding:48px;text-align:center;color:var(--ink-3);background:var(--bg-surface);border-radius:var(--radius-md);border:1px solid var(--line-soft);">当前筛选条件下暂无匹配的 PDF 图件（可尝试切换上方「整页 A4 组图 / 独立 PDF 单图」或清空搜索词）。</div>`;
+      return;
+    }
+
+    const groups = new Map();
+    if (STATE.figGroupMode === 'fig') {
+      items.sort((a, b) => (a.figOrder - b.figOrder) || a.figPanel.localeCompare(b.figPanel) || (b.f.mtime - a.f.mtime));
+      items.forEach(it => {
+        if (!groups.has(it.figGroup)) groups.set(it.figGroup, []);
+        groups.get(it.figGroup).push(it);
+      });
+    } else if (STATE.figGroupMode === 'date') {
+      items.sort((a, b) => (b.f.mtime - a.f.mtime) || (a.figOrder - b.figOrder));
+      items.forEach(it => {
+        const k = it.dayStr || '未知日期';
+        if (!groups.has(k)) groups.set(k, []);
+        groups.get(k).push(it);
+      });
+    } else {
+      items.sort((a, b) => (b.projMtime - a.projMtime) || (a.figOrder - b.figOrder) || a.figPanel.localeCompare(b.figPanel));
+      items.forEach(it => {
+        const k = `${it.projName}（${it.platform}）`;
+        if (!groups.has(k)) groups.set(k, []);
+        groups.get(k).push(it);
+      });
+    }
+
+    let html = '';
+    for (const [gTitle, arr] of groups.entries()) {
+      const shown = arr.slice(0, 80);
+      html += `
+        <div class="fig-group-block">
+          <div class="fig-group-head">
+            <span>${esc(gTitle)}</span>
+            <span class="meta-caption num" style="font-size:13px;color:var(--ink-3);">共 ${arr.length} 张图件</span>
+          </div>
+          ${shown.map(it => {
+            const badgeTxt = it.figGroup === '专题与汇总图'
+              ? (it.kind === 'a4' ? 'A4 组图' : '独立单图')
+              : (it.figPanel ? `${it.figGroup} · ${it.figPanel}` : it.figGroup);
+            const dimHtml = it.f.dim_mm
+              ? `<span class="dim-pill ${it.kind === 'single' ? 'single' : ''} num">${esc(it.f.dim_mm)}</span>`
+              : '';
+            return `
+              <div class="fig-row">
+                <span class="fig-badge ${it.kind === 'single' ? 'single' : ''}">${esc(badgeTxt)}</span>
+                <div style="min-width:0;">
+                  <div style="font-weight:600;color:var(--ink-1);overflow-wrap:anywhere;">
+                    ${esc(it.f.name)}${dimHtml}
+                  </div>
+                  <div class="meta-caption num" style="font-size:13px;color:var(--ink-3);margin-top:2px;">
+                    来源目录：<span style="cursor:pointer;text-decoration:underline;" onclick="openInspector('${escAttr(it.projKey)}')">${esc(it.projName)}</span>（${esc(it.platform)}） / 路径：${esc(it.f.rel)} / 更新于 ${esc(it.f.date)} / ${it.f.size_mb.toFixed(2)} MB
+                  </div>
+                </div>
+                <div style="display:flex;gap:6px;flex-shrink:0;">
+                  <button class="mini-open ${it.kind === 'a4' ? 'html-accent' : ''}" onclick="openDeliverable('${escAttr(it.f.path)}')">${it.kind === 'a4' ? '打开 A4 组图' : '打开单图'}</button>
+                  <button class="mini-open" onclick="revealInExplorer('${escAttr(it.f.path)}')">定位</button>
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      `;
+    }
+    box.innerHTML = html;
+  }
+
+  // =========================================================
   // RENDER VIEW 3: FULL LEDGER
   // =========================================================
   function renderLedgerFilters() {
@@ -2637,7 +2976,8 @@
       { id: 'ALL', label: '全部课题' },
       { id: 'HTML', label: '含 HTML 报告' },
       { id: 'PPTX', label: '含 PPTX 演示' },
-      { id: 'PDF', label: '含 PDF 组图' },
+      { id: 'A4', label: '含 A4 整页组图' },
+      { id: 'SINGLE', label: '含 PDF 单图' },
       { id: 'STAR', label: '已置顶收藏' },
       { id: 'LOCK', label: '活跃保护中' }
     ];
@@ -2656,7 +2996,8 @@
       if (STATE.ledgerPlatform !== 'ALL' && p.platform !== STATE.ledgerPlatform) return false;
       if (STATE.ledgerType === 'HTML' && !(p.htmls && p.htmls.length)) return false;
       if (STATE.ledgerType === 'PPTX' && !(p.pptxs && p.pptxs.length)) return false;
-      if (STATE.ledgerType === 'PDF' && !(p.pdfs && p.pdfs.length)) return false;
+      if (STATE.ledgerType === 'A4' && !(p.a4_pdfs && p.a4_pdfs.length)) return false;
+      if (STATE.ledgerType === 'SINGLE' && !(p.single_pdfs && p.single_pdfs.length)) return false;
       if (STATE.ledgerType === 'STAR' && !p.starred) return false;
       if (STATE.ledgerType === 'LOCK' && !p.locked) return false;
       if (q) {
@@ -2671,7 +3012,10 @@
     document.getElementById('ledgerTbody').innerHTML = rows.slice(0, 160).map(p => {
       const topHtml = p.htmls && p.htmls[0];
       const topPptx = p.pptxs && p.pptxs[0];
-      const topPdf = p.pdfs && p.pdfs[0];
+      const a4Arr = p.a4_pdfs || [];
+      const sgArr = p.single_pdfs || [];
+      const topA4 = a4Arr[0];
+      const topSg = sgArr[0];
       const tName = tMap[p.topic_id] ? cleanLabel(tMap[p.topic_id].short) : p.topic_id;
       return `
         <tr onclick="openInspector('${escAttr(p.key)}')">
@@ -2690,7 +3034,8 @@
             <div style="display:flex;gap:6px;flex-wrap:wrap;">
               ${topHtml ? `<button class="mini-open html-accent" onclick="openDeliverable('${escAttr(topHtml.path)}')">HTML (${p.htmls.length})</button>` : ''}
               ${topPptx ? `<button class="mini-open" onclick="openDeliverable('${escAttr(topPptx.path)}')">PPTX (${p.pptxs.length})</button>` : ''}
-              ${topPdf ? `<button class="mini-open" onclick="openDeliverable('${escAttr(topPdf.path)}')">PDF (${p.pdfs.length})</button>` : ''}
+              ${topA4 ? `<button class="mini-open a4-accent" onclick="openDeliverable('${escAttr(topA4.path)}')">A4组图 (${a4Arr.length})</button>` : ''}
+              ${topSg ? `<button class="mini-open" onclick="openInspector('${escAttr(p.key)}')">单图 (${sgArr.length})</button>` : ''}
             </div>
           </td>
         </tr>
@@ -2723,10 +3068,16 @@
   // =========================================================
   // INSPECTOR DRAWER & ACTIONS
   // =========================================================
+  function setDrawerSort(mode) {
+    STATE.drawerSortMode = mode;
+    if (STATE.inspectorKey) openInspector(STATE.inspectorKey);
+  }
+
   function openInspector(key) {
     if (!HUB) return;
     const p = HUB.projects.find(x => x.key === key);
     if (!p) return;
+    if (STATE.inspectorKey !== key) STATE.drawerExpandSingle = false;
     STATE.inspectorKey = key;
 
     document.getElementById('drawerBadges').innerHTML = `
@@ -2736,49 +3087,86 @@
     `;
     document.getElementById('drawerTitle').textContent = p.name;
 
-    const renderFiles = (arr, btnLabel) => {
-      if (!arr || !arr.length) return `<div style="font-size:var(--fs-sub);color:var(--ink-3);">暂无此类交付物</div>`;
-      return arr.slice(0, 25).map(f => `
-        <div class="file-item">
-          <div style="min-width:0;flex:1;">
-            <div class="file-item-name">${esc(f.title || f.name)}</div>
-            <div class="file-item-sub meta-caption num">${esc(f.rel)} / ${f.size_mb.toFixed(2)} MB / ${esc(f.date)}</div>
-          </div>
-          <div style="display:flex;gap:6px;flex-shrink:0;">
-            <button class="mini-open html-accent" onclick="openDeliverable('${escAttr(f.path)}')">${btnLabel}</button>
-            <button class="mini-open" onclick="revealInExplorer('${escAttr(f.path)}')">定位</button>
-          </div>
-        </div>
-      `).join('');
+    const sortPdfArr = (arr) => {
+      const copy = (arr || []).slice();
+      if (STATE.drawerSortMode === 'fig') {
+        copy.sort((a, b) => ((a.fig_order ?? 90) - (b.fig_order ?? 90)) || String(a.fig_panel || '').localeCompare(String(b.fig_panel || '')) || (b.mtime - a.mtime));
+      } else {
+        copy.sort((a, b) => b.mtime - a.mtime);
+      }
+      return copy;
     };
 
+    const renderFiles = (arr, btnLabel, isPdf, limitCnt) => {
+      if (!arr || !arr.length) return `<div style="font-size:var(--fs-sub);color:var(--ink-3);">当前目录暂无此类文件</div>`;
+      const sorted = isPdf ? sortPdfArr(arr) : arr;
+      const shown = limitCnt ? sorted.slice(0, limitCnt) : sorted;
+      return shown.map(f => {
+        const figBadge = isPdf && f.fig_group && f.fig_group !== '专题与汇总图'
+          ? `<span class="spot-badge" style="padding:1px 6px;margin-right:6px;">${esc(f.fig_panel ? f.fig_group + '·' + f.fig_panel : f.fig_group)}</span>`
+          : '';
+        const dimBadge = isPdf && f.dim_mm
+          ? `<span class="plat-tag num" style="margin-left:6px;">${esc(f.dim_mm)}</span>`
+          : '';
+        return `
+          <div class="file-item">
+            <div style="min-width:0;flex:1;">
+              <div class="file-item-name">${figBadge}${esc(f.title || f.name)}${dimBadge}</div>
+              <div class="file-item-sub meta-caption num">${esc(f.rel)} / ${f.size_mb.toFixed(2)} MB / ${esc(f.date)}</div>
+            </div>
+            <div style="display:flex;gap:6px;flex-shrink:0;">
+              <button class="mini-open html-accent" onclick="openDeliverable('${escAttr(f.path)}')">${btnLabel}</button>
+              <button class="mini-open" onclick="revealInExplorer('${escAttr(f.path)}')">定位</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    };
+
+    const a4List = p.a4_pdfs || [];
+    const sgList = p.single_pdfs || [];
+    const sgLimit = STATE.drawerExpandSingle ? sgList.length : 12;
     const resumePrompt = `请继续推进课题「${p.name}」，本地产物目录为 \`${p.path}\`，请先核对目录内最新报告与图面定稿后再继续。`;
 
     document.getElementById('drawerBody').innerHTML = `
-      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px;">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">
         <button class="deliv-btn ${p.starred ? 'primary-html' : 'ghost'}" onclick="toggleStar('${escAttr(p.key)}')">
-          ${p.starred ? '已置顶收藏（点击取消）' : '置顶收藏该课题'}
+          ${p.starred ? '已置顶收藏（点击取消）' : '置顶收藏'}
         </button>
-        <button class="deliv-btn ghost" onclick="revealInExplorer('${escAttr(p.path)}')">在资源管理器中打开目录</button>
-        <button class="deliv-btn ghost" onclick="copyText('${escAttr(p.path)}', '已复制完整目录路径')">复制绝对路径</button>
-        <button class="deliv-btn ghost" onclick="copyText('${escAttr(resumePrompt)}', '已复制跨会话续写话术')">复制续写开场话术</button>
+        <button class="deliv-btn ghost" onclick="revealInExplorer('${escAttr(p.path)}')">打开文件夹</button>
+        <button class="deliv-btn ghost" onclick="copyText('${escAttr(p.path)}', '已复制完整目录路径')">复制路径</button>
+        <button class="deliv-btn ghost" onclick="closeInspector();STATE.figsTopicId='${escAttr(p.topic_id)}';STATE.figKind='a4';switchView('figures')">查本课题全部 A4 组图</button>
       </div>
 
-      <div class="code-line" style="margin-bottom:20px;">${esc(p.path)}</div>
+      <div class="code-line" style="margin-bottom:16px;">${esc(p.path)}</div>
+
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+        <span style="font-size:13.5px;color:var(--ink-2);font-weight:600;">图表排序方式：</span>
+        <div class="seg-box">
+          <button class="seg-btn ${STATE.drawerSortMode === 'fig' ? 'active' : ''}" onclick="setDrawerSort('fig')">按 Fig 图号排</button>
+          <button class="seg-btn ${STATE.drawerSortMode === 'date' ? 'active' : ''}" onclick="setDrawerSort('date')">按修改时间排</button>
+        </div>
+      </div>
 
       <div class="drawer-sec">
         <div class="drawer-sec-title">交互式解读报告 HTML (${(p.htmls || []).length})</div>
-        ${renderFiles(p.htmls, '打开报告')}
+        ${renderFiles(p.htmls, '打开报告', false, 15)}
       </div>
 
       <div class="drawer-sec">
         <div class="drawer-sec-title">组图演示汇报 PPTX (${(p.pptxs || []).length})</div>
-        ${renderFiles(p.pptxs, '打开 PPT')}
+        ${renderFiles(p.pptxs, '打开 PPT', false, 10)}
       </div>
 
       <div class="drawer-sec">
-        <div class="drawer-sec-title">出版级矢量拼图 PDF (${(p.pdfs || []).length})</div>
-        ${renderFiles(p.pdfs, '打开 PDF')}
+        <div class="drawer-sec-title" style="color:var(--accent);">整页 A4 组图与大表 PDF (${a4List.length})</div>
+        ${renderFiles(a4List, '打开 A4 图', true, 40)}
+      </div>
+
+      <div class="drawer-sec">
+        <div class="drawer-sec-title">独立单图与子面板 PDF (${sgList.length})</div>
+        ${renderFiles(sgList, '打开单图', true, sgLimit)}
+        ${sgList.length > 12 ? `<button class="mm-expand-btn" style="margin-top:8px;" onclick="STATE.drawerExpandSingle=!STATE.drawerExpandSingle;openInspector('${escAttr(p.key)}')">${STATE.drawerExpandSingle ? '收起多余单图' : `展开其余 ${sgList.length - 12} 张独立单图`}</button>` : ''}
       </div>
 
       <div class="drawer-sec">
@@ -2882,9 +3270,24 @@
         items.push({ kind: '课题目录', title: p.name, sub: `${p.platform} / ${p.sub_branch}`, key: p.key, path: null });
       }
       if (q) {
-        (p.htmls || []).concat(p.pptxs || []).concat(p.pdfs || []).forEach(f => {
+        (p.htmls || []).forEach(f => {
           if (((f.title || '') + ' ' + f.name).toLowerCase().includes(q)) {
-            items.push({ kind: '直开文件', title: f.title || f.name, sub: `${p.name} / ${f.date}`, key: p.key, path: f.path });
+            items.push({ kind: 'HTML报告', title: f.title || f.name, sub: `${p.name} / ${f.date}`, key: p.key, path: f.path });
+          }
+        });
+        (p.pptxs || []).forEach(f => {
+          if (f.name.toLowerCase().includes(q)) {
+            items.push({ kind: 'PPTX演示', title: f.name, sub: `${p.name} / ${f.date}`, key: p.key, path: f.path });
+          }
+        });
+        (p.a4_pdfs || []).forEach(f => {
+          if (((f.fig_group || '') + ' ' + f.name).toLowerCase().includes(q)) {
+            items.push({ kind: `A4组图 · ${f.fig_group || ''}`, title: f.name, sub: `${p.name} / ${f.dim_mm || ''} / ${f.date}`, key: p.key, path: f.path });
+          }
+        });
+        (p.single_pdfs || []).forEach(f => {
+          if (((f.fig_group || '') + ' ' + (f.fig_panel || '') + ' ' + f.name).toLowerCase().includes(q)) {
+            items.push({ kind: `PDF单图 · ${f.fig_group || ''}${f.fig_panel ? '·'+f.fig_panel : ''}`, title: f.name, sub: `${p.name} / ${f.dim_mm || ''} / ${f.date}`, key: p.key, path: f.path });
           }
         });
       }
@@ -2962,6 +3365,12 @@
     const initScale = params.get('scale') || USER_META.ui_scale || 'normal';
     const initFont = params.get('font') || USER_META.ui_font || 'default';
     const initView = params.get('view') || 'overview';
+    const initTopic = params.get('topic');
+    if (initTopic) {
+      STATE.figsTopicId = initTopic;
+      STATE.selectedTopicId = initTopic;
+      STATE.lineageTopicId = initTopic;
+    }
 
     setParadigm(initParadigm, true);
     setFontScale(initScale, true);
