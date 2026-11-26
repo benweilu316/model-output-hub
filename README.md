@@ -58,8 +58,8 @@
 本项目直接调用 Windows 系统内置的 `.NET Framework x64 csc.exe` 编译，**零 Visual Studio 依赖**，3 秒即可打包出独立 `.exe`（UI 资源直接编译内嵌进二进制）：
 
 ```bash
-git clone https://github.com/benweilu316/-.git ModelOutputHub
-cd ModelOutputHub
+git clone https://github.com/benweilu316/model-output-hub.git
+cd model-output-hub
 python build.py
 ```
 
