@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-topic_rules.py — Universal AI Output Scanner, Topic Classifier, Deliverable Purifier & Live Session Guard
-Supports zero-config out-of-the-box clustering as well as custom rules via `custom_topics.json` or `private_profile.json`.
+topic_rules.py — Universal AI Output Scanner, Physical A4 vs Single-Panel PDF Classifier,
+Figure-Number Parser (`Fig 1..N / Fig S1..N / Table / GA`), and Live Session Guard.
 """
 import datetime as _dt
 import glob
@@ -13,10 +13,17 @@ import shutil
 import subprocess
 import time
 
+try:
+    import fitz as _fitz
+    HAS_FITZ = True
+except ImportError:
+    HAS_FITZ = False
+
 HUB_APP_DIR = pathlib.Path(__file__).resolve().parent
 MODEL_OUT_ROOT = pathlib.Path(os.environ.get("MODEL_OUTPUT_ROOT") or HUB_APP_DIR.parent)
 USER_META_FILE = HUB_APP_DIR / "user_meta.json"
 SCAN_CACHE_FILE = HUB_APP_DIR / "scan_cache.json"
+PDF_DIM_CACHE_FILE = HUB_APP_DIR / "pdf_dim_cache.json"
 
 DEFAULT_PLATFORM_DIRS = [
     ("claude输出", "Claude", "#713E50"),
@@ -74,7 +81,6 @@ DEFAULT_RULES = [
 
 
 def load_profile_config() -> dict:
-    """Load `private_profile.json` or `custom_topics.json` if present, otherwise use universal defaults."""
     for fn in ("private_profile.json", "custom_topics.json"):
         fp = HUB_APP_DIR / fn
         if fp.is_file():
@@ -101,20 +107,184 @@ TOPIC_BY_ID = {t["id"]: t for t in TOPICS}
 PLATFORM_DIRS = DEFAULT_PLATFORM_DIRS
 PLATFORM_MAP = {k: (label, color) for k, label, color in PLATFORM_DIRS}
 
-NOISE_DIR_PAT = re.compile(
+# Strictly noise/backup directories to skip for deliverables (note: `panels` is NO LONGER discarded here so single-panel PDFs are captured cleanly!)
+HARD_NOISE_DIR_PAT = re.compile(
     r"^(?:_backups?|backups?|_snapshots?|snapshots?|\.archive.*|_archive.*|_draft_fail|"
-    r"__pycache__|\.git|node_modules|render.*|inspect.*|panels.*|panel_pngs.*|"
-    r"offslide_imgs|lint_pages|checker_pngs|_slides_.*|_workroom|_probe.*|qa.*|logs)$",
+    r"__pycache__|\.git|node_modules|render.*|inspect.*|panel_pngs.*|"
+    r"offslide_imgs|lint_pages|checker_pngs|_slides_.*|_workroom|_probe.*|qa.*|logs|原版配色备份.*|_全量.*备份.*)$",
     re.I,
 )
 BACKUP_SIZE_DIR_PAT = re.compile(
-    r"(?:^|_)(?:backups?|snapshots?|archive|pre_edit|rejected|render|inspect|panels_600dpi|offslide_imgs)(?:_|$)|^\.archive",
+    r"(?:^|_)(?:backups?|snapshots?|archive|pre_edit|rejected|render|inspect|panels_600dpi|offslide_imgs)(?:_|$)|^\.archive|备份",
     re.I,
 )
-SLICE_PDF_PAT = re.compile(
-    r"(?:_notag|_noletter|_panel_[a-z0-9]+|_[a-z])$",
-    re.I,
-)
+PANEL_SUBDIR_PAT = re.compile(r"^(?:panels?|pdf_panels?|single_panels?|单面板.*|.*单图.*)$", re.I)
+INTERMEDIATE_SLICE_PAT = re.compile(r"(?:_notag|_noletter|_raw_tmp|_NA)$", re.I)
+
+
+def load_pdf_dim_cache() -> dict:
+    if PDF_DIM_CACHE_FILE.is_file():
+        try:
+            return json.loads(PDF_DIM_CACHE_FILE.read_text(encoding="utf-8-sig"))
+        except Exception:
+            pass
+    return {}
+
+
+def save_pdf_dim_cache(cache: dict) -> None:
+    try:
+        HUB_APP_DIR.mkdir(parents=True, exist_ok=True)
+        PDF_DIM_CACHE_FILE.write_text(json.dumps(cache, ensure_ascii=False), encoding="utf-8")
+    except Exception:
+        pass
+
+
+def get_pdf_physical_info(fp: pathlib.Path, st_mtime: float, st_size: int, dim_cache: dict) -> tuple[float, float, int]:
+    """Return (width_mm, height_mm, page_count) with fast persistent caching."""
+    key = f"{fp}|{int(st_mtime)}|{st_size}"
+    hit = dim_cache.get(key)
+    if hit:
+        return hit[0], hit[1], hit[2]
+
+    w_mm, h_mm, pages = 0.0, 0.0, 1
+    if HAS_FITZ:
+        try:
+            doc = _fitz.open(fp)
+            pages = len(doc)
+            if pages > 0:
+                rc = doc[0].rect
+                w_mm = round(rc.width * 25.4 / 72.0, 1)
+                h_mm = round(rc.height * 25.4 / 72.0, 1)
+            doc.close()
+        except Exception:
+            pass
+
+    if w_mm <= 0:
+        try:
+            with open(fp, "rb") as f:
+                b = f.read(8192)
+                if st_size > 8192:
+                    f.seek(max(0, st_size - 8192))
+                    b += f.read(8192)
+            boxes = re.findall(rb"/MediaBox\s*\[\s*([-\d.]+)\s+([-\d.]+)\s+([-\d.]+)\s+([-\d.]+)\s*\]", b)
+            if boxes:
+                x0, y0, x1, y1 = [float(v) for v in boxes[0]]
+                w_mm = round(abs(x1 - x0) * 25.4 / 72.0, 1)
+                h_mm = round(abs(y1 - y0) * 25.4 / 72.0, 1)
+        except Exception:
+            pass
+
+    dim_cache[key] = [w_mm, h_mm, pages]
+    return w_mm, h_mm, pages
+
+
+def parse_figure_tag(filename: str, rel_path: str) -> tuple[str, str, int]:
+    """
+    Extract canonical `(fig_group, fig_panel, fig_order)` from filename or parent path.
+    Order:
+      GA / Graphical Abstract -> 0
+      Fig 1 .. Fig 19         -> 1 .. 19
+      专题与汇总图              -> 90
+      Fig S1 .. Fig S20       -> 101 .. 120
+      Table 1 .. Table 9      -> 181 .. 189
+      Table S1 .. Table S15   -> 201 .. 215
+    """
+    stem = pathlib.Path(filename).stem
+    combined = f"{rel_path} {stem}"
+
+    # 1) Graphical Abstract / Fig 0
+    if re.search(r"(?:graphical[_\s-]*abstract|图形摘要|(?<![a-z0-9])ga(?![a-z0-9])|fig[_\s-]*0\b)", combined, re.I):
+        return "GA 图形摘要", "", 0
+
+    # 2) Supplementary Table S1..S15
+    m_ts = re.search(r"(?:table|tab|表)[_\s-]*s(\d+)", combined, re.I)
+    if m_ts:
+        n = int(m_ts.group(1))
+        return f"Table S{n}", "", 200 + n
+
+    # 3) Main Table 1..9
+    m_tm = re.search(r"(?:table|tab|表)[_\s-]*(\d+)", combined, re.I)
+    if m_tm:
+        n = int(m_tm.group(1))
+        return f"Table {n}", "", 180 + n
+
+    # 4) Supplementary Figure: Fig S1..S20 / 图S1..S20 / Extended Data Fig
+    m_fs = re.search(
+        r"(?:fig(?:ure)?|图|extended[_\s-]*data[_\s-]*fig(?:ure)?)[_\s-]*s(\d+)(?:[_\s.-]*(?:panel[_\s-]*)?([a-z]{1,2})(?![a-z]))?",
+        stem, re.I
+    )
+    if not m_fs:
+        m_fs = re.search(r"(?:fig(?:ure)?|图)[_\s-]*s(\d+)", rel_path, re.I)
+        if m_fs:
+            n = int(m_fs.group(1))
+            mp = re.search(r"(?:panel[_\s-]*|_ )?([A-Z])(?:\b|_)", stem)
+            p_let = mp.group(1).upper() if mp else ""
+            return f"Fig S{n}", p_let, 100 + n
+    if m_fs:
+        n = int(m_fs.group(1))
+        raw_p = (m_fs.group(2) or "").upper() if m_fs.lastindex and m_fs.lastindex >= 2 else ""
+        # Avoid mistaking words like 'stg' or 'all' as panel letters
+        if len(raw_p) == 2 and raw_p not in ("AD", "AB", "BC", "CD", "EF", "FG", "GH", "HI", "IJ", "JK", "KL", "MN"):
+            raw_p = ""
+        # Check trailing _A .. _R panel suffix if raw_p empty
+        if not raw_p:
+            mt_end = re.search(r"(?:_panel_|_)([A-Z])$", stem)
+            if mt_end:
+                raw_p = mt_end.group(1)
+        return f"Fig S{n}", raw_p, 100 + n
+
+    # 5) Main Figure: Fig 1..19 / 图1..19
+    m_fm = re.search(
+        r"(?:fig(?:ure)?|图)[_\s-]*(\d+)(?:[_\s.-]*(?:panel[_\s-]*)?([a-z]{1,3})(?![a-z]))?",
+        stem, re.I
+    )
+    if not m_fm:
+        m_fm = re.search(r"(?:fig(?:ure)?|图)[_\s-]*(\d+)", rel_path, re.I)
+        if m_fm:
+            n = int(m_fm.group(1))
+            mt_end = re.search(r"(?:panel[_\s-]*|_)([A-Z])$", stem, re.I)
+            return f"Fig {n}", (mt_end.group(1).upper() if mt_end else ""), n
+    if m_fm:
+        n = int(m_fm.group(1))
+        raw_p = (m_fm.group(2) or "").upper() if m_fm.lastindex and m_fm.lastindex >= 2 else ""
+        if len(raw_p) >= 2 and raw_p not in ("AD", "AB", "BC", "CD", "EF", "FG", "FGH", "GH", "HI", "IJ", "IJK", "JK", "KL", "MN"):
+            raw_p = ""
+        if not raw_p:
+            mt_end = re.search(r"(?:_panel_|_)([A-Z])$", stem)
+            if mt_end:
+                raw_p = mt_end.group(1)
+        return f"Fig {n}", raw_p, n
+
+    # 6) Standalone panel_A.pdf inside a project
+    m_pan = re.search(r"(?:^|_)panel[_\s-]*([A-Z])$", stem, re.I)
+    if m_pan:
+        return "独立子面板", m_pan.group(1).upper(), 95
+
+    return "专题与汇总图", "", 90
+
+
+def is_full_page_a4_pdf(w_mm: float, h_mm: float, pages: int, stem: str, in_panel_dir: bool) -> bool:
+    """
+    Determine whether a PDF is a true multi-panel assembled A4 / Full-Slide figure
+    vs a single-panel / cropped sub-figure.
+    """
+    if in_panel_dir and re.search(r"_[A-Z]$|panel_[A-Z]", stem):
+        return False
+    if w_mm > 0 and h_mm > 0:
+        short_side = min(w_mm, h_mm)
+        long_side = max(w_mm, h_mm)
+        # Standard A4 (210x297), Letter (216x279), PPT Slide Full-Page (190.5x275.1), Full Table (186x231+)
+        if short_side >= 165.0 and long_side >= 225.0:
+            return True
+        if pages >= 2 and long_side >= 180.0 and short_side >= 120.0:
+            return True
+        return False
+    # Fallback when PDF parser unavailable
+    if in_panel_dir:
+        return False
+    if re.search(r"(?:_a4\b|a4拼图|整页|汇总|all_figs)", stem, re.I):
+        return True
+    return False
 
 
 def load_user_meta() -> dict:
@@ -132,7 +302,6 @@ def save_user_meta(meta: dict) -> None:
 
 
 def classify_project(name: str, parent_group: str = "", rel_key: str = "", user_overrides: dict = None) -> tuple[str, str]:
-    """Return (topic_id, sub_branch_name) based on user overrides or profile rules."""
     if user_overrides and rel_key in user_overrides:
         ov = user_overrides[rel_key]
         if isinstance(ov, dict) and ov.get("topic_id") in TOPIC_BY_ID:
@@ -169,12 +338,6 @@ def extract_version_sort_key(name: str, mtime: float) -> tuple:
 
 
 def get_active_locks(heartbeat_sec: int = 7200) -> dict:
-    """
-    Triple non-intrusive active session lock detection:
-      1) Live Herdr CLI running panes (if installed)
-      2) Unfinished handoff STATE.md references (if configured)
-      3) Recent file write heartbeat within `heartbeat_sec` (default 2 hours)
-    """
     now = time.time()
     locked = {}
 
@@ -333,7 +496,7 @@ def _infer_platform_info(platform_dir: str) -> tuple[str, str]:
     return (clean[:12] or "本地归档"), "#5C6B57"
 
 
-def scan_single_project_dir(pdir: pathlib.Path, platform_dir: str, parent_group: str, user_meta: dict, lock_info: dict, now_ts: float) -> dict:
+def scan_single_project_dir(pdir: pathlib.Path, platform_dir: str, parent_group: str, user_meta: dict, lock_info: dict, now_ts: float, dim_cache: dict) -> dict:
     rel_key = str(pdir.relative_to(MODEL_OUT_ROOT)).replace("\\", "/")
     overrides = user_meta.get("topic_overrides") or user_meta.get("overrides") or {}
     topic_id, sub_branch = classify_project(pdir.name, parent_group, rel_key, overrides)
@@ -345,7 +508,7 @@ def scan_single_project_dir(pdir: pathlib.Path, platform_dir: str, parent_group:
     latest_mtime = 0.0
     latest_rel_file = ""
 
-    htmls, pptxs, pdfs, docs = [], [], [], []
+    htmls, pptxs, raw_a4_pdfs, raw_single_pdfs, docs = [], [], [], [], []
 
     for root, dirs, files in os.walk(pdir):
         rp = pathlib.Path(root)
@@ -357,7 +520,8 @@ def scan_single_project_dir(pdir: pathlib.Path, platform_dir: str, parent_group:
             except Exception:
                 pass
         rel_parts = rp.relative_to(pdir).parts
-        in_backup_or_noise = any(NOISE_DIR_PAT.match(pt) or BACKUP_SIZE_DIR_PAT.search(pt) for pt in rel_parts)
+        in_hard_noise = any(HARD_NOISE_DIR_PAT.match(pt) or BACKUP_SIZE_DIR_PAT.search(pt) for pt in rel_parts)
+        in_panel_dir = any(PANEL_SUBDIR_PAT.match(pt) for pt in rel_parts)
         depth = len(rel_parts)
 
         for fn in files:
@@ -372,48 +536,79 @@ def scan_single_project_dir(pdir: pathlib.Path, platform_dir: str, parent_group:
             mt = st.st_mtime
             total_files += 1
             total_bytes += sz
-            if in_backup_or_noise or fn.endswith((".b64", ".tgz", ".bak", ".pyc", ".log")):
+            if in_hard_noise or fn.endswith((".b64", ".tgz", ".bak", ".pyc", ".log")):
                 cache_bytes += sz
             if mt > latest_mtime and not fn.endswith(".pyc"):
                 latest_mtime = mt
                 latest_rel_file = str(fp.relative_to(pdir)).replace("\\", "/")
 
-            if in_backup_or_noise or depth > 3 or sz == 0:
+            if in_hard_noise or depth > 4 or sz == 0:
                 continue
 
             ext = fp.suffix.lower()
             stem = fp.stem
+            rel_str = str(fp.relative_to(pdir)).replace("\\", "/")
             item_base = {
                 "name": fn,
                 "path": str(fp),
-                "rel": str(fp.relative_to(pdir)).replace("\\", "/"),
+                "rel": rel_str,
                 "size_mb": round(sz / 1048576.0, 2),
                 "mtime": mt,
                 "date": _dt.datetime.fromtimestamp(mt).strftime("%Y-%m-%d %H:%M"),
             }
-            if ext in (".html", ".htm"):
+            if ext in (".html", ".htm") and depth <= 3:
                 item_base["title"] = _extract_html_title(fp)
                 htmls.append(item_base)
-            elif ext == ".pptx":
+            elif ext == ".pptx" and depth <= 3:
                 pptxs.append(item_base)
             elif ext == ".pdf":
-                if SLICE_PDF_PAT.search(stem):
+                if INTERMEDIATE_SLICE_PAT.search(stem):
                     continue
-                if depth <= 2 and (
-                    re.search(r"(?:fig|s\d+|a4|组图|整页|汇总|table|简历|终版|定稿|卡通|abstract|report|summary|deck|slides)", stem, re.I)
-                    or depth == 0
-                ):
-                    pdfs.append(item_base)
-            elif ext in (".docx", ".xlsx") or (
-                ext in (".md", ".txt")
-                and depth <= 2
-                and re.search(r"(?:legend|图注|稿件|manuscript|blueprint|蓝图|台账|readme|summary)", stem, re.I)
+                w_mm, h_mm, pages = get_pdf_physical_info(fp, mt, sz, dim_cache)
+                fig_group, fig_panel, fig_order = parse_figure_tag(fn, rel_str)
+                dim_label = f"{int(round(w_mm))}×{int(round(h_mm))}mm" if w_mm > 0 and h_mm > 0 else ""
+                if pages > 1 and dim_label:
+                    dim_label += f" ({pages}p)"
+
+                item_base["dim_mm"] = dim_label
+                item_base["fig_group"] = fig_group
+                item_base["fig_panel"] = fig_panel
+                item_base["fig_order"] = fig_order
+                item_base["_depth"] = depth
+                item_base["_sz"] = sz
+
+                if is_full_page_a4_pdf(w_mm, h_mm, pages, stem, in_panel_dir):
+                    item_base["kind"] = "a4"
+                    raw_a4_pdfs.append(item_base)
+                else:
+                    item_base["kind"] = "single"
+                    raw_single_pdfs.append(item_base)
+            elif depth <= 2 and (
+                ext in (".docx", ".xlsx")
+                or (ext in (".md", ".txt") and re.search(r"(?:legend|图注|稿件|manuscript|blueprint|蓝图|台账|readme|summary)", stem, re.I))
             ):
                 docs.append(item_base)
 
+    # Deduplicate identical PDF copies within the same project (keep shallowest / newest copy)
+    def dedup_pdfs(arr: list[dict], limit: int) -> list[dict]:
+        arr.sort(key=lambda x: (x["_depth"], -x["mtime"]))
+        seen_sig = set()
+        out = []
+        for it in arr:
+            sig = (it["name"].lower(), it["_sz"])
+            if sig in seen_sig:
+                continue
+            seen_sig.add(sig)
+            it.pop("_depth", None)
+            it.pop("_sz", None)
+            out.append(it)
+        out.sort(key=lambda x: x["mtime"], reverse=True)
+        return out[:limit]
+
+    a4_pdfs = dedup_pdfs(raw_a4_pdfs, 40)
+    single_pdfs = dedup_pdfs(raw_single_pdfs, 60)
     htmls.sort(key=lambda x: x["mtime"], reverse=True)
     pptxs.sort(key=lambda x: x["mtime"], reverse=True)
-    pdfs.sort(key=lambda x: x["mtime"], reverse=True)
     docs.sort(key=lambda x: x["mtime"], reverse=True)
 
     if latest_mtime <= 0:
@@ -469,16 +664,21 @@ def scan_single_project_dir(pdir: pathlib.Path, platform_dir: str, parent_group:
         "lock_gen": lock_hit.get("gen", ""),
         "starred": starred,
         "note": note,
-        "htmls": htmls[:8],
-        "pptxs": pptxs[:6],
-        "pdfs": pdfs[:12],
+        "htmls": htmls[:10],
+        "pptxs": pptxs[:8],
+        "a4_pdfs": a4_pdfs,
+        "single_pdfs": single_pdfs,
+        "pdfs": (a4_pdfs + single_pdfs)[:20],
         "docs": docs[:8],
         "counts": {
             "html": len(htmls),
             "pptx": len(pptxs),
-            "pdf": len(pdfs),
+            "a4_pdf": len(a4_pdfs),
+            "single_pdf": len(single_pdfs),
+            "pdf": len(a4_pdfs) + len(single_pdfs),
             "doc": len(docs),
         },
+        "_schema_ver": 2,
     }
 
 
@@ -486,6 +686,8 @@ def scan_all_projects(use_cache: bool = True) -> dict:
     t0 = time.time()
     user_meta = load_user_meta()
     lock_info = get_active_locks()
+    dim_cache = load_pdf_dim_cache()
+    dim_cache_before = len(dim_cache)
     now_ts = time.time()
 
     old_cache = {}
@@ -493,7 +695,8 @@ def scan_all_projects(use_cache: bool = True) -> dict:
         try:
             raw_c = json.loads(SCAN_CACHE_FILE.read_text(encoding="utf-8-sig"))
             for p in raw_c.get("projects", []):
-                old_cache[p["path"]] = p
+                if p.get("_schema_ver") == 2:
+                    old_cache[p["path"]] = p
         except Exception:
             old_cache = {}
 
@@ -531,7 +734,7 @@ def scan_all_projects(use_cache: bool = True) -> dict:
             projects.append(cached)
             return
 
-        rec = scan_single_project_dir(pdir, platform_dir, parent_group, user_meta, lock_info, now_ts)
+        rec = scan_single_project_dir(pdir, platform_dir, parent_group, user_meta, lock_info, now_ts, dim_cache)
         rec["_dir_mtime"] = d_mt
         projects.append(rec)
 
@@ -539,7 +742,6 @@ def scan_all_projects(use_cache: bool = True) -> dict:
     discovered_plat_dirs = []
     seen_pnames = set()
 
-    # Discover configured + any `<name>输出` / `<name>_output` directories
     for p_name, _, _ in PLATFORM_DIRS:
         if (MODEL_OUT_ROOT / p_name).is_dir():
             discovered_plat_dirs.append(p_name)
@@ -570,7 +772,6 @@ def scan_all_projects(use_cache: bool = True) -> dict:
                 else:
                     process_dir(child, plat_dir_name, parent_group="")
     else:
-        # Flat mode: user dropped 模型输出管家.exe directly into a flat folder of project directories
         for child in sorted(MODEL_OUT_ROOT.iterdir(), key=lambda x: x.name.lower()):
             if child.is_dir() and not child.name.startswith(("00_", "_", ".")):
                 process_dir(child, "本地项目", parent_group="")
@@ -592,6 +793,9 @@ def scan_all_projects(use_cache: bool = True) -> dict:
                     "path": str(child),
                     "size_mb": round(sz / 1048576.0, 2),
                 })
+
+    if len(dim_cache) != dim_cache_before:
+        save_pdf_dim_cache(dim_cache)
 
     projects.sort(key=lambda x: extract_version_sort_key(x["name"], x["mtime"]), reverse=True)
 
@@ -618,6 +822,8 @@ def scan_all_projects(use_cache: bool = True) -> dict:
             "starred_count": sum(1 for x in t_projs if x["starred"]),
             "html_count": sum(x["counts"]["html"] for x in t_projs),
             "pptx_count": sum(x["counts"]["pptx"] for x in t_projs),
+            "a4_pdf_count": sum(x["counts"]["a4_pdf"] for x in t_projs),
+            "single_pdf_count": sum(x["counts"]["single_pdf"] for x in t_projs),
             "pdf_count": sum(x["counts"]["pdf"] for x in t_projs),
             "size_mb": round(sum(x["size_mb"] for x in t_projs), 1),
             "cache_mb": round(sum(x["cache_mb"] for x in t_projs), 1),
@@ -633,9 +839,11 @@ def scan_all_projects(use_cache: bool = True) -> dict:
             "total_projects": len(projects),
             "locked_projects": sum(1 for p in projects if p["locked"]),
             "starred_projects": sum(1 for p in projects if p["starred"]),
-            "total_html": sum(p["counts"]["html"] for p in projects),
-            "total_pptx": sum(p["counts"]["pptx"] for p in projects),
-            "total_pdf": sum(p["counts"]["pdf"] for p in projects),
+            "total_html": sum(p["counts"]["html"] for x in projects for p in [x]),
+            "total_pptx": sum(p["counts"]["pptx"] for x in projects for p in [x]),
+            "total_a4_pdf": sum(p["counts"]["a4_pdf"] for x in projects for p in [x]),
+            "total_single_pdf": sum(p["counts"]["single_pdf"] for x in projects for p in [x]),
+            "total_pdf": sum(p["counts"]["pdf"] for x in projects for p in [x]),
             "total_size_gb": round(sum(p["size_mb"] for p in projects) / 1024.0, 2),
             "total_cache_gb": round(sum(p["cache_mb"] for p in projects) / 1024.0, 2),
             "dup_size_mb": round(sum(d["size_mb"] for d in duplicates_info), 1),
@@ -656,4 +864,5 @@ def scan_all_projects(use_cache: bool = True) -> dict:
 
 if __name__ == "__main__":
     res = scan_all_projects(use_cache=False)
-    print(f"Scanned {res['summary']['total_projects']} projects in {res['scan_ms']} ms.")
+    s = res["summary"]
+    print(f"Scanned {s['total_projects']} projects in {res['scan_ms']} ms | A4={s['total_a4_pdf']} | Single={s['total_single_pdf']}")
